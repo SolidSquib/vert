@@ -205,7 +205,6 @@ public:
 	AVertCharacter(const class FObjectInitializer& ObjectInitializer);
 
 	void RegisterGrappleHook(class AGrappleHook* hook);
-	bool IsTouchingGround();
 
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -240,6 +239,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Thumbsticks)
 	FORCEINLINE FVector2D GetPlayerRightThumbstickDirection2D() const { return (FVector2D(mThumbstickPositions.RightX, mThumbstickPositions.RightY) * 100).GetSafeNormal(); }
+
+	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
+	bool IsGrounded() const;
 
 protected:
 	/** Called to choose the correct animation to play based on the character's movement state */

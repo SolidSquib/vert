@@ -418,7 +418,7 @@ void AVertCharacter::RegisterGrappleHook(AGrappleHook* hook)
 	}
 }
 
-bool AVertCharacter::IsTouchingGround()
+bool AVertCharacter::IsGrounded() const
 {
 	FFindFloorResult findFloorResult;
 	GetCharacterMovement()->FindFloor(GetActorLocation(), findFloorResult, false);
