@@ -1,0 +1,10 @@
+/*.db
+/Binaries/Win64/*.pdb
+/Binaries/Win64/*.hotreload
+/Binaries/Win64/*.modules
+/Binaries/Win64/*.target
+/.vs
+/*.sln
+/Saved
+/Binaries/Win64/UE4Editor-Vert-Win64-DebugGame.dll
+/Intermediate
