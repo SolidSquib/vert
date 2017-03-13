@@ -15,6 +15,7 @@ AGrappleHook::AGrappleHook()
 	SphereCollider->InitSphereRadius(5.0f);
 	SphereCollider->BodyInstance.SetCollisionProfileName("GrappleHook");
 	SphereCollider->OnComponentHit.AddDynamic(this, &AGrappleHook::OnHit);
+	SphereCollider->OnComponentBeginOverlap.AddDynamic(this, &AGrappleHook::OnBeginOverlap);
 
 	SphereCollider->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
 	SphereCollider->CanCharacterStepUpOn = ECB_No;
@@ -127,6 +128,14 @@ void AGrappleHook::Reel()
 
 void AGrappleHook::Sheathe()
 {
+	if (mGrappleState == EGrappleState::Latched)
+	{
+		OnUnLatched.Broadcast(this);
+
+		if (!ProjectileMovement->UpdatedComponent)
+			ProjectileMovement->SetUpdatedComponent(RootComponent);
+	}
+
 	mGrappleState = EGrappleState::Sheathed;
 
 	if (AGrappleLauncher* launcher = GetOwnerAsGrappleLauncher())
@@ -169,7 +178,8 @@ void AGrappleHook::UnHook()
 
 		SphereCollider->Activate();
 
-		ProjectileMovement->SetUpdatedComponent(RootComponent);
+		if(!ProjectileMovement->UpdatedComponent)
+			ProjectileMovement->SetUpdatedComponent(RootComponent);
 
 		Reel();
 	}
@@ -185,11 +195,13 @@ void AGrappleHook::Pull()
 			diff.Y = 0;
 			FVector direction = (diff * 100).GetSafeNormal();
 
+			OnPull.Broadcast(direction, launcher->GrappleConfig.ReelSpeed);
 			character->LaunchCharacter(direction * (launcher->GrappleConfig.ReelSpeed/**GetWorld()->GetDeltaSeconds()*/), true, true);
 
 			if (mHookAttachment.Actor.IsValid() && mHookAttachment.Component.IsValid())
 			{
-				mHookAttachment.Component->AddForceAtLocation(launcher->GrappleConfig.ReelSpeed * -direction, GetActorLocation());
+				if(mHookAttachment.Component->Mobility == EComponentMobility::Movable)
+					mHookAttachment.Component->AddForceAtLocation(launcher->GrappleConfig.ReelSpeed * -direction, GetActorLocation());
 			}
 		}
 	}
@@ -241,5 +253,14 @@ void AGrappleHook::OnHit(class UPrimitiveComponent* HitComp, AActor* OtherActor,
 		}
 
 		SphereCollider->Deactivate();
+	}
+}
+
+void AGrappleHook::OnBeginOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult)
+{
+	if (mGrappleState == EGrappleState::Hooked)
+	{
+		mGrappleState = EGrappleState::Latched;
+		OnLatched.Broadcast(this);
 	}
 }

@@ -8,3 +8,6 @@
 /Saved
 /Binaries/Win64/UE4Editor-Vert-Win64-DebugGame.dll
 /Intermediate
+*DebugGame.dll
+/*.opendb
+/Content/2DSideScrollerCPP/Maps/*.tmp0

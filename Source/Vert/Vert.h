@@ -19,7 +19,6 @@
 
 // Components
 #include "CableComponent.h"
-#include "Character/VertCharacterMovementComponent.h"
 #include "PaperFlipbookComponent.h"
 
 // Actors

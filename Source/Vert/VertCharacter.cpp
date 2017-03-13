@@ -104,8 +104,6 @@ void AVertCharacter::BeginPlay()
 
 	mRemainingGrapples = MaxGrapples;
 	mRemainingDashes = MaxDashes;
-	mGravityScale = GetCharacterMovement()->GravityScale;
-	mGroundFriction = GetCharacterMovement()->GroundFriction;
 
 	if (AController* controller = GetController())
 	{
@@ -173,7 +171,7 @@ void AVertCharacter::OnHooked_Implementation()
 {
 	if (DisableInputWhenDashingOrGrappling)
 	{
-		mDisableInput = false;
+		mDisableDash = mDisableGrapple = mDisableMovement = mDisableJump = false;
 	}
 }
 
@@ -181,7 +179,7 @@ void AVertCharacter::OnFired_Implementation()
 {
 	if (DisableInputWhenDashingOrGrappling)
 	{
-		mDisableInput = true;
+		mDisableDash = mDisableGrapple = mDisableMovement = mDisableJump = true;
 	}
 }
 
@@ -189,15 +187,23 @@ void AVertCharacter::OnReturned_Implementation()
 {
 	if (DisableInputWhenDashingOrGrappling)
 	{
-		mDisableInput = false;
+		mDisableDash = mDisableGrapple = mDisableMovement = mDisableJump = false;
 	}
+}
 
+void AVertCharacter::OnLatched_Implementation(AGrappleHook* hook)
+{
+	mDisableMovement = mDisableDash = true;
+}
 
+void AVertCharacter::OnUnLatched_Implementation(AGrappleHook* hook)
+{
+	mDisableMovement = mDisableDash = false;
 }
 
 void AVertCharacter::MoveRight(float Value)
 {
-	if (mDisableInput)
+	if (mDisableMovement)
 		return;
 
 	if (Value > 0)
@@ -211,7 +217,7 @@ void AVertCharacter::MoveRight(float Value)
 
 void AVertCharacter::Jump()
 {
-	if (mDisableInput)
+	if (mDisableJump)
 		return;
 
 	if (mGrappleLauncher.IsValid())
@@ -250,7 +256,7 @@ void AVertCharacter::LeftThumbstickMoveY(float value)
 
 void AVertCharacter::GrappleShoot()
 {
-	if (mDisableInput)
+	if (mDisableGrapple)
 		return;
 
 	APlayerController* playerController = Cast<APlayerController>(GetController());
@@ -269,7 +275,7 @@ void AVertCharacter::GrappleShoot()
 
 void AVertCharacter::GrappleShootGamepad()
 {
-	if (mDisableInput)
+	if (mDisableGrapple)
 		return;
 
 	mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(Grapple.AimFreedom, GetPlayerRightThumbstickDirection()));
@@ -277,7 +283,7 @@ void AVertCharacter::GrappleShootGamepad()
 
 void AVertCharacter::DoDash()
 {
-	if (mDisableInput)
+	if (mDisableDash)
 		return;
 
 	if (mRemainingDashes <= 0 && !ShowDebug.InfiniteDashGrapple)
@@ -286,17 +292,21 @@ void AVertCharacter::DoDash()
 	if (Dash.IsDashing)
 		return;
 
-	if (Dash.AimMode == EDashAimMode::AimDirection)
-		Dash.DirectionOfTravel = GetPlayerRightThumbstickDirection();
-	else if (Dash.AimMode == EDashAimMode::PlayerDirection)
-		Dash.DirectionOfTravel = GetPlayerLeftThumbstickDirection();
+	if (GetVertCharacterMovement()->CanDash())
+	{
+		if (Dash.AimMode == EDashAimMode::AimDirection)
+			Dash.DirectionOfTravel = GetPlayerRightThumbstickDirection();
+		else if (Dash.AimMode == EDashAimMode::PlayerDirection)
+			Dash.DirectionOfTravel = GetPlayerLeftThumbstickDirection();
 
-	Dash.DirectionOfTravel = UVertUtilities::LimitAimTrajectory(Dash.AimFreedom, Dash.DirectionOfTravel);
+		Dash.DirectionOfTravel = UVertUtilities::LimitAimTrajectory(Dash.AimFreedom, Dash.DirectionOfTravel);
 
-	Dash.IsDashing = true;
-	GetCharacterMovement()->GravityScale = Dash.DisableGravityWhenDashing ? 0.f : mGravityScale;
-	GetCharacterMovement()->GroundFriction = 0.f;
-	mRemainingDashes--;
+		Dash.IsDashing = true;
+		if (Dash.DisableGravityWhenDashing)
+			GetCharacterMovement()->GravityScale = 0.f;
+		GetCharacterMovement()->GroundFriction = 0.f;
+		mRemainingDashes--;
+	}
 }
 
 #if !UE_BUILD_SHIPPING
@@ -362,8 +372,8 @@ void AVertCharacter::TickDash(float deltaSeconds)
 
 	if (!Dash.IsDashing)
 	{
-		GetCharacterMovement()->GravityScale = mGravityScale;
-		GetCharacterMovement()->GroundFriction = mGroundFriction;
+		GetVertCharacterMovement()->LoadGravityScale();
+		GetVertCharacterMovement()->LoadGroundFriction();
 
 		if (Dash.RechargeMode == ERechargeRule::OnContactGroundOrWall || Dash.RechargeMode == ERechargeRule::OnContactGround)
 		{
@@ -415,6 +425,19 @@ void AVertCharacter::RegisterGrappleHook(AGrappleHook* hook)
 		FScriptDelegate onReturnedDelegate;
 		onReturnedDelegate.BindUFunction(this, TEXT("OnReturned"));
 		hook->OnReturned.Add(onReturnedDelegate);
+
+		FScriptDelegate onLatchedDelegate;
+		onLatchedDelegate.BindUFunction(this, TEXT("OnLatched"));
+		hook->OnLatched.Add(onLatchedDelegate);
+
+		FScriptDelegate onUnLatchedDelegate;
+		onUnLatchedDelegate.BindUFunction(this, TEXT("OnUnLatched"));
+		hook->OnUnLatched.Add(onUnLatchedDelegate);
+
+		if (UVertCharacterMovementComponent* movement = GetVertCharacterMovement())
+		{
+			movement->RegisterHookDelegates(hook);
+		}
 	}
 }
 

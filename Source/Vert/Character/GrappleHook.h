@@ -8,6 +8,9 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHookedDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFiredDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnReturnedDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLatchedDelegate, AGrappleHook*, hook);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUnLatchedDelegate, AGrappleHook*, hook);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPullDelegate, const FVector&, pullDirection, const float, pullForce);
 
 USTRUCT()
 struct FHookedActorInfo
@@ -36,6 +39,7 @@ enum class EGrappleState : uint8
 {
 	Launching,
 	Hooked,
+	Latched,
 	Reeling,
 	Sheathed
 };
@@ -54,6 +58,15 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Grappling")
 	FOnReturnedDelegate OnReturned;
+
+	UPROPERTY(BlueprintAssignable, Category = "Grappling")
+	FOnPullDelegate OnPull;
+
+	UPROPERTY(BlueprintAssignable, Category = "Grappling")
+	FOnLatchedDelegate OnLatched;
+
+	UPROPERTY(BlueprintAssignable, Category = "Grappling")
+	FOnUnLatchedDelegate OnUnLatched;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Sprite")
@@ -95,7 +108,10 @@ public:
 	FORCEINLINE EGrappleState GetGrappleState() const { return mGrappleState; }
 
 	UFUNCTION()
-		void OnHit(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	void OnHit(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+	void OnBeginOverlap(class UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult);
 
 protected:
 	FHookedActorInfo mHookAttachment;

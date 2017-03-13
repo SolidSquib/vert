@@ -5,6 +5,7 @@
 #include "PaperCharacter.h"
 #include "Engine/DebugGroup.h"
 #include "Character/GrappleLauncher.h"
+#include "Character/VertCharacterMovementComponent.h"
 #include "VertCharacter.generated.h"
 
 // This class is the default character for Vert, and it is responsible for all
@@ -171,12 +172,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Debug)
 	FCharacterDebugSettings ShowDebug;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GrappleConfig", meta = (AllowPrivateAccess = "true"))
+	FName GrappleHandSocket;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GrappleConfig", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AGrappleLauncher> GrappleClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GrappleConfig", meta = (AllowPrivateAccess = "true"))
-	FName GrappleHandSocket;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* SideViewCameraComponent;
@@ -241,6 +242,9 @@ public:
 	FORCEINLINE FVector2D GetPlayerRightThumbstickDirection2D() const { return (FVector2D(mThumbstickPositions.RightX, mThumbstickPositions.RightY) * 100).GetSafeNormal(); }
 
 	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
+	FORCEINLINE UVertCharacterMovementComponent* GetVertCharacterMovement() const { if (UVertCharacterMovementComponent* movement = Cast<UVertCharacterMovementComponent>(GetCharacterMovement())) { return movement; } return nullptr; }
+
+	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
 	bool IsGrounded() const;
 
 protected:
@@ -274,6 +278,12 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
 	void OnReturned();
 
+	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
+	void OnLatched(class AGrappleHook* hook);
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
+	void OnUnLatched(class AGrappleHook* hook);
+
 private:
 #if !UE_BUILD_SHIPPING
 	void PrintDebugInfo();
@@ -286,8 +296,8 @@ protected:
 	int32 mRemainingGrapples = 0;
 	int32 mRemainingDashes = 0;
 	ThumbstickPos mThumbstickPositions;
-	float mGravityScale = 1.f;
-	float mGroundFriction = 3.0f;
-
-	bool mDisableInput = false;
+	bool mDisableDash = false;
+	bool mDisableGrapple = false;
+	bool mDisableMovement = false;
+	bool mDisableJump = false;
 };

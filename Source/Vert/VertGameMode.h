@@ -15,4 +15,13 @@ class AVertGameMode : public AGameModeBase
 	GENERATED_BODY()
 public:
 	AVertGameMode();
+
+	virtual void BeginPlay() override;
+
+protected:
+	UFUNCTION(BlueprintNativeEvent, Category = "Input")
+	void OnControllerConnectionChange(bool connected, int32 userID, int32 controllerID);
+
+protected:
+	FDelegateHandle mOnControllerChangedHandle;
 };

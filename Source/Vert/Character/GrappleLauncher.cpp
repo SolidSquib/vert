@@ -102,6 +102,10 @@ void AGrappleLauncher::ResetGrapple()
 	{
 		mGrappleHook->UnHook();
 	}
+	else if (mGrappleHook.IsValid() && mGrappleHook->GetGrappleState() == EGrappleState::Latched)
+	{
+		mGrappleHook->Sheathe();
+	}
 }
 
 AVertCharacter* AGrappleLauncher::GetOwningCharacter() const
