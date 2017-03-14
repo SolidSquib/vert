@@ -93,7 +93,9 @@ void AVertCharacter::Tick(float DeltaSeconds)
 		TickDash(DeltaSeconds);
 	}
 
-	RechargeDashAndGrapple(DeltaSeconds);
+	SortAbilityRechargeState();
+	Dash.RechargeTimer.TickTimer(DeltaSeconds);
+	Grapple.RechargeTimer.TickTimer(DeltaSeconds);
 
 #if !UE_BUILD_SHIPPING
 	PrintDebugInfo();
@@ -106,6 +108,9 @@ void AVertCharacter::BeginPlay()
 
 	mRemainingGrapples = MaxGrapples;
 	mRemainingDashes = MaxDashes;
+
+	Dash.RechargeTimer.BindAlarm(this, TEXT("OnDashRechargeTimerFinished"));
+	Grapple.RechargeTimer.BindAlarm(this, TEXT("OnGrappleRechargeTimerFinished"));
 
 	if (AController* controller = GetController())
 	{
@@ -168,6 +173,18 @@ void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAxis("RightThumbstickMoveY", this, &AVertCharacter::RightThumbstickMoveY);
 }
 
+
+void AVertCharacter::OnDashRechargeTimerFinished_Implementation()
+{
+	mRemainingDashes++;
+	Dash.RechargeTimer.Reset();
+}
+
+void AVertCharacter::OnGrappleRechargeTimerFinished_Implementation()
+{
+	mRemainingGrapples++;
+	Grapple.RechargeTimer.Reset();
+}
 
 void AVertCharacter::OnHooked_Implementation()
 {
@@ -306,10 +323,13 @@ void AVertCharacter::DoDash()
 #if !UE_BUILD_SHIPPING
 void AVertCharacter::PrintDebugInfo()
 {
+	int debugIndex = 0;
 	if (ShowDebug.CharacterMovement.Enabled)
 	{
-		GEngine->AddOnScreenDebugMessage(0, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Gravity Scale: %f"), GetCharacterMovement()->GravityScale));
-		GEngine->AddOnScreenDebugMessage(1, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Friction: %f"), GetCharacterMovement()->GroundFriction));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Gravity Scale: %f"), GetCharacterMovement()->GravityScale));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Friction: %f"), GetCharacterMovement()->GroundFriction));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Is Flying: %s"), GetCharacterMovement()->IsFlying() ? TEXT("true") : TEXT("false")));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Is Falling: %s"), GetCharacterMovement()->IsFalling() ? TEXT("true") : TEXT("false")));
 	}
 
 	if (ShowDebug.Dash.Enabled)
@@ -319,15 +339,17 @@ void AVertCharacter::PrintDebugInfo()
 
 		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (dashDirection * 500), 100.f, ShowDebug.Dash.MessageColour);
 
-		GEngine->AddOnScreenDebugMessage(2, 3.f, ShowDebug.Dash.MessageColour, FString::Printf(TEXT("[Character-Dash] Remaining Dashes: %i / %i"), mRemainingDashes, MaxDashes));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Dash.MessageColour, FString::Printf(TEXT("[Character-Dash] Remaining Dashes: %i / %i"), mRemainingDashes, MaxDashes));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Dash.MessageColour, FString::Printf(TEXT("[Character-Dash] Recharge at %f% (%s)"), Dash.RechargeTimer.GetProgressPercent(), Dash.RechargeTimer.IsRunning() ? TEXT("active") : TEXT("inactive")));
 	}
 
 	if (ShowDebug.Grapple.Enabled)
 	{
-		GEngine->AddOnScreenDebugMessage(3, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Grapple Launched | %i / %i uses remaining"), mRemainingGrapples, MaxGrapples));
-		GEngine->AddOnScreenDebugMessage(4, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] State: %s"), *UVertUtilities::GetEnumValueToString<EGrappleState>(TEXT("EGrappleState"), mGrappleLauncher->GetGrappleHook()->GetGrappleState())));
-		GEngine->AddOnScreenDebugMessage(5, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Hook Velocity: %f, %f"), mGrappleLauncher->GetGrappleHook()->GetHookVelocity().X, mGrappleLauncher->GetGrappleHook()->GetHookVelocity().Z));
-		GEngine->AddOnScreenDebugMessage(6, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Hook Active: %s"), (mGrappleLauncher->GetGrappleHook()->GetProjectileMovementComponentIsActive()) ? TEXT("true") : TEXT("false")));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Grapple Launched | %i / %i uses remaining"), mRemainingGrapples, MaxGrapples));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] State: %s"), *UVertUtilities::GetEnumValueToString<EGrappleState>(TEXT("EGrappleState"), mGrappleLauncher->GetGrappleHook()->GetGrappleState())));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Hook Velocity: %f, %f"), mGrappleLauncher->GetGrappleHook()->GetHookVelocity().X, mGrappleLauncher->GetGrappleHook()->GetHookVelocity().Z));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Hook Active: %s"), (mGrappleLauncher->GetGrappleHook()->GetProjectileMovementComponentIsActive()) ? TEXT("true") : TEXT("false")));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Recharge at %f% (%s)"), Grapple.RechargeTimer.GetProgressPercent(), Grapple.RechargeTimer.IsRunning() ? TEXT("active") : TEXT("inactive")));
 
 		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (GetPlayerRightThumbstickDirection() * 500), 50.f, ShowDebug.Grapple.MessageColour, false, -1.f, 1, 3.f);
 	}
@@ -368,17 +390,6 @@ void AVertCharacter::TickDash(float deltaSeconds)
 	{
 		GetVertCharacterMovement()->LoadGravityScale();
 		GetVertCharacterMovement()->LoadGroundFriction();
-
-		if (Dash.RechargeMode == ERechargeRule::OnContactGroundOrWall || Dash.RechargeMode == ERechargeRule::OnContactGround)
-		{
-			FFindFloorResult findFloorResult;
-			GetCharacterMovement()->FindFloor(GetActorLocation(), findFloorResult, false);
-
-			if (findFloorResult.FloorDist <= 0)
-			{
-				mRemainingDashes = MaxDashes;
-			}
-		}
 	}
 }
 
@@ -404,11 +415,20 @@ void AVertCharacter::UpdateCharacter()
 	}
 }
 
-void AVertCharacter::RechargeDashAndGrapple(float deltaTime)
+void AVertCharacter::SortAbilityRechargeState()
 {
 	if (mRemainingDashes < MaxDashes)
 	{
+		(Dash.RechargeMode == ERechargeRule::OnRechargeTimer || (IsGrounded() && Dash.RechargeMode == ERechargeRule::OnContactGround))
+			? Dash.RechargeTimer.Start()
+			: Dash.RechargeTimer.Stop();
+	}
 
+	if (mRemainingGrapples < MaxGrapples)
+	{
+		(Grapple.RechargeMode == ERechargeRule::OnRechargeTimer || (IsGrounded() && Grapple.RechargeMode == ERechargeRule::OnContactGround))
+			? Grapple.RechargeTimer.Start()
+			: Grapple.RechargeTimer.Stop();
 	}
 }
 
@@ -441,17 +461,4 @@ void AVertCharacter::RegisterGrappleHookDelegates(AGrappleHook* hook)
 			movement->RegisterHookDelegates(hook);
 		}
 	}
-}
-
-bool AVertCharacter::IsGrounded() const
-{
-	FFindFloorResult findFloorResult;
-	GetCharacterMovement()->FindFloor(GetActorLocation(), findFloorResult, false);
-
-	if (findFloorResult.FloorDist <= 0)
-	{
-		return true;
-	}
-
-	return false;
 }

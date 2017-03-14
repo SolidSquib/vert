@@ -3,6 +3,7 @@
 #pragma once
 
 #include "PaperCharacter.h"
+#include "Engine/VertTimer.h"
 #include "Engine/DebugGroup.h"
 #include "Character/GrappleLauncher.h"
 #include "Character/VertCharacterMovementComponent.h"
@@ -26,8 +27,7 @@ UENUM()
 enum class ERechargeRule : uint8
 {
 	OnContactGround,
-	OnRechargeTimer,
-	OnContactGroundOrWall
+	OnRechargeTimer
 };
 
 USTRUCT()
@@ -41,17 +41,13 @@ struct FGrappleConfigRules
 	UPROPERTY(EditDefaultsOnly, Category = "Aim")
 	EAimFreedom AimFreedom;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Recharge", Meta = (EditCondition = "RechargeMode == ERechargeRule::OnRechargeTimer", DisplayName = "Time To Recharge (s)"))
-	float TimeToRecharge;
-
-	float RechargeTimer;
+	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
+	FVertTimer RechargeTimer;
 
 	FGrappleConfigRules()
 	{
 		RechargeMode = ERechargeRule::OnContactGround;
 		AimFreedom = EAimFreedom::Free;
-		TimeToRecharge = 2.f;
-		RechargeTimer = 0.f;
 	}
 };
 
@@ -93,15 +89,13 @@ struct FDashConfigRules
 	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
 	ERechargeRule RechargeMode;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Recharge", Meta = (EditCondition = "RechargeMode == ERechargeRule::OnRechargeTimer", DisplayName = "Time To Recharge (s)"))
-	float TimeToRecharge;
+	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
+	FVertTimer RechargeTimer;
 
 	uint8 IsDashing : 1;
 	float DistanceTravelled;
 	FVector DirectionOfTravel;
 	float Timer;
-	float RechargeTimer;
-
 	FDashConfigRules()
 	{
 		UseMomentum = true;
@@ -115,13 +109,11 @@ struct FDashConfigRules
 		AimMode = EDashAimMode::PlayerDirection;
 		AimFreedom = EAimFreedom::Free;
 		RechargeMode = ERechargeRule::OnContactGround;
-		TimeToRecharge = 2.f;
 
 		IsDashing = false;
 		DistanceTravelled = 0.f;
 		DirectionOfTravel = FVector::ZeroVector;
 		Timer = 0.f;
-		RechargeTimer = 0.f;
 	}
 };
 
@@ -251,8 +243,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
 	FORCEINLINE UVertCharacterMovementComponent* GetVertCharacterMovement() const { if (UVertCharacterMovementComponent* movement = Cast<UVertCharacterMovementComponent>(GetCharacterMovement())) { return movement; } return nullptr; }
 
-	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
-	bool IsGrounded() const;
+	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
+	FORCEINLINE bool IsGrounded() const { return !GetCharacterMovement()->IsFlying() && !GetCharacterMovement()->IsFalling(); }
 
 protected:
 	/** Called to choose the correct animation to play based on the character's movement state */
@@ -271,7 +263,7 @@ protected:
 
 	void TickDash(float deltaSeconds);
 	void UpdateCharacter();
-	void RechargeDashAndGrapple(float deltaTime);
+	void SortAbilityRechargeState();
 
 	virtual void Jump() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
@@ -290,6 +282,12 @@ protected:
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
 	void OnUnLatched(class AGrappleHook* hook);
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Recharging")
+	void OnDashRechargeTimerFinished();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Recharging")
+	void OnGrappleRechargeTimerFinished();
 
 private:
 #if !UE_BUILD_SHIPPING

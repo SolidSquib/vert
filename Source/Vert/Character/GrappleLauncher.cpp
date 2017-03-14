@@ -158,20 +158,6 @@ void AGrappleLauncher::ReturnGrappleToLauncher()
 	{
 		mGrappleHook->Deactivate();
 		Cable->SetVisibility(false);
-
-		if (AVertCharacter* character = GetOwningCharacter())
-		{
-			if (character->Dash.RechargeMode == ERechargeRule::OnContactGroundOrWall)
-			{
-				FFindFloorResult findFloorResult;
-				character->GetCharacterMovement()->FindFloor(GetActorLocation(), findFloorResult, false);
-
-				if (findFloorResult.FloorDist <= 0)
-				{
-					character->ResetRemainingGrapples();
-				}
-			}
-		}
 	}
 }
 
