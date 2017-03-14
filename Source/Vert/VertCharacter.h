@@ -40,11 +40,18 @@ struct FGrappleConfigRules
 
 	UPROPERTY(EditDefaultsOnly, Category = "Aim")
 	EAimFreedom AimFreedom;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Recharge", Meta = (EditCondition = "RechargeMode == ERechargeRule::OnRechargeTimer", DisplayName = "Time To Recharge (s)"))
+	float TimeToRecharge;
+
+	float RechargeTimer;
 
 	FGrappleConfigRules()
 	{
 		RechargeMode = ERechargeRule::OnContactGround;
 		AimFreedom = EAimFreedom::Free;
+		TimeToRecharge = 2.f;
+		RechargeTimer = 0.f;
 	}
 };
 
@@ -205,7 +212,7 @@ protected:
 public:
 	AVertCharacter(const class FObjectInitializer& ObjectInitializer);
 
-	void RegisterGrappleHook(class AGrappleHook* hook);
+	void RegisterGrappleHookDelegates(class AGrappleHook* hook);
 
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -264,9 +271,9 @@ protected:
 
 	void TickDash(float deltaSeconds);
 	void UpdateCharacter();
+	void RechargeDashAndGrapple(float deltaTime);
 
 	virtual void Jump() override;
-	virtual void Landed(const FHitResult& Hit) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")

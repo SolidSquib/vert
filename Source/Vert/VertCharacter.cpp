@@ -93,6 +93,8 @@ void AVertCharacter::Tick(float DeltaSeconds)
 		TickDash(DeltaSeconds);
 	}
 
+	RechargeDashAndGrapple(DeltaSeconds);
+
 #if !UE_BUILD_SHIPPING
 	PrintDebugInfo();
 #endif
@@ -224,14 +226,6 @@ void AVertCharacter::Jump()
 		mGrappleLauncher->ResetGrapple();
 
 	Super::Jump();
-}
-
-void AVertCharacter::Landed(const FHitResult& Hit)
-{
-	mRemainingDashes = MaxDashes;
-	mRemainingGrapples = MaxGrapples;
-
-	Super::Landed(Hit);
 }
 
 void AVertCharacter::RightThumbstickMoveX(float value)
@@ -410,7 +404,15 @@ void AVertCharacter::UpdateCharacter()
 	}
 }
 
-void AVertCharacter::RegisterGrappleHook(AGrappleHook* hook)
+void AVertCharacter::RechargeDashAndGrapple(float deltaTime)
+{
+	if (mRemainingDashes < MaxDashes)
+	{
+
+	}
+}
+
+void AVertCharacter::RegisterGrappleHookDelegates(AGrappleHook* hook)
 {
 	if (hook)
 	{

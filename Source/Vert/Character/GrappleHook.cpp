@@ -44,7 +44,7 @@ void AGrappleHook::BeginPlay()
 	{
 		if (AVertCharacter* character = launcher->GetOwningCharacter())
 		{
-			character->RegisterGrappleHook(this);
+			character->RegisterGrappleHookDelegates(this);
 		}
 	}
 }
