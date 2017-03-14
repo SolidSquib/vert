@@ -149,13 +149,14 @@ void AGrappleHook::Sheathe()
 	Deactivate();
 }
 
-void AGrappleHook::Hook(AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& hit)
+void AGrappleHook::Hook(AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& hit, bool attachToTarget /*= true*/)
 {
 	mGrappleState = EGrappleState::Hooked;
 
 	ProjectileMovement->Velocity = FVector::ZeroVector;
 
-	AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
+	if(attachToTarget)
+		AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
 
 	mHookAttachment.Actor = OtherActor;
 	mHookAttachment.Component = OtherComp;
@@ -200,8 +201,13 @@ void AGrappleHook::Pull()
 
 			if (mHookAttachment.Actor.IsValid() && mHookAttachment.Component.IsValid())
 			{
-				if(mHookAttachment.Component->Mobility == EComponentMobility::Movable)
-					mHookAttachment.Component->AddForceAtLocation(launcher->GrappleConfig.ReelSpeed * -direction, GetActorLocation());
+				if (mHookAttachment.Component->Mobility == EComponentMobility::Movable)
+				{
+					if (mHookAttachment.Component->IsSimulatingPhysics())
+					{
+						mHookAttachment.Component->AddForceAtLocation(launcher->GrappleConfig.ReelSpeed * -direction, GetActorLocation());
+					}					
+				}					
 			}
 		}
 	}
@@ -235,10 +241,33 @@ void AGrappleHook::OnHit(class UPrimitiveComponent* HitComp, AActor* OtherActor,
 {
 	if (OtherActor && mGrappleState == EGrappleState::Launching)
 	{
-		// #TODO_MI: check the impact surface to see if we should hook
-		Hook(OtherActor, OtherComp, Hit);
+		if (AGrappleLauncher* launcher = GetOwnerAsGrappleLauncher())
+		{
+			FName collisionProfile = OtherComp->GetCollisionProfileName();
+			UE_LOG(LogTemp, Warning, TEXT("Collision profile: %s"), *collisionProfile.ToString());
 
-		OnHooked.Broadcast();
+			if (OtherComp && launcher->GrappleConfig.GrapplePointCollisionProfileName == collisionProfile)
+			{
+				if (AGrapplePoint* point = Cast<AGrapplePoint>(OtherActor))
+				{
+					point->AttachGrappleHook(this);
+					Hook(OtherActor, OtherComp, Hit, false);
+					OnHooked.Broadcast();
+				}
+			}
+			else
+			{
+				if (launcher->GrappleConfig.HookGrapplePointsOnly)
+				{
+					Reel();
+				}
+				else
+				{
+					Hook(OtherActor, OtherComp, Hit);
+					OnHooked.Broadcast();
+				}
+			}
+		}
 
 		//Play VFX.
 		if (ImpactParticleTemplate != NULL)
@@ -260,7 +289,16 @@ void AGrappleHook::OnBeginOverlap(UPrimitiveComponent* overlappedComp, AActor* o
 {
 	if (mGrappleState == EGrappleState::Hooked)
 	{
-		mGrappleState = EGrappleState::Latched;
-		OnLatched.Broadcast(this);
+		if (AVertCharacter* character = Cast<AVertCharacter>(otherActor))
+		{
+			if (AGrappleLauncher* launcher = GetOwnerAsGrappleLauncher())
+			{
+				if (character == launcher->GetOwningCharacter())
+				{
+					mGrappleState = EGrappleState::Latched;
+					OnLatched.Broadcast(this);
+				}
+			}
+		}		
 	}
 }

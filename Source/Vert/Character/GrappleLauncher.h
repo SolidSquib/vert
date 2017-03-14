@@ -23,12 +23,20 @@ struct FHookshotGrappleConfig
 	UPROPERTY(EditDefaultsOnly, Category = "Speed")
 	float ReelSpeed;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Collision")
+	bool HookGrapplePointsOnly;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Collision", Meta = (EditCondition = "HookGrapplePointsOnly"))
+	FName GrapplePointCollisionProfileName;
+
 	FHookshotGrappleConfig()
 	{
 		MaxLength = 500.f;
 		LineSpeed = 3000.f;
 		ReturnSpeed = 35.f;
 		ReelSpeed = 3500;
+		HookGrapplePointsOnly = false;
+		GrapplePointCollisionProfileName = "GrapplePoint";
 	}
 };
 

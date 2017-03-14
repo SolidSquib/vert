@@ -23,6 +23,7 @@
 
 // Actors
 #include "VertCharacter.h"
+#include "Environment/GrapplePoint.h"
 
 //General Log
 DECLARE_LOG_CATEGORY_EXTERN(CharacterLog, Log, All);

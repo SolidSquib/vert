@@ -93,7 +93,7 @@ public:
 	void Launch(const FVector& fireDirection);
 	void Reel();
 	void Sheathe();
-	void Hook(AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& hit);
+	void Hook(AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& hit, bool attachToTarget = true);
 	void UnHook();
 	void Pull();
 	class AGrappleLauncher* GetOwnerAsGrappleLauncher() const;
