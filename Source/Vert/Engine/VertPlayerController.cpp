@@ -12,14 +12,7 @@ void AVertPlayerController::DropIn()
 		if (!player->IsPlayerInGame())
 		{
 			player->PlayerJoinGame();
-			SpawnSpectatorPawn();
-			
-			UE_LOG(VertCritical, Warning, TEXT("Spawned as spectator; waiting to join: %p"), GetSpectatorPawn());
-
-			if (ASpectatorPawn* pawn = GetSpectatorPawn())
-			{
-				UE_LOG(VertCritical, Warning, TEXT("Spectator location is %f, %f, %f"), pawn->GetActorLocation().X, pawn->GetActorLocation().Y, pawn->GetActorLocation().Z);
-			}
+			SetSpectatorPawn(SpawnSpectatorPawn());
 		}
 	}
 }
@@ -64,4 +57,21 @@ void AVertPlayerController::SetupInputComponent()
 	{
 		InputComponent->BindAction("DropIn", IE_Pressed, this, &AVertPlayerController::DropIn);
 	}	
+}
+
+ASpectatorPawn* AVertPlayerController::SpawnSpectatorPawn()
+{
+	ASpectatorPawn* pawn = nullptr;
+
+	if (UVertLocalPlayer* player = GetVertLocalPlayer())
+	{
+		if (player->IsPlayerInGame())
+		{
+			return Super::SpawnSpectatorPawn();
+		}
+	}
+
+	UE_LOG(VertCritical, Warning, TEXT("Player inactive, no spectator spawned"));
+
+	return pawn;
 }

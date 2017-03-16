@@ -7,6 +7,9 @@ FName AVertSpectator::SpriteComponentName(TEXT("Sprite0"));
 
 AVertSpectator::AVertSpectator()
 {
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
+
 	Sprite = CreateOptionalDefaultSubobject<UPaperFlipbookComponent>(APaperCharacter::SpriteComponentName);
 	if (Sprite)
 	{
