@@ -16,13 +16,25 @@ void UVertGameInstance::Shutdown()
 void UVertGameInstance::StartGameInstance()
 {
 	Super::StartGameInstance();
-
-	mOnControllerChangedHandle = FCoreDelegates::OnControllerConnectionChange.AddUFunction(this, TEXT("OnControllerConnectionChange"));
 }
 
 ULocalPlayer* UVertGameInstance::CreateInitialPlayer(FString& OutError)
 {
-	return Super::CreateInitialPlayer(OutError);
+	ULocalPlayer* playerOne = Super::CreateInitialPlayer(OutError);
+	
+	if (UVertLocalPlayer* vertPlayer = Cast<UVertLocalPlayer>(playerOne))
+	{
+		vertPlayer->PlayerJoinGame();
+	}
+
+	for (int32 i = 1; i < MAX_PLAYERS; ++i)
+	{
+		CreateLocalPlayer(-1, OutError, false);
+	}
+
+	
+
+	return playerOne;
 }
 
 void UVertGameInstance::StartRecordingReplay(const FString& InName, const FString& FriendlyName, const TArray<FString>& AdditionalOptions /*= TArray<FString>()*/)
@@ -45,7 +57,49 @@ void UVertGameInstance::AddUserToReplay(const FString& UserString)
 	Super::AddUserToReplay(UserString);
 }
 
-void UVertGameInstance::OnControllerConnectionChange_Implementation(bool connected, int32 userID, int32 controllerID)
+TArray<UVertLocalPlayer*> UVertGameInstance::GetAllLocalPlayers()
 {
-	UE_LOG(VertCritical, Warning, TEXT("[GameInstance] CONTROLLER CONNECTION CHANGE! connected: %s, user: %i, controller: %i"), (connected) ? TEXT("true") : TEXT("false"), userID, controllerID);
+	TArray<UVertLocalPlayer*> localPlayers;
+
+	for (int32 i = 0; i < GetLocalPlayers().Num(); ++i)
+	{
+		if (UVertLocalPlayer* vertPlayer = Cast<UVertLocalPlayer>(GetLocalPlayers()[i]))
+		{
+			localPlayers.Add(vertPlayer);
+		}
+	}
+
+	return localPlayers;
+}
+
+TArray<UVertLocalPlayer*> UVertGameInstance::GetActiveLocalPlayers()
+{
+	TArray<UVertLocalPlayer*> localPlayers;
+
+	for (int32 i = 0; i < GetLocalPlayers().Num(); ++i)
+	{
+		if (UVertLocalPlayer* vertPlayer = Cast<UVertLocalPlayer>(GetLocalPlayers()[i]))
+		{
+			if(vertPlayer->IsPlayerInGame())
+				localPlayers.Add(vertPlayer);
+		}
+	}
+
+	return localPlayers;
+}
+
+TArray<UVertLocalPlayer*> UVertGameInstance::GetInactiveLocalPlayers()
+{
+	TArray<UVertLocalPlayer*> localPlayers;
+
+	for (int32 i = 0; i < GetLocalPlayers().Num(); ++i)
+	{
+		if (UVertLocalPlayer* vertPlayer = Cast<UVertLocalPlayer>(GetLocalPlayers()[i]))
+		{
+			if(!vertPlayer->IsPlayerInGame())
+				localPlayers.Add(vertPlayer);
+		}
+	}
+
+	return localPlayers;
 }

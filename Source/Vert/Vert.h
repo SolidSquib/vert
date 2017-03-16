@@ -16,6 +16,7 @@
 // Engine
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/VertUtilities.h"
+#include "Engine/VertGameInstance.h"
 
 // Components
 #include "CableComponent.h"

@@ -26,20 +26,13 @@ void AGrappleLauncher::BeginPlay()
 	Super::BeginPlay();
 	SetActorTickEnabled(true);
 
-	if (APlayerController* controller = GetWorld()->GetFirstPlayerController())
-	{
-		controller->bShowMouseCursor = true;
-		controller->bEnableClickEvents = true;
-		controller->bEnableMouseOverEvents = true;
-	}
-
 	if (HookClass != nullptr)
 	{
 		if (UWorld* world = GetWorld())
 		{
 			//Setup spawn parameters for the actor.
 			FActorSpawnParameters spawnParameters;
-			spawnParameters.Name = TEXT("GrappleHook");
+			//spawnParameters.Name = TEXT("GrappleHook");
 			spawnParameters.Owner = this;
 			spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 

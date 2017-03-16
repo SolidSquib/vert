@@ -129,7 +129,7 @@ void AVertCharacter::BeginPlay()
 		{
 			//Setup spawn parameters for the actor.
 			FActorSpawnParameters spawnParameters;
-			spawnParameters.Name = TEXT("GrappleLauncher");
+			//spawnParameters.Name = TEXT("GrappleLauncher");
 			spawnParameters.Owner = this;
 			spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 

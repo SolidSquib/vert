@@ -12,7 +12,15 @@ AVertGameMode::AVertGameMode()
 
 void AVertGameMode::BeginPlay()
 {
+	Super::BeginPlay();
+	UE_LOG(VertCritical, Warning, TEXT("[VertGameMode] BeginPlay"));
 	mOnControllerChangedHandle = FCoreDelegates::OnControllerConnectionChange.AddUFunction(this, TEXT("OnControllerConnectionChange"));
+}
+
+APlayerController* AVertGameMode::SpawnPlayerController(ENetRole InRemoteRole, FVector const& SpawnLocation, FRotator const& SpawnRotation)
+{
+	UE_LOG(VertCritical, Warning, TEXT("[VertGameMode] SpawnPlayerController"));
+	return Super::SpawnPlayerController(InRemoteRole, SpawnLocation, SpawnRotation);
 }
 
 void AVertGameMode::OnControllerConnectionChange_Implementation(bool connected, int32 userID, int32 controllerID)
