@@ -4,7 +4,7 @@
 #include "VertCharacter.h"
 #include "PaperFlipbookComponent.h"
 
-DEFINE_LOG_CATEGORY_STATIC(SideScrollerCharacter, Log, All);
+DEFINE_LOG_CATEGORY(LogVertCharacter);
 
 //////////////////////////////////////////////////////////////////////////
 // AVertCharacter
@@ -456,14 +456,14 @@ void AVertCharacter::SortAbilityRechargeState()
 {
 	if (mRemainingDashes < MaxDashes && Dash.RechargeTimer.GetAlarmBacklog() < (MaxDashes - mRemainingDashes))
 	{
-		(Dash.RechargeMode == ERechargeRule::OnRechargeTimer || (IsGrounded() && Dash.RechargeMode == ERechargeRule::OnContactGround))
+		(CanRecharge(Dash.RechargeMode))
 			? Dash.RechargeTimer.Start()
 			: Dash.RechargeTimer.Stop();
 	}
 
 	if (mRemainingGrapples < MaxGrapples && Grapple.RechargeTimer.GetAlarmBacklog() < (MaxGrapples - mRemainingGrapples))
 	{
-		(Grapple.RechargeMode == ERechargeRule::OnRechargeTimer || (IsGrounded() && Grapple.RechargeMode == ERechargeRule::OnContactGround))
+		(CanRecharge(Grapple.RechargeMode))
 			? Grapple.RechargeTimer.Start()
 			: Grapple.RechargeTimer.Stop();
 	}
@@ -498,4 +498,21 @@ void AVertCharacter::RegisterGrappleHookDelegates(AGrappleHook* hook)
 			movement->RegisterHookDelegates(hook);
 		}
 	}
+}
+
+
+bool AVertCharacter::CanRecharge(ERechargeRule rule)
+{
+	AGrappleHook* hook = GetGrappleHook();
+	AActor* hookedActor = hook ? hook->GetHookedActor() : nullptr;
+	AGrapplePoint* grapplePoint = Cast<AGrapplePoint>(hookedActor);
+	if (hookedActor)
+	{
+		UE_LOG(LogVertCharacter, Warning, TEXT("Hooked actor found with name [%s]"), *hookedActor->GetName());
+	}
+
+	return IsGrounded() ||
+		rule == ERechargeRule::OnRechargeTimer ||
+		(rule == ERechargeRule::OnContactGroundOrLatchedAnywhere && hook && hook->GetGrappleState() == EGrappleState::Latched) ||
+		(rule == ERechargeRule::OnContactGroundOrLatchedToHook && hook && hook->GetGrappleState() == EGrappleState::Latched && grapplePoint);
 }

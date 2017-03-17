@@ -113,6 +113,9 @@ public:
 	UFUNCTION()
 	void OnBeginOverlap(class UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult);
 
+	UFUNCTION(BlueprintCallable, Category = "Grappling")
+	FORCEINLINE AActor* GetHookedActor() const { return mHookAttachment.Actor.Get(); }
+
 protected:
 	FHookedActorInfo mHookAttachment;
 	EGrappleState mGrappleState = EGrappleState::Sheathed;

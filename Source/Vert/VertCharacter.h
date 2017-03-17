@@ -16,6 +16,8 @@
 //   The CharacterMovementComponent (inherited from ACharacter) handles movement of the collision capsule
 //   The Sprite component (inherited from APaperCharacter) handles the visuals
 
+DECLARE_LOG_CATEGORY_EXTERN(LogVertCharacter, Log, All);
+
 UENUM()
 enum class EDashAimMode : uint8
 {
@@ -26,8 +28,10 @@ enum class EDashAimMode : uint8
 UENUM()
 enum class ERechargeRule : uint8
 {
-	OnContactGround,
-	OnRechargeTimer
+	OnRechargeTimer UMETA(DisplayName="Always recharge"),
+	OnContactGround UMETA(DisplayName = "Recharge on ground"),
+	OnContactGroundOrLatchedToHook UMETA(DisplayName = "Recharge on ground / Latched to climbing hooks"),
+	OnContactGroundOrLatchedAnywhere UMETA(DisplayName = "Recharge on ground / Latched to any surface")
 };
 
 USTRUCT()
@@ -170,20 +174,20 @@ class AVertCharacter : public APaperCharacter
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Controls - GrappleConfig")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Controls|GrappleConfig")
 	FGrappleConfigRules Grapple;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Controls - DashConfig")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Controls|DashConfig")
 	FDashConfigRules Dash;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Debug)
 	FCharacterDebugSettings ShowDebug;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controls - GrappleConfig", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controls|GrappleConfig", meta = (AllowPrivateAccess = "true"))
 	FName GrappleHandSocket;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controls - GrappleConfig", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controls|GrappleConfig", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AGrappleLauncher> GrappleClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -298,10 +302,22 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Recharging")
 	void OnGrappleRechargeTimerFinished();
 
+	UFUNCTION(BlueprintCallable, Category = "Grappling")
+	FORCEINLINE AGrappleHook* GetGrappleHook() const
+	{
+		if (mGrappleLauncher.IsValid())
+		{
+			return mGrappleLauncher->GetGrappleHook();
+		}
+
+		return nullptr;
+	}
+
 private:
 #if !UE_BUILD_SHIPPING
 	void PrintDebugInfo();
 #endif
+	bool CanRecharge(ERechargeRule rule);
 
 protected:
 	TWeakObjectPtr<AGrappleLauncher> mGrappleLauncher = nullptr;
