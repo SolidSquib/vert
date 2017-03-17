@@ -54,6 +54,18 @@ struct FVertTimer
 		currentTime = 0.f;
 	}
 
+	FORCEINLINE int32 PopAlarmBacklog()
+	{
+		int32 backlog = alarmsTriggered;
+		alarmsTriggered = 0;
+		return backlog;
+	}
+
+	FORCEINLINE int32 GetAlarmBacklog() const
+	{
+		return alarmsTriggered;
+	}
+
 	FORCEINLINE float GetProgressRatio()
 	{
 		return currentTime / EndTime;
@@ -71,6 +83,7 @@ struct FVertTimer
 			currentTime += deltaTime;
 			if (currentTime >= EndTime)
 			{
+				alarmsTriggered++;
 				OnFinish.Broadcast();
 				Stop();
 			}	
@@ -79,5 +92,6 @@ struct FVertTimer
 
 private:
 	float currentTime = 0.f;
+	int32 alarmsTriggered = 0;
 	bool timerActive = false;
 };

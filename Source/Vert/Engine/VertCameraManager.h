@@ -15,4 +15,10 @@ class VERT_API AVertCameraManager : public APlayerCameraManager
 	
 public:
 	AVertCameraManager();
+
+	virtual void UpdateCamera(float DeltaTime) override;
+
+private:
+	float mDefaultFOV = 90.f;
+	float mTestFOV = 120.f;
 };

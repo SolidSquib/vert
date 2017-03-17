@@ -38,6 +38,9 @@ struct FGrappleConfigRules
 	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
 	ERechargeRule RechargeMode;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
+	bool RecieveChargeOnGroundOnly;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Aim")
 	EAimFreedom AimFreedom;
 	
@@ -47,6 +50,7 @@ struct FGrappleConfigRules
 	FGrappleConfigRules()
 	{
 		RechargeMode = ERechargeRule::OnContactGround;
+		RecieveChargeOnGroundOnly = false;
 		AimFreedom = EAimFreedom::Free;
 	}
 };
@@ -90,6 +94,9 @@ struct FDashConfigRules
 	ERechargeRule RechargeMode;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
+	bool RecieveChargeOnGroundOnly;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
 	FVertTimer RechargeTimer;
 
 	uint8 IsDashing : 1;
@@ -109,6 +116,7 @@ struct FDashConfigRules
 		AimMode = EDashAimMode::PlayerDirection;
 		AimFreedom = EAimFreedom::Free;
 		RechargeMode = ERechargeRule::OnContactGround;
+		RecieveChargeOnGroundOnly = false;
 
 		IsDashing = false;
 		DistanceTravelled = 0.f;
@@ -162,20 +170,20 @@ class AVertCharacter : public APaperCharacter
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GrappleConfig")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Controls - GrappleConfig")
 	FGrappleConfigRules Grapple;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DashConfig")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Controls - DashConfig")
 	FDashConfigRules Dash;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Debug)
 	FCharacterDebugSettings ShowDebug;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GrappleConfig", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controls - GrappleConfig", meta = (AllowPrivateAccess = "true"))
 	FName GrappleHandSocket;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GrappleConfig", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controls - GrappleConfig", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AGrappleLauncher> GrappleClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -210,12 +218,12 @@ public:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type endPlayReason) override;
 	virtual void PreInitializeComponents() override;
+	virtual void Landed(const FHitResult& Hit) override;
 
 	FORCEINLINE class UCameraComponent* GetSideViewCameraComponent() const { return SideViewCameraComponent; }
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE int32 GetRemainingGrapples() const { return mRemainingGrapples; }
 	FORCEINLINE int32 DecrementRemainingGrapples() { return --mRemainingGrapples; }
-	FORCEINLINE void ResetRemainingGrapples() { mRemainingGrapples = MaxGrapples; }
 
 	UFUNCTION(BlueprintCallable, Category = Thumbsticks)
 	FORCEINLINE FVector GetPlayerLeftThumbstick() const { return FVector(mThumbstickPositions.LeftX, 0.f, mThumbstickPositions.LeftY); }

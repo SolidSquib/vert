@@ -7,3 +7,15 @@ AVertCameraManager::AVertCameraManager()
 {
 
 }
+
+void AVertCameraManager::UpdateCamera(float DeltaTime)
+{
+	AVertPlayerController* vertPC = PCOwner ? Cast<AVertPlayerController>(PCOwner) : nullptr;
+	if (vertPC)
+	{
+		const float targetFOV = vertPC->IsTestingFOV() ? mTestFOV : mDefaultFOV;
+		DefaultFOV = FMath::FInterpTo(DefaultFOV, targetFOV, DeltaTime, 20.f);
+	}
+
+	Super::UpdateCamera(DeltaTime);
+}

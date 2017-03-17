@@ -86,6 +86,7 @@ void AVertPlayerController::SetupInputComponent()
 	if (InputComponent)
 	{
 		InputComponent->BindAction("DropIn", IE_Pressed, this, &AVertPlayerController::DropIn);
+		InputComponent->BindAction("ToggleFOV", IE_Pressed, this, &AVertPlayerController::ToggleFOV);
 	}	
 }
 

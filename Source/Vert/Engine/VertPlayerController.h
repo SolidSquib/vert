@@ -35,6 +35,9 @@ public:
 
 	class UVertLocalPlayer* GetVertLocalPlayer();
 
+	FORCEINLINE void ToggleFOV() { UE_LOG(LogVertPlayerController, Warning, TEXT("Toggling FOV for test")); mTestFOV = !mTestFOV; }
+	FORCEINLINE bool IsTestingFOV() const { return mTestFOV; }
+
 	UFUNCTION(BlueprintCallable, Category = "PlayerManagement")
 	virtual void DropOut();
 
@@ -42,4 +45,6 @@ protected:
 	virtual void SetupInputComponent() override;
 	virtual ASpectatorPawn* SpawnSpectatorPawn() override;
 
+private:
+	bool mTestFOV = false;
 };

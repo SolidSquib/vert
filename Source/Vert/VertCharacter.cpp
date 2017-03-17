@@ -5,6 +5,7 @@
 #include "PaperFlipbookComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(SideScrollerCharacter, Log, All);
+
 //////////////////////////////////////////////////////////////////////////
 // AVertCharacter
 
@@ -175,6 +176,19 @@ void AVertCharacter::PreInitializeComponents()
 	Super::PreInitializeComponents();
 }
 
+void AVertCharacter::Landed(const FHitResult& Hit)
+{
+	if (Dash.RecieveChargeOnGroundOnly)
+	{
+		mRemainingDashes += Dash.RechargeTimer.PopAlarmBacklog();
+	}
+
+	if (Grapple.RecieveChargeOnGroundOnly)
+	{
+		mRemainingGrapples += Grapple.RechargeTimer.PopAlarmBacklog();
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -197,14 +211,16 @@ void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 void AVertCharacter::OnDashRechargeTimerFinished_Implementation()
 {
-	mRemainingDashes++;
+	if(!Dash.RecieveChargeOnGroundOnly || IsGrounded())
+		mRemainingDashes += Dash.RechargeTimer.PopAlarmBacklog();
 	Dash.RechargeTimer.Reset();
 }
 
 void AVertCharacter::OnGrappleRechargeTimerFinished_Implementation()
 {
-	mRemainingGrapples++;
-	Grapple.RechargeTimer.Reset();
+	if(!Grapple.RecieveChargeOnGroundOnly || IsGrounded())
+		mRemainingGrapples += Grapple.RechargeTimer.PopAlarmBacklog();
+	Grapple.RechargeTimer.Reset();	
 }
 
 void AVertCharacter::OnHooked_Implementation()
@@ -438,14 +454,14 @@ void AVertCharacter::UpdateCharacter()
 
 void AVertCharacter::SortAbilityRechargeState()
 {
-	if (mRemainingDashes < MaxDashes)
+	if (mRemainingDashes < MaxDashes && Dash.RechargeTimer.GetAlarmBacklog() < (MaxDashes - mRemainingDashes))
 	{
 		(Dash.RechargeMode == ERechargeRule::OnRechargeTimer || (IsGrounded() && Dash.RechargeMode == ERechargeRule::OnContactGround))
 			? Dash.RechargeTimer.Start()
 			: Dash.RechargeTimer.Stop();
 	}
 
-	if (mRemainingGrapples < MaxGrapples)
+	if (mRemainingGrapples < MaxGrapples && Grapple.RechargeTimer.GetAlarmBacklog() < (MaxGrapples - mRemainingGrapples))
 	{
 		(Grapple.RechargeMode == ERechargeRule::OnRechargeTimer || (IsGrounded() && Grapple.RechargeMode == ERechargeRule::OnContactGround))
 			? Grapple.RechargeTimer.Start()
