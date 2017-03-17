@@ -208,6 +208,7 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type endPlayReason) override;
 	virtual void PreInitializeComponents() override;
 
 	FORCEINLINE class UCameraComponent* GetSideViewCameraComponent() const { return SideViewCameraComponent; }

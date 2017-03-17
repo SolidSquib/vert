@@ -3,6 +3,14 @@
 #include "Vert.h"
 #include "VertPlayerController.h"
 
+DEFINE_LOG_CATEGORY(LogVertPlayerController);
+
+AVertPlayerController::AVertPlayerController()
+{
+	PlayerCameraManagerClass = AVertCameraManager::StaticClass();
+	bAutoManageActiveCameraTarget = false;
+}
+
 void AVertPlayerController::DropIn()
 {
 	// #MI_TODO: Needs to be slightly more fancy eventually but it does the job for now.
@@ -49,6 +57,28 @@ UVertLocalPlayer* AVertPlayerController::GetVertLocalPlayer()
 	return nullptr;
 }
 
+void AVertPlayerController::Possess(APawn* aPawn)
+{
+	Super::Possess(aPawn);
+
+	if (aPawn)
+	{
+		UE_LOG(LogVertPlayerController, Warning, TEXT("Broadcasting controller possessed"));
+		OnPossessed.Broadcast(aPawn);
+	}
+}
+
+void AVertPlayerController::UnPossess()
+{
+	if (GetPawn())
+	{
+		UE_LOG(LogVertPlayerController, Warning, TEXT("Broadcasting controller unpossessed"));
+		OnUnPossessed.Broadcast(GetPawn());
+	}
+
+	Super::UnPossess();
+}
+
 void AVertPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -71,7 +101,7 @@ ASpectatorPawn* AVertPlayerController::SpawnSpectatorPawn()
 		}
 	}
 
-	UE_LOG(VertCritical, Warning, TEXT("Player inactive, no spectator spawned"));
+	UE_LOG(LogVertPlayerController, Warning, TEXT("Player inactive, no spectator spawned"));
 
 	return pawn;
 }

@@ -150,6 +150,26 @@ void AVertCharacter::BeginPlay()
 }
 
 
+void AVertCharacter::EndPlay(const EEndPlayReason::Type endPlayReason)
+{
+	if (endPlayReason == EEndPlayReason::Destroyed)
+	{
+		if (UWorld* world = GetWorld())
+		{
+			if (AGameModeBase* gameMode = world->GetAuthGameMode())
+			{
+				if (AVertGameMode* vertGameMode = Cast<AVertGameMode>(gameMode))
+				{
+					if (AVertPlayerCameraActor* camera = vertGameMode->GetActivePlayerCamera())
+					{
+						camera->UnregisterPlayerPawn(this);
+					}
+				}
+			}
+		}
+	}
+}
+
 void AVertCharacter::PreInitializeComponents()
 {
 	Super::PreInitializeComponents();

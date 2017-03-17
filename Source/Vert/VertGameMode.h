@@ -2,6 +2,7 @@
 
 #pragma once
 #include "GameFramework/GameMode.h"
+#include "View/VertPlayerCameraActor.h"
 #include "VertGameMode.generated.h"
 
 // The GameMode defines the game being played. It governs the game rules, scoring, what actors
@@ -9,15 +10,32 @@
 //
 // This game mode just sets the default pawn to be the MyCharacter asset, which is a subclass of VertCharacter
 
+DECLARE_LOG_CATEGORY_EXTERN(LogVertGameMode, Log, All);
+
 UCLASS(minimalapi)
 class AVertGameMode : public AGameMode
 {
 	GENERATED_BODY()
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCamera")
+	TSubclassOf<AVertPlayerCameraActor> PlayerCameraClass;
+
 public:
 	AVertGameMode();
 
+	virtual void PreInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual APlayerController* SpawnPlayerController(ENetRole InRemoteRole, FVector const& SpawnLocation, FRotator const& SpawnRotation) override;
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerCamera")
+	AVertPlayerCameraActor* GetActivePlayerCamera() const { return mPlayerCamera.Get(); }
+
+	UFUNCTION(BlueprintNativeEvent, Category = "PlayerController")
+	void OnPlayerControllerPossessedPawn(APawn* pawn);
+
+	UFUNCTION(BlueprintNativeEvent, Category = "PlayerController")
+	void OnPlayerControllerUnPossessedPawn(APawn* pawn);
 
 protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Input")
@@ -25,4 +43,5 @@ protected:
 
 protected:
 	FDelegateHandle mOnControllerChangedHandle;
+	TWeakObjectPtr<AVertPlayerCameraActor> mPlayerCamera;
 };

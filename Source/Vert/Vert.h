@@ -17,6 +17,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/VertUtilities.h"
 #include "Engine/VertGameInstance.h"
+#include "Engine/VertCameraManager.h"
+#include "Engine/VertPlayerController.h"
 
 // Components
 #include "CableComponent.h"
@@ -25,6 +27,8 @@
 // Actors
 #include "VertCharacter.h"
 #include "Environment/GrapplePoint.h"
+#include "GameFramework/Pawn.h"
+#include "VertGameMode.h"
 
 //General Log
 DECLARE_LOG_CATEGORY_EXTERN(CharacterLog, Log, All);
