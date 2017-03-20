@@ -197,11 +197,17 @@ void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	// Note: the 'Jump' action and the 'MoveRight' axis are bound to actual keys/buttons/sticks in DefaultInput.ini (editable from Project Settings..Input)
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AVertCharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
-	PlayerInputComponent->BindAction("GrappleShoot", IE_Pressed, this, &AVertCharacter::GrappleShoot);
+	PlayerInputComponent->BindAction("GrappleShootMK", IE_Pressed, this, &AVertCharacter::GrappleShootMK);
 	PlayerInputComponent->BindAction("GrappleShootGamepad", IE_Pressed, this, &AVertCharacter::GrappleShootGamepad);
-	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AVertCharacter::DoDash);
+	PlayerInputComponent->BindAction("DashMK", IE_Pressed, this, &AVertCharacter::DashMK);
+	PlayerInputComponent->BindAction("DashGamepad", IE_Pressed, this, &AVertCharacter::DashGamepad);
 
 	PlayerInputComponent->BindAxis("MoveRight", this, &AVertCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("LeftThumbstickMoveX", this, &AVertCharacter::LeftThumbstickMoveX);
+	PlayerInputComponent->BindAxis("LeftThumbstickMoveY", this, &AVertCharacter::LeftThumbstickMoveY);
+	PlayerInputComponent->BindAxis("RightThumbstickMoveX", this, &AVertCharacter::RightThumbstickMoveX);
+	PlayerInputComponent->BindAxis("RightThumbstickMoveY", this, &AVertCharacter::RightThumbstickMoveY);
+	PlayerInputComponent->BindAxis("MouseMove", this, &AVertCharacter::MouseMove);
 }
 
 
@@ -255,6 +261,7 @@ void AVertCharacter::OnUnLatched_Implementation(AGrappleHook* hook)
 
 void AVertCharacter::MoveRight(float Value)
 {
+	UE_LOG(LogVertCharacter, Warning, TEXT("MoveRight: %f"), Value);
 	if (mDisableMovement)
 		return;
 
@@ -278,22 +285,14 @@ void AVertCharacter::Jump()
 	Super::Jump();
 }
 
-void AVertCharacter::GrappleShoot()
+void AVertCharacter::GrappleShootMK()
 {
 	if (mDisableGrapple)
 		return;
 
-	//APlayerController* playerController = Cast<APlayerController>(GetController());
-	//FVector worldLocation, worldDirection;
-	//playerController->DeprojectMousePositionToWorld(worldLocation, worldDirection);
-
 	if (mGrappleLauncher.IsValid())
 	{
-		//FVector characterToClick = worldLocation - mGrappleLauncher->GetActorLocation();
-		//FVector fixedCharToClick(characterToClick.X, 0.f, characterToClick.Z);
-		//FVector fixedDirection = (fixedCharToClick * 100).GetSafeNormal();
-
-		mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(Grapple.AimFreedom, GetPlayerController()->GetPlayerMouseDirection()));
+		mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(Grapple.AimFreedom, mAxisPositions.GetPlayerMouseDirection()));
 	}
 }
 
@@ -302,10 +301,10 @@ void AVertCharacter::GrappleShootGamepad()
 	if (mDisableGrapple)
 		return;
 
-	mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(Grapple.AimFreedom, GetPlayerController()->GetPlayerRightThumbstickDirection()));
+	mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(Grapple.AimFreedom, mAxisPositions.GetPlayerRightThumbstickDirection()));
 }
 
-void AVertCharacter::DoDash()
+void AVertCharacter::DashMK()
 {
 	if (mDisableDash)
 		return;
@@ -319,9 +318,61 @@ void AVertCharacter::DoDash()
 	if (GetVertCharacterMovement()->CanDash())
 	{
 		if (Dash.AimMode == EDashAimMode::AimDirection)
-			Dash.DirectionOfTravel = GetPlayerController()->GetPlayerRightThumbstickDirection();
+			Dash.DirectionOfTravel = mAxisPositions.GetPlayerMouseDirection();
 		else if (Dash.AimMode == EDashAimMode::PlayerDirection)
-			Dash.DirectionOfTravel = GetPlayerController()->GetPlayerLeftThumbstickDirection();
+		{
+			Dash.DirectionOfTravel = FVector::ZeroVector;
+			if (AVertPlayerController* controller = GetPlayerController())
+			{
+				if (controller->IsInputKeyDown(EKeys::W))
+					Dash.DirectionOfTravel.Z = 1.0f;
+				else if (controller->IsInputKeyDown(EKeys::S))
+					Dash.DirectionOfTravel.Z = -1.0f;
+				
+				if (controller->IsInputKeyDown(EKeys::A))
+					Dash.DirectionOfTravel.X = -1.0f;
+				else if (controller->IsInputKeyDown(EKeys::D))
+					Dash.DirectionOfTravel.X = 1.0f;
+			}
+		}			
+
+		if (Dash.DirectionOfTravel.X == 0 && Dash.DirectionOfTravel.Z == 0)
+		{
+			Dash.DirectionOfTravel = (Controller) ? Controller->GetControlRotation().RotateVector(FVector(1.f, 0.f, 0.f)) : FVector(1.f, 0.f, 0.f);
+		}
+
+		Dash.DirectionOfTravel = UVertUtilities::LimitAimTrajectory(Dash.AimFreedom, Dash.DirectionOfTravel);
+
+		Dash.IsDashing = true;
+		if (Dash.DisableGravityWhenDashing)
+			GetCharacterMovement()->GravityScale = 0.f;
+		GetCharacterMovement()->GroundFriction = 0.f;
+		mRemainingDashes--;
+	}
+}
+
+void AVertCharacter::DashGamepad()
+{
+	if (mDisableDash)
+		return;
+
+	if (mRemainingDashes <= 0 && !ShowDebug.InfiniteDashGrapple)
+		return;
+
+	if (Dash.IsDashing)
+		return;
+
+	if (GetVertCharacterMovement()->CanDash())
+	{
+		if (Dash.AimMode == EDashAimMode::AimDirection)
+			Dash.DirectionOfTravel = mAxisPositions.GetPlayerRightThumbstickDirection();
+		else if (Dash.AimMode == EDashAimMode::PlayerDirection)
+			Dash.DirectionOfTravel = mAxisPositions.GetPlayerLeftThumbstickDirection();
+
+		if (Dash.DirectionOfTravel.X == 0 && Dash.DirectionOfTravel.Y == 0)
+		{
+			Dash.DirectionOfTravel = (Controller) ? Controller->GetControlRotation().RotateVector(FVector(1.f, 0.f, 0.f)) : FVector(1.f, 0.f, 0.f);
+		}
 
 		Dash.DirectionOfTravel = UVertUtilities::LimitAimTrajectory(Dash.AimFreedom, Dash.DirectionOfTravel);
 
@@ -347,7 +398,7 @@ void AVertCharacter::PrintDebugInfo()
 
 	if (ShowDebug.Dash.Enabled)
 	{
-		FVector dashDirection = (Dash.AimMode == EDashAimMode::PlayerDirection) ? GetPlayerController()->GetPlayerLeftThumbstickDirection() : GetPlayerController()->GetPlayerRightThumbstickDirection();
+		FVector dashDirection = (Dash.AimMode == EDashAimMode::PlayerDirection) ? mAxisPositions.GetPlayerLeftThumbstickDirection() : mAxisPositions.GetPlayerRightThumbstickDirection();
 		dashDirection = UVertUtilities::LimitAimTrajectory(Dash.AimFreedom, dashDirection);
 
 		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (dashDirection * 500), 100.f, ShowDebug.Dash.MessageColour);
@@ -364,7 +415,7 @@ void AVertCharacter::PrintDebugInfo()
 		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Hook Active: %s"), (mGrappleLauncher->GetGrappleHook()->GetProjectileMovementComponentIsActive()) ? TEXT("true") : TEXT("false")));
 		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Recharge at %f% (%s)"), Grapple.RechargeTimer.GetProgressPercent(), Grapple.RechargeTimer.IsRunning() ? TEXT("active") : TEXT("inactive")));
 
-		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (GetPlayerController()->GetPlayerRightThumbstickDirection() * 500), 50.f, ShowDebug.Grapple.MessageColour, false, -1.f, 1, 3.f);
+		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (mAxisPositions.GetPlayerRightThumbstickDirection() * 500), 50.f, ShowDebug.Grapple.MessageColour, false, -1.f, 1, 3.f);
 	}
 }
 #endif
@@ -491,4 +542,48 @@ bool AVertCharacter::CanRecharge(ERechargeRule rule)
 		rule == ERechargeRule::OnRechargeTimer ||
 		(rule == ERechargeRule::OnContactGroundOrLatchedAnywhere && hook && hook->GetGrappleState() == EGrappleState::Latched) ||
 		(rule == ERechargeRule::OnContactGroundOrLatchedToHook && hook && hook->GetGrappleState() == EGrappleState::Latched && grapplePoint);
+}
+
+void AVertCharacter::RightThumbstickMoveX(float value)
+{
+	mAxisPositions.RightX = value;
+}
+
+void AVertCharacter::RightThumbstickMoveY(float value)
+{
+	mAxisPositions.RightY = value;
+}
+
+void AVertCharacter::LeftThumbstickMoveX(float value)
+{
+	mAxisPositions.LeftX = value;
+}
+
+void AVertCharacter::LeftThumbstickMoveY(float value)
+{
+	mAxisPositions.LeftY = value;
+}
+
+void AVertCharacter::MouseMove(float value)
+{	
+	if (AVertPlayerController* controller = GetPlayerController())
+	{
+		const ULocalPlayer* localPlayer = controller->GetLocalPlayer();
+		if (localPlayer && localPlayer->ViewportClient)
+		{
+			FVector2D mousePosition;
+			if (localPlayer->ViewportClient->GetMousePosition(mousePosition))
+			{
+				FVector worldLocation, worldDirection;
+				FVector2D playerScreenLocation, mouseDirection;
+				if (controller->ProjectWorldLocationToScreen(GetActorLocation(), playerScreenLocation))
+				{
+					mouseDirection = mousePosition - playerScreenLocation;
+					mouseDirection *= 100;
+					mouseDirection = mouseDirection.GetSafeNormal();
+					mAxisPositions.MouseDirection = FVector(mouseDirection.X, 0.f, -mouseDirection.Y);
+				}
+			}
+		}
+	}
 }

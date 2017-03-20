@@ -7,6 +7,7 @@
 #include "Engine/DebugGroup.h"
 #include "Character/GrappleLauncher.h"
 #include "Character/VertCharacterMovementComponent.h"
+#include "Engine/AxisPositions.h"
 #include "VertCharacter.generated.h"
 
 // This class is the default character for Vert, and it is responsible for all
@@ -226,13 +227,17 @@ protected:
 	/** Called to choose the correct animation to play based on the character's movement state */
 	void UpdateAnimation();
 
-	// Input Mappings
 	void MoveRight(float Value);
-	void GrappleShoot();
+	void GrappleShootMK();
 	void GrappleShootGamepad();
-	void DoDash();
-	// END Input Mappings
-
+	void DashMK();
+	void DashGamepad();
+	void RightThumbstickMoveX(float value);
+	void RightThumbstickMoveY(float value);
+	void LeftThumbstickMoveX(float value);
+	void LeftThumbstickMoveY(float value);
+	void MouseMove(float value);
+	
 	void TickDash(float deltaSeconds);
 	void UpdateCharacter();
 	void SortAbilityRechargeState();
@@ -295,11 +300,12 @@ private:
 protected:
 	TWeakObjectPtr<AGrappleLauncher> mGrappleLauncher = nullptr;
 
-	FVector mGrappleAimGamepad = FVector::ZeroVector;
+	FAxisPositions mAxisPositions;
 	int32 mRemainingGrapples = 0;
 	int32 mRemainingDashes = 0;
 	bool mDisableDash = false;
 	bool mDisableGrapple = false;
 	bool mDisableMovement = false;
 	bool mDisableJump = false;
+	bool mUsingMouse = false;
 };
