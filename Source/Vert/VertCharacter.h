@@ -158,19 +158,6 @@ struct FCharacterDebugSettings
 UCLASS(config = Game)
 class AVertCharacter : public APaperCharacter
 {
-	struct ThumbstickPos
-	{
-		float RightX, RightY, LeftX, LeftY;
-
-		ThumbstickPos()
-		{
-			RightX = 0;
-			RightY = 0;
-			LeftX = 0;
-			LeftY = 0;
-		}
-	};
-
 	GENERATED_BODY()
 
 public:
@@ -229,30 +216,6 @@ public:
 	FORCEINLINE int32 GetRemainingGrapples() const { return mRemainingGrapples; }
 	FORCEINLINE int32 DecrementRemainingGrapples() { return --mRemainingGrapples; }
 
-	UFUNCTION(BlueprintCallable, Category = Thumbsticks)
-	FORCEINLINE FVector GetPlayerLeftThumbstick() const { return FVector(mThumbstickPositions.LeftX, 0.f, mThumbstickPositions.LeftY); }
-
-	UFUNCTION(BlueprintCallable, Category = Thumbsticks)
-	FORCEINLINE FVector GetPlayerRightThumbstick() const { return FVector(mThumbstickPositions.RightX, 0.f, mThumbstickPositions.RightY); }
-
-	UFUNCTION(BlueprintCallable, Category = Thumbsticks)
-	FORCEINLINE FVector2D GetPlayerLeftThumbstick2D() const { return FVector2D(mThumbstickPositions.LeftX, mThumbstickPositions.LeftY); }
-
-	UFUNCTION(BlueprintCallable, Category = Thumbsticks)
-	FORCEINLINE FVector2D GetPlayerRightThumbstick2D() const { return FVector2D(mThumbstickPositions.RightX, mThumbstickPositions.RightY); }
-
-	UFUNCTION(BlueprintCallable, Category = Thumbsticks)
-	FORCEINLINE FVector GetPlayerLeftThumbstickDirection() const { return (FVector(mThumbstickPositions.LeftX, 0.f, mThumbstickPositions.LeftY) * 100).GetSafeNormal(); }
-
-	UFUNCTION(BlueprintCallable, Category = Thumbsticks)
-	FORCEINLINE FVector GetPlayerRightThumbstickDirection() const { return (FVector(mThumbstickPositions.RightX, 0.f, mThumbstickPositions.RightY) * 100).GetSafeNormal(); }
-
-	UFUNCTION(BlueprintCallable, Category = Thumbsticks)
-	FORCEINLINE FVector2D GetPlayerLeftThumbstickDirection2D() const { return (FVector2D(mThumbstickPositions.LeftX, mThumbstickPositions.LeftY) * 100).GetSafeNormal(); }
-
-	UFUNCTION(BlueprintCallable, Category = Thumbsticks)
-	FORCEINLINE FVector2D GetPlayerRightThumbstickDirection2D() const { return (FVector2D(mThumbstickPositions.RightX, mThumbstickPositions.RightY) * 100).GetSafeNormal(); }
-
 	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
 	FORCEINLINE UVertCharacterMovementComponent* GetVertCharacterMovement() const { if (UVertCharacterMovementComponent* movement = Cast<UVertCharacterMovementComponent>(GetCharacterMovement())) { return movement; } return nullptr; }
 
@@ -267,10 +230,6 @@ protected:
 	void MoveRight(float Value);
 	void GrappleShoot();
 	void GrappleShootGamepad();
-	void RightThumbstickMoveX(float value);
-	void RightThumbstickMoveY(float value);
-	void LeftThumbstickMoveX(float value);
-	void LeftThumbstickMoveY(float value);
 	void DoDash();
 	// END Input Mappings
 
@@ -313,6 +272,20 @@ protected:
 		return nullptr;
 	}
 
+	UFUNCTION(BlueprintCallable, Category = "Player Controller")
+	FORCEINLINE AVertPlayerController* GetPlayerController() const
+	{
+		if (AController* controller = GetController())
+		{
+			if (AVertPlayerController* playerController = Cast<AVertPlayerController>(controller))
+			{
+				return playerController;
+			}
+		}
+
+		return nullptr;
+	}
+
 private:
 #if !UE_BUILD_SHIPPING
 	void PrintDebugInfo();
@@ -325,7 +298,6 @@ protected:
 	FVector mGrappleAimGamepad = FVector::ZeroVector;
 	int32 mRemainingGrapples = 0;
 	int32 mRemainingDashes = 0;
-	ThumbstickPos mThumbstickPositions;
 	bool mDisableDash = false;
 	bool mDisableGrapple = false;
 	bool mDisableMovement = false;

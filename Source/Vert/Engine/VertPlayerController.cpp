@@ -87,6 +87,11 @@ void AVertPlayerController::SetupInputComponent()
 	{
 		InputComponent->BindAction("DropIn", IE_Pressed, this, &AVertPlayerController::DropIn);
 		InputComponent->BindAction("ToggleFOV", IE_Pressed, this, &AVertPlayerController::ToggleFOV);
+		InputComponent->BindAxis("LeftThumbstickMoveX", this, &AVertPlayerController::LeftThumbstickMoveX);
+		InputComponent->BindAxis("LeftThumbstickMoveY", this, &AVertPlayerController::LeftThumbstickMoveY);
+		InputComponent->BindAxis("RightThumbstickMoveX", this, &AVertPlayerController::RightThumbstickMoveX);
+		InputComponent->BindAxis("RightThumbstickMoveY", this, &AVertPlayerController::RightThumbstickMoveY);
+		InputComponent->BindAxis("MouseMove", this, &AVertPlayerController::MouseMove);
 	}	
 }
 
@@ -105,4 +110,81 @@ ASpectatorPawn* AVertPlayerController::SpawnSpectatorPawn()
 	UE_LOG(LogVertPlayerController, Warning, TEXT("Player inactive, no spectator spawned"));
 
 	return pawn;
+}
+
+void AVertPlayerController::DisplayClientMessage(FString s)
+{
+	ClientMessage(s);
+}
+
+void AVertPlayerController::DisplayInt(FString label, int32 theInt)
+{
+	label += " ";
+	label += FString::FromInt(theInt);
+	ClientMessage(label);
+}
+
+void AVertPlayerController::DisplayFloat(FString label, float theFloat)
+{
+	label += " ";
+	label += FString::SanitizeFloat(theFloat);
+	ClientMessage(label);
+}
+
+void AVertPlayerController::DisplayVector(FString label, FVector theVector)
+{
+	label += " ";
+	label += FString::SanitizeFloat(theVector.X) + ", " + FString::SanitizeFloat(theVector.Y) + ", " + FString::SanitizeFloat(theVector.Z);
+	ClientMessage(label);
+}
+
+void AVertPlayerController::DisplayVector2D(FString label, FVector2D theVector)
+{
+	label += " ";
+	label += FString::SanitizeFloat(theVector.X) + ", " + FString::SanitizeFloat(theVector.Y);
+	ClientMessage(label);
+}
+
+void AVertPlayerController::RightThumbstickMoveX(float value)
+{
+	mAxisPositions.RightX = value;
+}
+
+void AVertPlayerController::RightThumbstickMoveY(float value)
+{
+	mAxisPositions.RightY = value;
+}
+
+void AVertPlayerController::LeftThumbstickMoveX(float value)
+{
+	mAxisPositions.LeftX = value;
+}
+
+void AVertPlayerController::LeftThumbstickMoveY(float value)
+{
+	mAxisPositions.LeftY = value;
+}
+
+void AVertPlayerController::MouseMove(float value)
+{
+	const ULocalPlayer* localPlayer = Cast<ULocalPlayer>(Player);
+	if (localPlayer && localPlayer->ViewportClient)
+	{
+		FVector2D mousePosition;
+		if (localPlayer->ViewportClient->GetMousePosition(mousePosition))
+		{
+			FVector worldLocation, worldDirection;
+			if (GetPawn())
+			{
+				FVector2D playerScreenLocation, mouseDirection;
+				if (ProjectWorldLocationToScreen(GetPawn()->GetActorLocation(), playerScreenLocation))
+				{
+					mouseDirection = mousePosition - playerScreenLocation;
+					mouseDirection *= 100;
+					mouseDirection = mouseDirection.GetSafeNormal();
+					mAxisPositions.MouseDirection = FVector(mouseDirection.X, 0.f, -mouseDirection.Y);
+				}				
+			}
+		}		
+	}
 }
