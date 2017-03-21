@@ -198,7 +198,6 @@ void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AVertCharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 	PlayerInputComponent->BindAction("GrappleShootMK", IE_Pressed, this, &AVertCharacter::GrappleShootMK);
-	//PlayerInputComponent->BindAction("GrappleShootGamepad", IE_Pressed, this, &AVertCharacter::GrappleShootGamepad);
 	PlayerInputComponent->BindAction("DashMK", IE_Pressed, this, &AVertCharacter::DashMK);
 	PlayerInputComponent->BindAction("DashGamepad", IE_Pressed, this, &AVertCharacter::DashGamepad);
 
