@@ -27,7 +27,7 @@ FVector UVertUtilities::LimitAimTrajectory(EAimFreedom mode, const FVector& vect
 
 FVector2D UVertUtilities::LimitAimTrajectory2D(EAimFreedom mode, const FVector2D& vector)
 {
-	FVector2D fixedVector;
+	FVector2D fixedVector = vector;
 
 	switch (mode)
 	{

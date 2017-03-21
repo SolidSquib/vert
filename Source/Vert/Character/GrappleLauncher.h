@@ -65,7 +65,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
-	void FireGrapple(const FVector& shootDirection);
+	void FireGrapple(const FVector& shootDirection, bool wasGamepadTriggered = false);
+	void FireGrapple(const FVector2D& shootDirection, bool wasGamepadTriggered = false);
 	void ResetGrapple();
 
 	class AVertCharacter* GetOwningCharacter() const;

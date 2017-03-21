@@ -198,7 +198,7 @@ void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AVertCharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 	PlayerInputComponent->BindAction("GrappleShootMK", IE_Pressed, this, &AVertCharacter::GrappleShootMK);
-	PlayerInputComponent->BindAction("GrappleShootGamepad", IE_Pressed, this, &AVertCharacter::GrappleShootGamepad);
+	//PlayerInputComponent->BindAction("GrappleShootGamepad", IE_Pressed, this, &AVertCharacter::GrappleShootGamepad);
 	PlayerInputComponent->BindAction("DashMK", IE_Pressed, this, &AVertCharacter::DashMK);
 	PlayerInputComponent->BindAction("DashGamepad", IE_Pressed, this, &AVertCharacter::DashGamepad);
 
@@ -261,7 +261,6 @@ void AVertCharacter::OnUnLatched_Implementation(AGrappleHook* hook)
 
 void AVertCharacter::MoveRight(float Value)
 {
-	UE_LOG(LogVertCharacter, Warning, TEXT("MoveRight: %f"), Value);
 	if (mDisableMovement)
 		return;
 
@@ -296,12 +295,16 @@ void AVertCharacter::GrappleShootMK()
 	}
 }
 
-void AVertCharacter::GrappleShootGamepad()
+void AVertCharacter::GrappleShootGamepad(const FVector2D& axis)
 {
 	if (mDisableGrapple)
 		return;
 
-	mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(Grapple.AimFreedom, mAxisPositions.GetPlayerRightThumbstickDirection()));
+	if (mGrappleLauncher.IsValid())
+	{
+		FVector2D axisFixedDirection = (axis * 100).GetSafeNormal();
+		mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory2D(Grapple.AimFreedom, axisFixedDirection), true);
+	}
 }
 
 void AVertCharacter::DashMK()
@@ -544,14 +547,38 @@ bool AVertCharacter::CanRecharge(ERechargeRule rule)
 		(rule == ERechargeRule::OnContactGroundOrLatchedToHook && hook && hook->GetGrappleState() == EGrappleState::Latched && grapplePoint);
 }
 
+bool AVertCharacter::CheckShootGrappleGamepad()
+{
+	static float deadzone = 0.25f;
+
+	FVector2D axis = FVector2D::ZeroVector;
+	if (AVertPlayerController* controller = GetPlayerController())
+	{
+		controller->GetInputAnalogStickState(EControllerAnalogStick::CAS_RightStick, axis.X, axis.Y);
+		axis.Y = -axis.Y;
+
+		if (axis.SizeSquared() > FMath::Square(deadzone))
+		{
+			GrappleShootGamepad(axis);
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void AVertCharacter::RightThumbstickMoveX(float value)
 {
 	mAxisPositions.RightX = value;
+	if (FMath::Abs(value) > 0.1f)
+		CheckShootGrappleGamepad();
 }
 
 void AVertCharacter::RightThumbstickMoveY(float value)
 {
 	mAxisPositions.RightY = value;
+	if(FMath::Abs(value) > 0.1f)
+		CheckShootGrappleGamepad();
 }
 
 void AVertCharacter::LeftThumbstickMoveX(float value)

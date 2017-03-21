@@ -229,7 +229,7 @@ protected:
 
 	void MoveRight(float Value);
 	void GrappleShootMK();
-	void GrappleShootGamepad();
+	void GrappleShootGamepad(const FVector2D& axis);
 	void DashMK();
 	void DashGamepad();
 	void RightThumbstickMoveX(float value);
@@ -296,6 +296,7 @@ private:
 	void PrintDebugInfo();
 #endif
 	bool CanRecharge(ERechargeRule rule);
+	bool CheckShootGrappleGamepad();
 
 protected:
 	TWeakObjectPtr<AGrappleLauncher> mGrappleLauncher = nullptr;
