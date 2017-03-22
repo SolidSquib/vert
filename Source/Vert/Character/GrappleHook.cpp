@@ -16,7 +16,8 @@ AGrappleHook::AGrappleHook()
 	SphereCollider->BodyInstance.SetCollisionProfileName("GrappleHook");
 	SphereCollider->OnComponentHit.AddDynamic(this, &AGrappleHook::OnHit);
 	SphereCollider->OnComponentBeginOverlap.AddDynamic(this, &AGrappleHook::OnBeginOverlap);
-
+	SphereCollider->SetCollisionObjectType(ECC_Grappler);
+	SphereCollider->SetCollisionResponseToChannel(ECC_Grappler, ECR_Ignore);
 	SphereCollider->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
 	SphereCollider->CanCharacterStepUpOn = ECB_No;
 
@@ -91,16 +92,19 @@ void AGrappleHook::Tick(float DeltaTime)
 	}
 }
 
-void AGrappleHook::Activate()
+void AGrappleHook::ActivateHookCollision()
 {
-	Sprite->SetVisibility(true);
-	SphereCollider->Activate();
+	SphereCollider->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	SphereCollider->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+	SphereCollider->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Block);
+	SphereCollider->SetCollisionResponseToChannel(ECC_Vehicle, ECR_Block);
+	SphereCollider->SetCollisionResponseToChannel(ECC_Destructible, ECR_Block);
+	SphereCollider->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 }
 
-void AGrappleHook::Deactivate()
+void AGrappleHook::DeactivateHookCollision()
 {
-	Sprite->SetVisibility(false);
-	SphereCollider->Deactivate();
+	SphereCollider->SetCollisionResponseToAllChannels(ECR_Ignore);
 }
 
 void AGrappleHook::Launch(const FVector& fireDirection)
@@ -111,7 +115,7 @@ void AGrappleHook::Launch(const FVector& fireDirection)
 
 		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
-		Activate();
+		ActivateHookCollision();
 		ProjectileMovement->Velocity = fireDirection * GetOwnerAsGrappleLauncher()->GrappleConfig.LineSpeed;
 
 		OnFired.Broadcast();
@@ -123,6 +127,7 @@ void AGrappleHook::Reel()
 	if (mGrappleState != EGrappleState::Sheathed)
 	{
 		mGrappleState = EGrappleState::Reeling;
+		DeactivateHookCollision();
 	}
 }
 
@@ -146,7 +151,6 @@ void AGrappleHook::Sheathe()
 	}
 
 	OnReturned.Broadcast();
-	Deactivate();
 }
 
 void AGrappleHook::Hook(AActor* OtherActor, UPrimitiveComponent* OtherComp, const FHitResult& hit, bool attachToTarget /*= true*/)

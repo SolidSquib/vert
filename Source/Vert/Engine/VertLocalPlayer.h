@@ -5,6 +5,8 @@
 #include "Engine/LocalPlayer.h"
 #include "VertLocalPlayer.generated.h"
 
+DECLARE_LOG_CATEGORY_CLASS(LogVertLocalPlayer, Log, All);
+
 /**
  * 
  */

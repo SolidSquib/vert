@@ -7,6 +7,7 @@
 #include "Engine/DebugGroup.h"
 #include "Character/GrappleLauncher.h"
 #include "Character/VertCharacterMovementComponent.h"
+#include "Character/HealthComponent.h"
 #include "Engine/AxisPositions.h"
 #include "VertCharacter.generated.h"
 
@@ -177,6 +178,9 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controls|GrappleConfig", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AGrappleLauncher> GrappleClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterHealth")
+	UHealthComponent* HealthComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* SideViewCameraComponent;

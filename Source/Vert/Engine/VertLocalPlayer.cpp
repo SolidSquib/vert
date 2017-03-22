@@ -7,14 +7,12 @@ void UVertLocalPlayer::PlayerAdded(UGameViewportClient* InViewportClient, int32 
 {
 	Super::PlayerAdded(InViewportClient, InControllerID);
 
-	UE_LOG(VertCritical, Warning, TEXT("[UVertLocalPlayer] Player added with controller ID %i"), InControllerID);
+	UE_LOG(LogVertLocalPlayer, Log, TEXT("Player added with controller ID %i"), InControllerID);
 }
 
 bool UVertLocalPlayer::SpawnPlayActor(const FString& URL, FString& OutError, UWorld* InWorld)
 {
 	bool shouldSpawn = Super::SpawnPlayActor(URL, OutError, InWorld);
-
-	//if (!mPlayerInGame) shouldSpawn = false;
 
 	return shouldSpawn;
 }

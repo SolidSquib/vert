@@ -88,8 +88,6 @@ public:
 	// Sets default values for this actor's properties
 	AGrappleHook();
 
-	void Activate();
-	void Deactivate();
 	void Launch(const FVector& fireDirection);
 	void Reel();
 	void Sheathe();
@@ -115,6 +113,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Grappling")
 	FORCEINLINE AActor* GetHookedActor() const { return mHookAttachment.Actor.Get(); }
+
+private:
+	void ActivateHookCollision();
+	void DeactivateHookCollision();
 
 protected:
 	FHookedActorInfo mHookAttachment;

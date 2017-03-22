@@ -78,7 +78,6 @@ void AGrappleLauncher::FireGrapple(const FVector& fireDirection, bool wasGamepad
 			mGrappleHook->Launch(fireDirection);
 		}
 
-		mGrappleHook->Activate();
 		Cable->SetVisibility(true);
 
 		GetOwningCharacter()->DecrementRemainingGrapples();
@@ -122,49 +121,4 @@ AVertCharacter* AGrappleLauncher::GetOwningCharacter() const
 
 void AGrappleLauncher::OnHooked_Implementation()
 {
-}
-
-void AGrappleLauncher::ReelIn()
-{
-	AVertCharacter* character = GetOwningCharacter();
-	FVector direction = (mGrappleHook->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-
-	FVector launchVelocity = direction * (GrappleConfig.ReelSpeed);
-	FVector launchVelocity2D = FVector(launchVelocity.X, 0.0f, launchVelocity.Z);
-
-	character->LaunchCharacter(launchVelocity2D, true, true);
-}
-
-bool AGrappleLauncher::MoveGrappleLine()
-{
-	// 	if (mGrappleHook.IsValid())
-	// 	{
-	// 		if (IsGrappleLineOutOfRope())
-	// 		{
-	// 			GrappleConfig.HasTarget = false;
-	// 		}
-	// 
-	// 		mGrappleHook->SetActorLocation(FMath::VInterpTo(mGrappleHook->GetActorLocation(), GrappleConfig.TargetLocation, GetWorld()->GetDeltaSeconds(), GrappleConfig.LineSpeed*0.5));
-	// 	}
-	// 	
-	return false;
-}
-
-void AGrappleLauncher::ReturnGrappleToLauncher()
-{
-	mGrappleHook->SetActorLocation(FMath::VInterpTo(mGrappleHook->GetActorLocation(), GetActorLocation(), GetWorld()->GetDeltaSeconds(), GrappleConfig.LineSpeed));
-	if ((mGrappleHook->GetActorLocation() - GetActorLocation()).SizeSquared() <= 2)
-	{
-		mGrappleHook->Deactivate();
-		Cable->SetVisibility(false);
-	}
-}
-
-bool AGrappleLauncher::IsGrappleLineOutOfRope()
-{
-	if ((GetActorLocation() - mGrappleHook->GetActorLocation()).SizeSquared() >= (GrappleConfig.MaxLength * GrappleConfig.MaxLength))
-	{
-		return true;
-	}
-	return false;
 }

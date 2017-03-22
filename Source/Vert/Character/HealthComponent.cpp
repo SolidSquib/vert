@@ -3,7 +3,6 @@
 #include "Vert.h"
 #include "HealthComponent.h"
 
-
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()
 {
@@ -11,25 +10,34 @@ UHealthComponent::UHealthComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
+	DamageModifier = 1.f;
 }
 
-
-// Called when the game starts
 void UHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
-	
+	AActor* owner = GetOwner();
+	if (ACharacter* character = Cast<ACharacter>(owner))
+	{
+		mCharacterOwner = character;
+	}
+
+	// #MI_TODO: setup damage types (resistences etc)
 }
 
-
-// Called every frame
-void UHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+int32 UHealthComponent::DealDamage(int32 magnitude, class UDamageType* type)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	mDamageTaken += magnitude;
+	OnHit.Broadcast();
 
-	// ...
+	return mDamageTaken;
 }
 
+int32 UHealthComponent::HealDamage(int32 magnitude)
+{
+	mDamageTaken -= magnitude;
+	OnHeal.Broadcast();
+
+	return mDamageTaken;
+}

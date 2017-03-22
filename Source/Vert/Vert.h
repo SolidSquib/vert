@@ -31,14 +31,6 @@
 #include "GameFramework/Pawn.h"
 #include "VertGameMode.h"
 
-//General Log
-DECLARE_LOG_CATEGORY_EXTERN(CharacterLog, Log, All);
-
-//Logging during game startup
-DECLARE_LOG_CATEGORY_EXTERN(Startup, Log, All);
-
-//Logging for your AI system
-DECLARE_LOG_CATEGORY_EXTERN(VertAI, Log, All);
-
-//Logging for Critical Errors that must always be addressed
-DECLARE_LOG_CATEGORY_EXTERN(VertCritical, Log, All);
+// Define custom collision object types in code
+#define ECC_Grappler ECC_GameTraceChannel1
+#define ECC_Interactive ECC_GameTraceChannel2

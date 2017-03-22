@@ -75,13 +75,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
 	void OnHooked();
-
-protected:
-	bool MoveGrappleLine();
-	void ReturnGrappleToLauncher();
-	bool IsGrappleLineOutOfRope();
-	void ReelIn();
-
+	
 protected:
 	TWeakObjectPtr<AGrappleHook> mGrappleHook = nullptr;
 };
