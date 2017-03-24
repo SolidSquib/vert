@@ -7,6 +7,7 @@
 #include "Engine/DebugGroup.h"
 #include "Character/GrappleLauncher.h"
 #include "Character/VertCharacterMovementComponent.h"
+#include "Character/CharacterInteractionComponent.h"
 #include "Character/HealthComponent.h"
 #include "Engine/AxisPositions.h"
 #include "VertCharacter.generated.h"
@@ -172,15 +173,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Debug)
 	FCharacterDebugSettings ShowDebug;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controls|GrappleConfig", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controls|GrappleConfig")
 	FName GrappleHandSocket;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Interact")
+	FName ItemHandSocket = "ItemSocket";
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controls|GrappleConfig", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AGrappleLauncher> GrappleClass;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CharacterHealth")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Health")
 	UHealthComponent* HealthComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Character|Interact")
+	UCharacterInteractionComponent* InteractionComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* SideViewCameraComponent;
@@ -236,6 +243,7 @@ protected:
 	void GrappleShootGamepad(const FVector2D& axis);
 	void DashMK();
 	void DashGamepad();
+	void Interact();
 	void RightThumbstickMoveX(float value);
 	void RightThumbstickMoveY(float value);
 	void LeftThumbstickMoveX(float value);

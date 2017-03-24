@@ -3,7 +3,9 @@
 #pragma once
 
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "CollisionQueryParams.h"
 #include "VertUtilities.generated.h"
+
 
 UENUM()
 enum class EAimFreedom : uint8
@@ -23,6 +25,11 @@ class VERT_API UVertUtilities : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
+	static bool SphereTraceSingleByChannel(const FVector& start, const FVector& end, const float radius, FHitResult& hitOut, const FCollisionQueryParams& params, ECollisionChannel traceChannel = ECC_Pawn);
+	static bool SphereTraceSingleByObjectTypes(const FVector& start, const FVector& end, const float radius, FHitResult& hitOut, const FCollisionQueryParams& params, const FCollisionObjectQueryParams& objectTypes);
+	static bool SphereTraceMultiByChannel(const FVector& start, const FVector& end, const float radius, TArray<FHitResult>& hitOut, const FCollisionQueryParams& params, ECollisionChannel traceChannel = ECC_Pawn);
+	static bool SphereTraceMultiByObjectTypes(const FVector& start, const FVector& end, const float radius, TArray<FHitResult>& hitOut, const FCollisionQueryParams& params, const FCollisionObjectQueryParams& objectTypes);
+
 	template<typename TEnum>
 	static FORCEINLINE FString GetEnumValueToString(const FString& Name, TEnum Value)
 	{

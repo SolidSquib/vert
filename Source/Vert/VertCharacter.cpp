@@ -11,6 +11,8 @@ DEFINE_LOG_CATEGORY(LogVertCharacter);
 
 AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UVertCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)),
+	HealthComponent(CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"))),
+	InteractionComponent(CreateDefaultSubobject<UCharacterInteractionComponent>(TEXT("InteractionComponent"))),
 	MaxGrapples(1),
 	MaxDashes(1),
 	DisableInputWhenDashingOrGrappling(false)
@@ -200,6 +202,7 @@ void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("GrappleShootMK", IE_Pressed, this, &AVertCharacter::GrappleShootMK);
 	PlayerInputComponent->BindAction("DashMK", IE_Pressed, this, &AVertCharacter::DashMK);
 	PlayerInputComponent->BindAction("DashGamepad", IE_Pressed, this, &AVertCharacter::DashGamepad);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AVertCharacter::Interact);
 
 	PlayerInputComponent->BindAxis("MoveRight", this, &AVertCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("LeftThumbstickMoveX", this, &AVertCharacter::LeftThumbstickMoveX);
@@ -383,6 +386,14 @@ void AVertCharacter::DashGamepad()
 			GetCharacterMovement()->GravityScale = 0.f;
 		GetCharacterMovement()->GroundFriction = 0.f;
 		mRemainingDashes--;
+	}
+}
+
+void AVertCharacter::Interact()
+{
+	if (InteractionComponent)
+	{
+		IInteractive* interactive = InteractionComponent->AttemptInteract();
 	}
 }
 

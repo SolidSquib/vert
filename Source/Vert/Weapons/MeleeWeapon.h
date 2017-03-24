@@ -17,6 +17,9 @@ protected:
 	class UPaperFlipbook* DefaultAnimation;
 
 private:
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Origin", meta = (AllowPrivateAccess = "true"))
+	class USceneComponent* AttachPoint;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Sprite", meta = (AllowPrivateAccess = "true"))
 	class UPaperFlipbookComponent* Sprite;
 
@@ -35,5 +38,5 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual void Attack() override;
-	virtual void Interact(class APawn* instigator) override;
+	virtual void Interact(TWeakObjectPtr<class UCharacterInteractionComponent> instigator) override;
 };

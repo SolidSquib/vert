@@ -73,4 +73,58 @@ FVector2D UVertUtilities::SnapVector2DToAngle(const FVector2D& vector, float deg
 	return (newVector * 100).GetSafeNormal();
 }
 
+bool UVertUtilities::SphereTraceSingleByChannel(const FVector& start, const FVector& end, const float radius, FHitResult& hitOut, const FCollisionQueryParams& params, ECollisionChannel traceChannel /* = ECC_Pawn */)
+{
+	TObjectIterator<APlayerController> thePC;
+	if (!thePC)
+		return false;
 
+	if (UWorld* world = thePC->GetWorld())
+	{
+		return world->SweepSingleByChannel(hitOut, start, end, FQuat(), traceChannel, FCollisionShape::MakeSphere(radius), params);
+	}
+
+	return false;
+}
+
+bool UVertUtilities::SphereTraceSingleByObjectTypes(const FVector& start, const FVector& end, const float radius, FHitResult& hitOut, const FCollisionQueryParams& params, const FCollisionObjectQueryParams& objectTypes)
+{
+	TObjectIterator<APlayerController> thePC;
+	if (!thePC)
+		return false;
+
+	if (UWorld* world = thePC->GetWorld())
+	{
+		return world->SweepSingleByObjectType(hitOut, start, end, FQuat(), objectTypes, FCollisionShape::MakeSphere(radius), params);
+	}
+
+	return false;
+}
+
+bool UVertUtilities::SphereTraceMultiByChannel(const FVector& start, const FVector& end, const float radius, TArray<FHitResult>& hitOut, const FCollisionQueryParams& params, ECollisionChannel traceChannel /* = ECC_Pawn */)
+{
+	TObjectIterator<APlayerController> thePC;
+	if (!thePC)
+		return false;
+
+	if (UWorld* world = thePC->GetWorld())
+	{
+		return world->SweepMultiByChannel(hitOut, start, end, FQuat(), traceChannel, FCollisionShape::MakeSphere(radius), params);
+	}
+
+	return false;
+}
+
+bool UVertUtilities::SphereTraceMultiByObjectTypes(const FVector& start, const FVector& end, const float radius, TArray<FHitResult>& hitOut, const FCollisionQueryParams& params, const FCollisionObjectQueryParams& objectTypes)
+{
+	TObjectIterator<APlayerController> thePC;
+	if (!thePC)
+		return false;
+
+	if (UWorld* world = thePC->GetWorld())
+	{
+		return world->SweepMultiByObjectType(hitOut, start, end, FQuat(), objectTypes, FCollisionShape::MakeSphere(radius), params);
+	}
+
+	return false;
+}

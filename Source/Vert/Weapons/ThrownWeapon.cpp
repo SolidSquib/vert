@@ -61,7 +61,7 @@ void AThrownWeapon::Attack()
 
 }
 
-void AThrownWeapon::Interact(APawn* instigator)
+void AThrownWeapon::Interact(TWeakObjectPtr<UCharacterInteractionComponent> instigator)
 {
 
 }

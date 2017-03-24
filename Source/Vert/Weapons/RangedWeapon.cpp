@@ -61,7 +61,7 @@ void ARangedWeapon::Attack()
 
 }
 
-void ARangedWeapon::Interact(APawn* instigator)
+void ARangedWeapon::Interact(TWeakObjectPtr<UCharacterInteractionComponent> instigator)
 {
 
 }

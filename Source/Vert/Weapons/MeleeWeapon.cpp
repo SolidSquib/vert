@@ -19,7 +19,7 @@ AMeleeWeapon::AMeleeWeapon()
 	}
 	SetRootComponent(CollisionComponent);
 
-	Sprite = CreateOptionalDefaultSubobject<UPaperFlipbookComponent>(APaperCharacter::SpriteComponentName);
+	Sprite = CreateDefaultSubobject<UPaperFlipbookComponent>(APaperCharacter::SpriteComponentName);
 	if (Sprite)
 	{
 		Sprite->AlwaysLoadOnClient = true;
@@ -34,6 +34,9 @@ AMeleeWeapon::AMeleeWeapon()
 		Sprite->SetIsReplicated(true);
 		Sprite->SetupAttachment(RootComponent);
 	}
+
+	AttachPoint = CreateDefaultSubobject<USceneComponent>(TEXT("AttachPoint"));
+	AttachPoint->SetupAttachment(RootComponent);
 
 	bReplicates = true;
 }
@@ -61,7 +64,11 @@ void AMeleeWeapon::Attack()
 
 }
 
-void AMeleeWeapon::Interact(APawn* instigator)
+void AMeleeWeapon::Interact(TWeakObjectPtr<UCharacterInteractionComponent> instigator)
 {
-
+	if (instigator.IsValid())
+	{
+		FVector localOffset = GetActorLocation() - AttachPoint->GetComponentLocation();
+		instigator->HoldInteractive(this, localOffset, false);
+	}	
 }

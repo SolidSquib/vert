@@ -35,5 +35,5 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual void Attack() override;
-	virtual void Interact(class APawn* instigator) override;
+	virtual void Interact(TWeakObjectPtr<class UCharacterInteractionComponent> instigator) override;
 };

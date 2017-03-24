@@ -61,7 +61,7 @@ void AHitscanRangedWeapon::Attack()
 
 }
 
-void AHitscanRangedWeapon::Interact(APawn* instigator)
+void AHitscanRangedWeapon::Interact(TWeakObjectPtr<UCharacterInteractionComponent> instigator)
 {
 
 }
