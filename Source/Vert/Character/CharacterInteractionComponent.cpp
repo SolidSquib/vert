@@ -72,7 +72,7 @@ IInteractive* UCharacterInteractionComponent::AttemptInteract()
 	case EInteractionState::HoldingItem:
 	{
 		IInteractive* interactive = mHeldInteractive;
-		DropInteractive();
+		interactive->Interact(this);
 		return interactive;
 	}
 	break;

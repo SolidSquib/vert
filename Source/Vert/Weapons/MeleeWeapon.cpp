@@ -3,6 +3,7 @@
 #include "Vert.h"
 #include "MeleeWeapon.h"
 
+DECLARE_LOG_CATEGORY_CLASS(LogVertMeleeWeapon, Log, All);
 
 // Sets default values
 AMeleeWeapon::AMeleeWeapon()
@@ -38,6 +39,10 @@ AMeleeWeapon::AMeleeWeapon()
 	AttachPoint = CreateDefaultSubobject<USceneComponent>(TEXT("AttachPoint"));
 	AttachPoint->SetupAttachment(RootComponent);
 
+	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
+	ProjectileMovement->ProjectileGravityScale = 1.0f;
+	ProjectileMovement->SetUpdatedComponent(nullptr);
+
 	bReplicates = true;
 }
 
@@ -68,7 +73,43 @@ void AMeleeWeapon::Interact(TWeakObjectPtr<UCharacterInteractionComponent> insti
 {
 	if (instigator.IsValid())
 	{
-		FVector localOffset = GetActorLocation() - AttachPoint->GetComponentLocation();
-		instigator->HoldInteractive(this, localOffset, false);
+		if (instigator->GetHeldInteractive() != this)
+		{
+			FVector localOffset = -AttachPoint->RelativeLocation;
+
+			ProjectileMovement->SetUpdatedComponent(nullptr);
+			if (instigator->HoldInteractive(this, localOffset, false))
+			{
+				mCharacterInteractionOwner = instigator;
+
+				UE_LOG(LogVertMeleeWeapon, Log, TEXT("Weapon %s picked up by player %s"), *GetName(), *instigator->GetName());
+			}
+		}
+		else
+		{
+			Throw();
+		}
 	}	
+}
+
+void AMeleeWeapon::Throw()
+{
+	if (mCharacterInteractionOwner.IsValid())
+	{
+		mCharacterInteractionOwner->DropInteractive();
+
+		if (AVertCharacter* character = mCharacterInteractionOwner->GetCharacterOwner())
+		{
+			FVector launchDirection = character->GetAxisPostisions().GetPlayerLeftThumbstickDirection();
+			ProjectileMovement->SetUpdatedComponent(RootComponent);
+			ProjectileMovement->Velocity = launchDirection * 500.f;
+
+			if (auto i = Cast<IWeaponPickup>(this))
+			{
+				i->Execute_OnThrow(Cast<UObject>(i), character);
+			}
+
+			UE_LOG(LogVertMeleeWeapon, Log, TEXT("Weapon %s thrown by player %s"), *GetName(), *character->GetName());
+		}
+	}
 }

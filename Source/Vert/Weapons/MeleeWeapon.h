@@ -26,17 +26,22 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Collision", meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* CollisionComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon|ProjectileMovement", meta = (AllowPrivateAccess = "true"))
+	class UProjectileMovementComponent* ProjectileMovement;
+
 public:	
 	// Sets default values for this actor's properties
 	AMeleeWeapon();
+
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+	virtual void Attack() override;
+	virtual void Interact(TWeakObjectPtr<class UCharacterInteractionComponent> instigator) override;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	virtual void Attack() override;
-	virtual void Interact(TWeakObjectPtr<class UCharacterInteractionComponent> instigator) override;
+private:
+	void Throw();
 };

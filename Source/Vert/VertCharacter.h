@@ -227,6 +227,7 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE int32 GetRemainingGrapples() const { return mRemainingGrapples; }
 	FORCEINLINE int32 DecrementRemainingGrapples() { return --mRemainingGrapples; }
+	FORCEINLINE const FAxisPositions& GetAxisPostisions() const { return mAxisPositions; }
 
 	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
 	FORCEINLINE UVertCharacterMovementComponent* GetVertCharacterMovement() const { if (UVertCharacterMovementComponent* movement = Cast<UVertCharacterMovementComponent>(GetCharacterMovement())) { return movement; } return nullptr; }

@@ -32,4 +32,5 @@ public:
 
 protected:
 	int32 mChargeLevel = 0;
+	TWeakObjectPtr<class UCharacterInteractionComponent> mCharacterInteractionOwner = nullptr;
 };
