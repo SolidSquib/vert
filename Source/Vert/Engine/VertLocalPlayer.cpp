@@ -5,9 +5,13 @@
 
 void UVertLocalPlayer::PlayerAdded(UGameViewportClient* InViewportClient, int32 InControllerID)
 {
+	static int32 playerIndex = 0;
+
 	Super::PlayerAdded(InViewportClient, InControllerID);
 
-	UE_LOG(LogVertLocalPlayer, Log, TEXT("Player added with controller ID %i"), InControllerID);
+	mPlayerIndex = playerIndex++;
+
+	UE_LOG(LogVertLocalPlayer, Log, TEXT("Player %i added with controller ID %i"), mPlayerIndex, InControllerID);
 }
 
 bool UVertLocalPlayer::SpawnPlayActor(const FString& URL, FString& OutError, UWorld* InWorld)
