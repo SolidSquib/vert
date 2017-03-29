@@ -11,15 +11,6 @@ AMeleeWeapon::AMeleeWeapon()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	CollisionComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionComponent"));
-	if (CollisionComponent)
-	{
-		CollisionComponent->SetCollisionProfileName(TEXT("InteractiveItem"));
-		CollisionComponent->SetCollisionObjectType(ECC_Interactive);
-		CollisionComponent->SetSimulatePhysics(false);
-	}
-	SetRootComponent(CollisionComponent);
-
 	Sprite = CreateDefaultSubobject<UPaperFlipbookComponent>(APaperCharacter::SpriteComponentName);
 	if (Sprite)
 	{
@@ -28,20 +19,19 @@ AMeleeWeapon::AMeleeWeapon()
 		Sprite->bOwnerNoSee = false;
 		Sprite->bAffectDynamicIndirectLighting = true;
 		Sprite->PrimaryComponentTick.TickGroup = TG_PrePhysics;
-		Sprite->SetupAttachment(CollisionComponent);
 		static FName CollisionProfileName(TEXT("CharacterMesh"));
 		Sprite->SetCollisionProfileName(CollisionProfileName);
-		Sprite->bGenerateOverlapEvents = false;
+		Sprite->bGenerateOverlapEvents = true;
+		Sprite->SetSimulatePhysics(true);
+		Sprite->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Sprite->SetCollisionProfileName(TEXT("InteractiveItem"));
+		Sprite->SetCollisionObjectType(ECC_Interactive);
 		Sprite->SetIsReplicated(true);
-		Sprite->SetupAttachment(RootComponent);
 	}
+	SetRootComponent(Sprite);
 
 	AttachPoint = CreateDefaultSubobject<USceneComponent>(TEXT("AttachPoint"));
 	AttachPoint->SetupAttachment(RootComponent);
-
-	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-	ProjectileMovement->ProjectileGravityScale = 1.0f;
-	ProjectileMovement->SetUpdatedComponent(nullptr);
 
 	bReplicates = true;
 }
@@ -77,7 +67,6 @@ void AMeleeWeapon::Interact(TWeakObjectPtr<UCharacterInteractionComponent> insti
 		{
 			FVector localOffset = -AttachPoint->RelativeLocation;
 
-			ProjectileMovement->SetUpdatedComponent(nullptr);
 			if (instigator->HoldInteractive(this, localOffset, false))
 			{
 				mCharacterInteractionOwner = instigator;
@@ -100,9 +89,10 @@ void AMeleeWeapon::Throw()
 
 		if (AVertCharacter* character = mCharacterInteractionOwner->GetCharacterOwner())
 		{
-			FVector launchDirection = character->GetAxisPostisions().GetPlayerLeftThumbstickDirection();
-			ProjectileMovement->SetUpdatedComponent(RootComponent);
-			ProjectileMovement->Velocity = launchDirection * 500.f;
+			FVector launchDirection = UVertUtilities::SnapVectorToAngle(character->GetAxisPostisions().GetPlayerLeftThumbstickDirection(), 45.f);
+			Sprite->SetSimulatePhysics(true);
+			Sprite->AddImpulse(launchDirection * 100000.f);
+			Sprite->AddAngularImpulse(FVector(0, 1.f, 0) * 5000.f);
 
 			if (auto i = Cast<IWeaponPickup>(this))
 			{

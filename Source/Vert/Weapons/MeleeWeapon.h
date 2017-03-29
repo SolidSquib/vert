@@ -23,12 +23,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Sprite", meta = (AllowPrivateAccess = "true"))
 	class UPaperFlipbookComponent* Sprite;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Collision", meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* CollisionComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon|ProjectileMovement", meta = (AllowPrivateAccess = "true"))
-	class UProjectileMovementComponent* ProjectileMovement;
-
 public:	
 	// Sets default values for this actor's properties
 	AMeleeWeapon();
