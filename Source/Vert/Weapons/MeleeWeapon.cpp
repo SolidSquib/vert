@@ -11,7 +11,7 @@ AMeleeWeapon::AMeleeWeapon()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	Sprite = CreateDefaultSubobject<UPaperFlipbookComponent>(APaperCharacter::SpriteComponentName);
+	Sprite = CreateDefaultSubobject<UPaperFlipbookComponent>(TEXT("Sprite"));
 	if (Sprite)
 	{
 		Sprite->AlwaysLoadOnClient = true;
@@ -22,10 +22,12 @@ AMeleeWeapon::AMeleeWeapon()
 		static FName CollisionProfileName(TEXT("CharacterMesh"));
 		Sprite->SetCollisionProfileName(CollisionProfileName);
 		Sprite->bGenerateOverlapEvents = true;
-		Sprite->SetSimulatePhysics(true);
-		Sprite->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		Sprite->SetCollisionProfileName(TEXT("InteractiveItem"));
 		Sprite->SetCollisionObjectType(ECC_Interactive);
+		Sprite->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Sprite->SetConstraintMode(EDOFMode::XZPlane);
+		Sprite->SetMassOverrideInKg(NAME_None, 100.f);
+		Sprite->SetSimulatePhysics(true);
 		Sprite->SetIsReplicated(true);
 	}
 	SetRootComponent(Sprite);
