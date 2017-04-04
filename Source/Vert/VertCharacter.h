@@ -242,12 +242,10 @@ protected:
 	void MoveRight(float Value);
 	void GrappleShootMK();
 	void GrappleShootGamepad(const FVector2D& axis);
-	void DashMK();
-	void DashGamepad();
+	void ExecuteDash();
 	void Interact();
 	void RightThumbstickMoveX(float value);
 	void RightThumbstickMoveY(float value);
-	void LeftThumbstickMoveX(float value);
 	void LeftThumbstickMoveY(float value);
 	void MouseMove(float value);
 	
