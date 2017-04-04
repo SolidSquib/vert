@@ -23,12 +23,13 @@ void UHealthComponent::BeginPlay()
 		mCharacterOwner = character;
 	}
 
+	SetDamageTaken(mDamageTaken);
 	// #MI_TODO: setup damage types (resistences etc)
 }
 
 int32 UHealthComponent::DealDamage(int32 magnitude, class UDamageType* type)
 {
-	mDamageTaken += magnitude;
+	SetDamageTaken(mDamageTaken + magnitude);
 	OnHit.Broadcast();
 
 	return mDamageTaken;
@@ -36,8 +37,20 @@ int32 UHealthComponent::DealDamage(int32 magnitude, class UDamageType* type)
 
 int32 UHealthComponent::HealDamage(int32 magnitude)
 {
-	mDamageTaken -= magnitude;
+	SetDamageTaken(mDamageTaken - magnitude);
 	OnHeal.Broadcast();
 
 	return mDamageTaken;
+}
+
+void UHealthComponent::SetDamageTaken(int32 totalDamage)
+{
+	mDamageTaken = totalDamage;
+
+	if (mCharacterOwner.IsValid() && mCharacterOwner->PlayerState)
+	{
+		AVertPlayerState* playerState = Cast<AVertPlayerState>(mCharacterOwner->PlayerState);
+		if (playerState)
+			playerState->SetDamageTaken(mDamageTaken);
+	}
 }

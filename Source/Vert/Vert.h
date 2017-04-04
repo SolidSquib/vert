@@ -7,11 +7,8 @@
 //
 // Place any includes here that are needed by the majority of your .cpp files
 
-#if 1
 #include "Engine.h"
-#else
-#include "EngineMinimal.h"
-#endif
+#include "Net/UnrealNetwork.h"
 
 // Engine
 #include "Kismet/KismetMathLibrary.h"
@@ -19,6 +16,8 @@
 #include "Engine/VertGameInstance.h"
 #include "Engine/VertCameraManager.h"
 #include "Engine/VertPlayerController.h"
+#include "Engine/VertGameState.h"
+#include "Engine/VertPlayerState.h"
 
 // Components
 #include "CableComponent.h"
@@ -30,6 +29,7 @@
 #include "Environment/GrapplePoint.h"
 #include "GameFramework/Pawn.h"
 #include "VertGameMode.h"
+#include "UserInterface/VertHUD.h"
 
 // Interfaces
 #include "Weapons/WeaponPickup.h"

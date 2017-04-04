@@ -14,34 +14,18 @@ AVertPlayerController::AVertPlayerController()
 void AVertPlayerController::DropIn()
 {
 	// #MI_TODO: Needs to be slightly more fancy eventually but it does the job for now.
-
-	if (UVertLocalPlayer* player = GetVertLocalPlayer())
-	{
-		if (!player->IsPlayerInGame())
-		{
-			player->PlayerJoinGame();
-			SetSpectatorPawn(SpawnSpectatorPawn());
-		}
-	}
+	SetSpectatorPawn(SpawnSpectatorPawn());
 }
 
 void AVertPlayerController::DropOut()
 {
-	if (UVertLocalPlayer* player = GetVertLocalPlayer())
-	{
-		if (player->IsPlayerInGame())
-		{
-			player->PlayerLeaveGame();
-			UnPossess();
-			
-			// #MI_TODO: possess by AIController or remove character...
-		}
-	}
+	UnPossess();		
+	// #MI_TODO: possess by AIController or remove character...
 }
 
 bool AVertPlayerController::CanRestartPlayer()
 {
-	return Super::CanRestartPlayer() && GetVertLocalPlayer() && GetVertLocalPlayer()->IsPlayerInGame();
+	return Super::CanRestartPlayer();
 }
 
 UVertLocalPlayer* AVertPlayerController::GetVertLocalPlayer()
@@ -93,14 +77,7 @@ void AVertPlayerController::SetupInputComponent()
 ASpectatorPawn* AVertPlayerController::SpawnSpectatorPawn()
 {
 	ASpectatorPawn* pawn = nullptr;
-
-	if (UVertLocalPlayer* player = GetVertLocalPlayer())
-	{
-		if (player->IsPlayerInGame())
-		{
-			return Super::SpawnSpectatorPawn();
-		}
-	}
+	return Super::SpawnSpectatorPawn();
 
 	UE_LOG(LogVertPlayerController, Warning, TEXT("Player inactive, no spectator spawned"));
 

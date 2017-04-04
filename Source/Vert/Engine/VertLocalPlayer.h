@@ -18,13 +18,4 @@ class VERT_API UVertLocalPlayer : public ULocalPlayer
 public:
 	virtual void PlayerAdded(class UGameViewportClient* InViewportClient, int32 InControllerID) override;
 	virtual bool SpawnPlayActor(const FString& URL, FString& OutError, UWorld* InWorld) override;
-
-	FORCEINLINE bool IsPlayerInGame() const { return mPlayerInGame; }
-	FORCEINLINE void PlayerJoinGame() { mPlayerInGame = true; }
-	FORCEINLINE void PlayerLeaveGame() { mPlayerInGame = false; }
-	FORCEINLINE int32 GetPlayerIndex() const { return mPlayerIndex; }
-
-private:
-	bool mPlayerInGame = false;
-	int32 mPlayerIndex = -1;
 };

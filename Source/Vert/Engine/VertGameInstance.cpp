@@ -3,6 +3,19 @@
 #include "Vert.h"
 #include "VertGameInstance.h"
 
+bool UVertGameInstance::IsControllerIDAvailable(const int32& id)
+{
+	const TArray<ULocalPlayer*>& players = GetLocalPlayers();
+
+	for (auto i = 0; i < players.Num(); ++i)
+	{
+		if (players[i]->GetControllerId() == id)
+			return false;
+	}
+
+	return true;
+}
+
 void UVertGameInstance::Init()
 {
 	Super::Init();
@@ -21,20 +34,7 @@ void UVertGameInstance::StartGameInstance()
 ULocalPlayer* UVertGameInstance::CreateInitialPlayer(FString& OutError)
 {
 	ULocalPlayer* playerOne = Super::CreateInitialPlayer(OutError);
-	
-	if (UVertLocalPlayer* vertPlayer = Cast<UVertLocalPlayer>(playerOne))
-	{
-		vertPlayer->PlayerJoinGame();
-	}
-
-	for (int32 i = 1; i < MAX_PLAYERS; ++i)
-	{
-		CreateLocalPlayer(-1, OutError, false);
-	}
-
-	
-
-	return playerOne;
+ 	return playerOne;
 }
 
 void UVertGameInstance::StartRecordingReplay(const FString& InName, const FString& FriendlyName, const TArray<FString>& AdditionalOptions /*= TArray<FString>()*/)
@@ -57,7 +57,7 @@ void UVertGameInstance::AddUserToReplay(const FString& UserString)
 	Super::AddUserToReplay(UserString);
 }
 
-TArray<UVertLocalPlayer*> UVertGameInstance::GetAllLocalPlayers()
+TArray<UVertLocalPlayer*> UVertGameInstance::GetVertLocalPlayers()
 {
 	TArray<UVertLocalPlayer*> localPlayers;
 
@@ -66,38 +66,6 @@ TArray<UVertLocalPlayer*> UVertGameInstance::GetAllLocalPlayers()
 		if (UVertLocalPlayer* vertPlayer = Cast<UVertLocalPlayer>(GetLocalPlayers()[i]))
 		{
 			localPlayers.Add(vertPlayer);
-		}
-	}
-
-	return localPlayers;
-}
-
-TArray<UVertLocalPlayer*> UVertGameInstance::GetActiveLocalPlayers()
-{
-	TArray<UVertLocalPlayer*> localPlayers;
-
-	for (int32 i = 0; i < GetLocalPlayers().Num(); ++i)
-	{
-		if (UVertLocalPlayer* vertPlayer = Cast<UVertLocalPlayer>(GetLocalPlayers()[i]))
-		{
-			if(vertPlayer->IsPlayerInGame())
-				localPlayers.Add(vertPlayer);
-		}
-	}
-
-	return localPlayers;
-}
-
-TArray<UVertLocalPlayer*> UVertGameInstance::GetInactiveLocalPlayers()
-{
-	TArray<UVertLocalPlayer*> localPlayers;
-
-	for (int32 i = 0; i < GetLocalPlayers().Num(); ++i)
-	{
-		if (UVertLocalPlayer* vertPlayer = Cast<UVertLocalPlayer>(GetLocalPlayers()[i]))
-		{
-			if(!vertPlayer->IsPlayerInGame())
-				localPlayers.Add(vertPlayer);
 		}
 	}
 

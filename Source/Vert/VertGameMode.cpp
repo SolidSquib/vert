@@ -9,6 +9,7 @@ DEFINE_LOG_CATEGORY(LogVertGameMode);
 AVertGameMode::AVertGameMode()
 {
 	// set default pawn class to our character
+	HUDClass = AVertHUD::StaticClass();
 	DefaultPawnClass = AVertCharacter::StaticClass();
 	PlayerCameraClass = AVertPlayerCameraActor::StaticClass();
 }
@@ -63,7 +64,7 @@ APlayerController* AVertGameMode::SpawnPlayerController(ENetRole InRemoteRole, F
 		onUnPossessedDelegate.BindUFunction(this, TEXT("OnPlayerControllerUnPossessedPawn"));
 		vPlayerController->OnUnPossessed.Add(onUnPossessedDelegate);
 
-		UE_LOG(LogVertGameMode, Warning, TEXT("Player controller delegates bound for %s"), *vPlayerController->GetName());
+		UE_LOG(LogVertGameMode, Log, TEXT("Player controller delegates bound for %s"), *vPlayerController->GetName());
 	}
 
 	return controller;

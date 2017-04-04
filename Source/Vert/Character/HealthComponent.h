@@ -42,6 +42,9 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	void SetDamageTaken(int32 totalDamage);
+
+private:
 	int32 mDamageTaken = 0;
 	TWeakObjectPtr<ACharacter> mCharacterOwner = nullptr;
 };

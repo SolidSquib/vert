@@ -17,6 +17,8 @@ class VERT_API UVertGameInstance : public UGameInstance
 	GENERATED_BODY()
 
 public:
+	bool IsControllerIDAvailable(const int32& id);
+
 	virtual void Init() override;
 	virtual void Shutdown() override;
 	virtual void StartGameInstance() override;
@@ -27,11 +29,5 @@ public:
 	virtual void AddUserToReplay(const FString& UserString) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LocalMultiplayer")
-	TArray<UVertLocalPlayer*> GetAllLocalPlayers();
-
-	UFUNCTION(BlueprintCallable, Category = "LocalMultiplayer")
-	TArray<UVertLocalPlayer*> GetActiveLocalPlayers();
-
-	UFUNCTION(BlueprintCallable, Category = "LocalMultiplayer")
-	TArray<UVertLocalPlayer*> GetInactiveLocalPlayers();
+	TArray<UVertLocalPlayer*> GetVertLocalPlayers();
 };
