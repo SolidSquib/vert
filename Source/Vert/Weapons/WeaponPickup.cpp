@@ -9,5 +9,3 @@ UWeaponPickup::UWeaponPickup(const class FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
 }
-
-// Add default functionality here for any IWeaponPickup functions that are not pure virtual.

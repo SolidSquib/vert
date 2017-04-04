@@ -3,26 +3,14 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
-#include "WeaponPickup.h"
-#include "Interactives/Interactive.h"
+#include "BaseWeapon.h"
 #include "MeleeWeapon.generated.h"
 
 UCLASS()
-class VERT_API AMeleeWeapon : public AActor, public IWeaponPickup, public IInteractive
+class VERT_API AMeleeWeapon : public ABaseWeapon
 {
 	GENERATED_BODY()
 	
-protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon|Sprite")
-	class UPaperFlipbook* DefaultAnimation;
-
-private:
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Origin", meta = (AllowPrivateAccess = "true"))
-	class USceneComponent* AttachPoint;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Sprite", meta = (AllowPrivateAccess = "true"))
-	class UPaperFlipbookComponent* Sprite;
-
 public:	
 	// Sets default values for this actor's properties
 	AMeleeWeapon();
@@ -35,7 +23,5 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-private:
-	void Throw();
+	virtual void Throw() override;
 };
