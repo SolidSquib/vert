@@ -9,6 +9,7 @@
 #include "Character/VertCharacterMovementComponent.h"
 #include "Character/CharacterInteractionComponent.h"
 #include "Character/HealthComponent.h"
+#include "Character/BaseCharacterState.h"
 #include "Engine/AxisPositions.h"
 #include "VertCharacter.generated.h"
 
@@ -311,6 +312,8 @@ private:
 
 protected:
 	TWeakObjectPtr<AGrappleLauncher> mGrappleLauncher = nullptr;
+	TMap<ECharacterState, UBaseCharacterState*> mCharacterStates;
+	ECharacterState mActiveState = ECharacterState::Idle;
 
 	FAxisPositions mAxisPositions;
 	int32 mRemainingGrapples = 0;

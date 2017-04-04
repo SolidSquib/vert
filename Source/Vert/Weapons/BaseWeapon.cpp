@@ -34,6 +34,8 @@ ABaseWeapon::ABaseWeapon()
 	AttachPoint = CreateDefaultSubobject<USceneComponent>(TEXT("AttachPoint"));
 	AttachPoint->SetupAttachment(RootComponent);
 
+	BaseDamage = 10;
+
 	bReplicates = true;
 }
 
@@ -55,7 +57,15 @@ void ABaseWeapon::Tick(float DeltaTime)
 
 void ABaseWeapon::Attack()
 {
+	if (mCharacterInteractionOwner.IsValid())
+	{
+		AVertCharacter* character = mCharacterInteractionOwner->GetCharacterOwner();
+		if (!character)
+			return;
 
+		//character->GetSprite()->SetFlipbook(character->AttackAnimation);
+		Sprite->SetFlipbook(AttackAnimation);
+	}
 }
 
 void ABaseWeapon::Interact(TWeakObjectPtr<class UCharacterInteractionComponent> instigator)

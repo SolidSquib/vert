@@ -13,8 +13,14 @@ class VERT_API ABaseWeapon : public AActor, public IWeaponPickup, public IIntera
 	GENERATED_BODY()
 	
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Damage")
+	int32 BaseDamage;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon|Sprite")
 	class UPaperFlipbook* DefaultAnimation;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon|Sprite")
+	class UPaperFlipbook* AttackAnimation;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Origin", meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* AttachPoint;

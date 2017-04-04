@@ -3,6 +3,7 @@
 #include "Vert.h"
 #include "VertCharacter.h"
 #include "PaperFlipbookComponent.h"
+#include "ContainerAllocationPolicies.h"
 
 DEFINE_LOG_CATEGORY(LogVertCharacter);
 
@@ -101,6 +102,13 @@ void AVertCharacter::Tick(float DeltaSeconds)
 	Dash.RechargeTimer.TickTimer(DeltaSeconds);
 	Grapple.RechargeTimer.TickTimer(DeltaSeconds);
 
+	if (mCharacterStates.Find(mActiveState))
+	{
+		mCharacterStates[mActiveState]->StateTick(DeltaSeconds);
+	}
+	else
+		UE_LOG(LogVertCharacter, Error, TEXT("Character [%s] missing state [%s]"), *GetName(), *UVertUtilities::GetEnumValueToString<ECharacterState>(TEXT("ECharacterState"), mActiveState));
+
 #if !UE_BUILD_SHIPPING
 	PrintDebugInfo();
 #endif
@@ -132,7 +140,6 @@ void AVertCharacter::BeginPlay()
 		{
 			//Setup spawn parameters for the actor.
 			FActorSpawnParameters spawnParameters;
-			//spawnParameters.Name = TEXT("GrappleLauncher");
 			spawnParameters.Owner = this;
 			spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
@@ -149,6 +156,18 @@ void AVertCharacter::BeginPlay()
 				mGrappleLauncher = spawnedGrapple;
 			}
 		}
+	}
+
+	TInlineComponentArray<UBaseCharacterState*> components;
+	GetComponents<UBaseCharacterState>(components);
+	for (auto* component : components)
+	{
+		mCharacterStates.Add(component->GetCharacterState(), component);
+		UE_LOG(LogVertCharacter, Log, TEXT("State [%s] added to character [%s]"), *component->GetName(), *GetName());
+	}
+	if (!mCharacterStates.Find(ECharacterState::Idle))
+	{
+		UE_LOG(LogVertCharacter, Fatal, TEXT("No idle animation state found for characer [%s]"), *GetName());
 	}
 }
 
