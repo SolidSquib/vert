@@ -9,7 +9,7 @@
 #include "Character/VertCharacterMovementComponent.h"
 #include "Character/CharacterInteractionComponent.h"
 #include "Character/HealthComponent.h"
-#include "Character/BaseCharacterState.h"
+#include "Character/CharacterStateManager.h"
 #include "Engine/AxisPositions.h"
 #include "VertCharacter.generated.h"
 
@@ -159,7 +159,7 @@ struct FCharacterDebugSettings
 	}
 };
 
-UCLASS(config = Game)
+UCLASS(config = Game, Abstract)
 class AVertCharacter : public APaperCharacter
 {
 	GENERATED_BODY()
@@ -190,19 +190,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Character|Interact")
 	UCharacterInteractionComponent* InteractionComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|States")
+	UCharacterStateManager* StateManager;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* SideViewCameraComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
-
-	// The animation to play while running around
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
-	class UPaperFlipbook* RunningAnimation;
-
-	// The animation to play while idle (standing still)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
-	class UPaperFlipbook* IdleAnimation;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Controls)
 	int32 MaxGrapples;
@@ -312,8 +307,6 @@ private:
 
 protected:
 	TWeakObjectPtr<AGrappleLauncher> mGrappleLauncher = nullptr;
-	TMap<ECharacterState, UBaseCharacterState*> mCharacterStates;
-	ECharacterState mActiveState = ECharacterState::Idle;
 
 	FAxisPositions mAxisPositions;
 	int32 mRemainingGrapples = 0;

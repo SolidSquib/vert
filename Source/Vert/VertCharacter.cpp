@@ -14,6 +14,7 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UVertCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)),
 	HealthComponent(CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"))),
 	InteractionComponent(CreateDefaultSubobject<UCharacterInteractionComponent>(TEXT("InteractionComponent"))),
+	StateManager(CreateDefaultSubobject<UCharacterStateManager>(TEXT("StateManager"))),
 	MaxGrapples(1),
 	MaxDashes(1),
 	DisableInputWhenDashingOrGrappling(false)
@@ -80,11 +81,11 @@ void AVertCharacter::UpdateAnimation()
 	const float PlayerSpeedSqr = PlayerVelocity.SizeSquared();
 
 	// Are we moving or standing still?
-	UPaperFlipbook* DesiredAnimation = (PlayerSpeedSqr > 0.0f) ? RunningAnimation : IdleAnimation;
-	if (GetSprite()->GetFlipbook() != DesiredAnimation)
-	{
-		GetSprite()->SetFlipbook(DesiredAnimation);
-	}
+// 	UPaperFlipbook* DesiredAnimation = (PlayerSpeedSqr > 0.0f) ? RunningAnimation : IdleAnimation;
+// 	if (GetSprite()->GetFlipbook() != DesiredAnimation)
+// 	{
+// 		GetSprite()->SetFlipbook(DesiredAnimation);
+// 	}
 }
 
 void AVertCharacter::Tick(float DeltaSeconds)
@@ -101,13 +102,6 @@ void AVertCharacter::Tick(float DeltaSeconds)
 	SortAbilityRechargeState();
 	Dash.RechargeTimer.TickTimer(DeltaSeconds);
 	Grapple.RechargeTimer.TickTimer(DeltaSeconds);
-
-	if (mCharacterStates.Find(mActiveState))
-	{
-		mCharacterStates[mActiveState]->StateTick(DeltaSeconds);
-	}
-	else
-		UE_LOG(LogVertCharacter, Error, TEXT("Character [%s] missing state [%s]"), *GetName(), *UVertUtilities::GetEnumValueToString<ECharacterState>(TEXT("ECharacterState"), mActiveState));
 
 #if !UE_BUILD_SHIPPING
 	PrintDebugInfo();
@@ -157,20 +151,7 @@ void AVertCharacter::BeginPlay()
 			}
 		}
 	}
-
-	TInlineComponentArray<UBaseCharacterState*> components;
-	GetComponents<UBaseCharacterState>(components);
-	for (auto* component : components)
-	{
-		mCharacterStates.Add(component->GetCharacterState(), component);
-		UE_LOG(LogVertCharacter, Log, TEXT("State [%s] added to character [%s]"), *component->GetName(), *GetName());
-	}
-	if (!mCharacterStates.Find(ECharacterState::Idle))
-	{
-		UE_LOG(LogVertCharacter, Fatal, TEXT("No idle animation state found for characer [%s]"), *GetName());
-	}
 }
-
 
 void AVertCharacter::EndPlay(const EEndPlayReason::Type endPlayReason)
 {
@@ -282,135 +263,88 @@ void AVertCharacter::MoveRight(float Value)
 {
 	mAxisPositions.LeftX = Value;
 
-	if (mDisableMovement)
-		return;
+	if (StateManager->HasPermission(ECharacterStatePermissions::CanMove))
+	{
+		if (Value > 0)
+			Value = 1.f;
+		else if (Value < 0)
+			Value = -1.f;
 
-	if (Value > 0)
-		Value = 1.f;
-	else if (Value < 0)
-		Value = -1.f;
-
-	// Apply the input to the character motion
-	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), Value);
+		// Apply the input to the character motion
+		AddMovementInput(FVector(1.0f, 0.0f, 0.0f), Value);
+	}
 }
 
 void AVertCharacter::Jump()
 {
-	if (mDisableJump)
-		return;
+	if (StateManager->HasPermission(ECharacterStatePermissions::CanJump))
+	{
+		if (mGrappleLauncher.IsValid())
+			mGrappleLauncher->ResetGrapple();
 
-	if (mGrappleLauncher.IsValid())
-		mGrappleLauncher->ResetGrapple();
-
-	Super::Jump();
+		Super::Jump();
+	}
 }
 
 void AVertCharacter::GrappleShootMK()
 {
-	if (mDisableGrapple)
-		return;
-
-	if (mGrappleLauncher.IsValid())
+	if (StateManager->HasPermission(ECharacterStatePermissions::CanGrapple))
 	{
-		mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(Grapple.AimFreedom, mAxisPositions.GetPlayerMouseDirection()));
+		if (mGrappleLauncher.IsValid())
+		{
+			mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(Grapple.AimFreedom, mAxisPositions.GetPlayerMouseDirection()));
+		}
 	}
 }
 
 void AVertCharacter::GrappleShootGamepad(const FVector2D& axis)
 {
-	if (mDisableGrapple)
-		return;
-
-	if (mGrappleLauncher.IsValid())
+	if (StateManager->HasPermission(ECharacterStatePermissions::CanGrapple))
 	{
-		FVector2D axisFixedDirection = (axis * 100).GetSafeNormal();
-		mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory2D(Grapple.AimFreedom, axisFixedDirection), true);
+		if (mGrappleLauncher.IsValid())
+		{
+			FVector2D axisFixedDirection = (axis * 100).GetSafeNormal();
+			mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory2D(Grapple.AimFreedom, axisFixedDirection), true);
+		}
 	}
 }
 
-//void AVertCharacter::DashMK()
-//{
-//	if (mDisableDash)
-//		return;
-//
-//	if (mRemainingDashes <= 0 && !ShowDebug.InfiniteDashGrapple)
-//		return;
-//
-//	if (Dash.IsDashing)
-//		return;
-//
-//	if (GetVertCharacterMovement()->CanDash())
-//	{
-//		if (Dash.AimMode == EDashAimMode::AimDirection)
-//			Dash.DirectionOfTravel = mAxisPositions.GetPlayerMouseDirection();
-//		else if (Dash.AimMode == EDashAimMode::PlayerDirection)
-//		{
-//			Dash.DirectionOfTravel = FVector::ZeroVector;
-//			if (AVertPlayerController* controller = GetPlayerController())
-//			{
-//				if (controller->IsInputKeyDown(EKeys::W))
-//					Dash.DirectionOfTravel.Z = 1.0f;
-//				else if (controller->IsInputKeyDown(EKeys::S))
-//					Dash.DirectionOfTravel.Z = -1.0f;
-//				
-//				if (controller->IsInputKeyDown(EKeys::A))
-//					Dash.DirectionOfTravel.X = -1.0f;
-//				else if (controller->IsInputKeyDown(EKeys::D))
-//					Dash.DirectionOfTravel.X = 1.0f;
-//			}
-//		}			
-//
-//		if (Dash.DirectionOfTravel.X == 0 && Dash.DirectionOfTravel.Z == 0)
-//		{
-//			Dash.DirectionOfTravel = (Controller) ? Controller->GetControlRotation().RotateVector(FVector(1.f, 0.f, 0.f)) : FVector(1.f, 0.f, 0.f);
-//		}
-//
-//		Dash.DirectionOfTravel = UVertUtilities::LimitAimTrajectory(Dash.AimFreedom, Dash.DirectionOfTravel);
-//
-//		Dash.IsDashing = true;
-//		if (Dash.DisableGravityWhenDashing)
-//			GetCharacterMovement()->GravityScale = 0.f;
-//		GetCharacterMovement()->GroundFriction = 0.f;
-//		mRemainingDashes--;
-//	}
-//}
-
 void AVertCharacter::ExecuteDash()
 {
-	if (mDisableDash)
-		return;
-
-	if (mRemainingDashes <= 0 && !ShowDebug.InfiniteDashGrapple)
-		return;
-
-	if (Dash.IsDashing)
-		return;
-
-	if (GetVertCharacterMovement()->CanDash())
+	if (StateManager->HasPermission(ECharacterStatePermissions::CanDash))
 	{
-		if (Dash.AimMode == EDashAimMode::AimDirection)
-			Dash.DirectionOfTravel = mAxisPositions.GetPlayerRightThumbstickDirection();
-		else if (Dash.AimMode == EDashAimMode::PlayerDirection)
-			Dash.DirectionOfTravel = mAxisPositions.GetPlayerLeftThumbstickDirection();
+		if (mRemainingDashes <= 0 && !ShowDebug.InfiniteDashGrapple)
+			return;
 
-		if (Dash.DirectionOfTravel.X == 0 && Dash.DirectionOfTravel.Y == 0)
+		if (Dash.IsDashing)
+			return;
+
+		if (GetVertCharacterMovement()->CanDash())
 		{
-			Dash.DirectionOfTravel = (Controller) ? Controller->GetControlRotation().RotateVector(FVector(1.f, 0.f, 0.f)) : FVector(1.f, 0.f, 0.f);
+			if (Dash.AimMode == EDashAimMode::AimDirection)
+				Dash.DirectionOfTravel = mAxisPositions.GetPlayerRightThumbstickDirection();
+			else if (Dash.AimMode == EDashAimMode::PlayerDirection)
+				Dash.DirectionOfTravel = mAxisPositions.GetPlayerLeftThumbstickDirection();
+
+			if (Dash.DirectionOfTravel.X == 0 && Dash.DirectionOfTravel.Y == 0)
+			{
+				Dash.DirectionOfTravel = (Controller) ? Controller->GetControlRotation().RotateVector(FVector(1.f, 0.f, 0.f)) : FVector(1.f, 0.f, 0.f);
+			}
+
+			Dash.DirectionOfTravel = UVertUtilities::LimitAimTrajectory(Dash.AimFreedom, Dash.DirectionOfTravel);
+
+			Dash.IsDashing = true;
+			if (Dash.DisableGravityWhenDashing)
+				GetCharacterMovement()->GravityScale = 0.f;
+			GetCharacterMovement()->GroundFriction = 0.f;
+			mRemainingDashes--;
 		}
-
-		Dash.DirectionOfTravel = UVertUtilities::LimitAimTrajectory(Dash.AimFreedom, Dash.DirectionOfTravel);
-
-		Dash.IsDashing = true;
-		if (Dash.DisableGravityWhenDashing)
-			GetCharacterMovement()->GravityScale = 0.f;
-		GetCharacterMovement()->GroundFriction = 0.f;
-		mRemainingDashes--;
 	}
 }
 
 void AVertCharacter::Interact()
 {
-	if (InteractionComponent)
+	if (StateManager->HasPermission(ECharacterStatePermissions::CanInteract) && InteractionComponent)
 	{
 		IInteractive* interactive = InteractionComponent->AttemptInteract();
 	}
