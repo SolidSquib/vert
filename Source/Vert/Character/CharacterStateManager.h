@@ -21,16 +21,21 @@ public:
 	// Sets default values for this component's properties
 	UCharacterStateManager();
 
+	bool HasValidCharacterState(ECharacterState state);
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable, Category = "CharacterStates")
 	void ForceStateChange(ECharacterState newState, bool overrideTransitions = false);
 
-	UFUNCTION(BlueprintCallable, Category = "CharacterStates")
-	bool HasPermission(ECharacterStatePermissions action);
+	UFUNCTION(BlueprintCallable, Category = "CharacterStates|Action")
+	bool NotifyActionTaken(ECharacterActions action);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "CharacterStates")
 	void OnCurrentStateEnded(class UBaseCharacterState* exitingState, ECharacterState enteringState);
+
+	UFUNCTION(BlueprintCallable, Category = "CharacterStates")
+	FORCEINLINE ECharacterState GetCurrentState() const { return mActiveState; }
 
 protected:
 	// Called when the game starts

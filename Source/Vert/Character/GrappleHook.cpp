@@ -3,6 +3,8 @@
 #include "Vert.h"
 #include "GrappleHook.h"
 
+DECLARE_LOG_CATEGORY_CLASS(LogGrappleHook, Log, All);
+
 // Sets default values
 AGrappleHook::AGrappleHook()
 {
@@ -43,10 +45,12 @@ void AGrappleHook::BeginPlay()
 
 	if (AGrappleLauncher* launcher = GetOwnerAsGrappleLauncher())
 	{
-		if (AVertCharacter* character = launcher->GetOwningCharacter())
+		if (UGrapplingComponent* ownerComponent = launcher->GetOwner() ? Cast<UGrapplingComponent>(launcher->GetOwner()->GetComponentByClass(UGrapplingComponent::StaticClass())) : nullptr)
 		{
-			character->RegisterGrappleHookDelegates(this);
+			ownerComponent->RegisterGrappleHookDelegates(this);
 		}
+		else
+			UE_LOG(LogGrappleHook, Warning, TEXT("GrappleHook [%s] has no associated UGrapplingComponent, undesirable behaviour might occur."), *GetName());
 	}
 }
 

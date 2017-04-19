@@ -66,7 +66,7 @@ void UVertCharacterMovementComponent::OnUnLatched_Implementation(AGrappleHook* h
 	if (mIsGrappleLatched)
 	{
 		mIsGrappleLatched = false;
-		LoadGravityScale();
+		EnableGravity();
 
 		UnSnapCharacterFromHook(hook);
 	}	

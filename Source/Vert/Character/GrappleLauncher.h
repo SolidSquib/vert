@@ -65,13 +65,13 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
-	void FireGrapple(const FVector& shootDirection, bool wasGamepadTriggered = false);
-	void FireGrapple(const FVector2D& shootDirection, bool wasGamepadTriggered = false);
+	bool FireGrapple(const FVector& shootDirection, bool wasGamepadTriggered = false);
+	bool FireGrapple(const FVector2D& shootDirection, bool wasGamepadTriggered = false);
 	void ResetGrapple();
 
 	class AVertCharacter* GetOwningCharacter() const;
 
-	FORCEINLINE AGrappleHook* GetGrappleHook() const { return mGrappleHook.Get(); }
+	FORCEINLINE const TWeakObjectPtr<AGrappleHook>& GetGrappleHook() const { return mGrappleHook; }
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
 	void OnHooked();

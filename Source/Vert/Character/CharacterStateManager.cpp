@@ -28,6 +28,7 @@ void UCharacterStateManager::BeginPlay()
 		component->OnStateExit.Add(onStateEndDelegates);
 
 		component->GetCharacterState() == ECharacterState::Idle ? component->SetComponentTickEnabled(true) : component->SetComponentTickEnabled(false);
+		component->GetCharacterState() == ECharacterState::Idle ? component->Activate() : component->Deactivate();
 		mCharacterStates.Add(component->GetCharacterState(), component);
 		UE_LOG(LogCharacterStateManager, Log, TEXT("State [%s] added to character [%s]"), *component->GetName(), *GetOwner()->GetName());
 	}
@@ -56,9 +57,14 @@ void UCharacterStateManager::ForceStateChange(ECharacterState newState, bool ove
 	}
 }
 
-bool UCharacterStateManager::HasPermission(ECharacterStatePermissions action)
+bool UCharacterStateManager::HasValidCharacterState(ECharacterState state)
 {
-	return mCharacterStates[mActiveState]->HasPermission(action);
+	return mCharacterStates.Find(state) != nullptr;
+}
+
+bool UCharacterStateManager::NotifyActionTaken(ECharacterActions action)
+{
+	return mCharacterStates[mActiveState]->OnNotifyActionTaken(action);
 }
 
 void UCharacterStateManager::OnCurrentStateEnded_Implementation(UBaseCharacterState* exitingState, ECharacterState enteringState)
@@ -71,6 +77,8 @@ void UCharacterStateManager::OnCurrentStateEnded_Implementation(UBaseCharacterSt
 	if (mCharacterStates.Find(enteringState))
 	{
 		exitingState->SetComponentTickEnabled(false);
+		exitingState->Deactivate();
+		mCharacterStates[enteringState]->Activate();
 		mCharacterStates[enteringState]->SetComponentTickEnabled(true);
 		OnStateChanged.Broadcast(mActiveState, enteringState);
 		mActiveState = enteringState;

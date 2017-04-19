@@ -3,13 +3,13 @@
 #pragma once
 
 #include "PaperCharacter.h"
-#include "Engine/VertTimer.h"
 #include "Engine/DebugGroup.h"
-#include "Character/GrappleLauncher.h"
 #include "Character/VertCharacterMovementComponent.h"
 #include "Character/CharacterInteractionComponent.h"
 #include "Character/HealthComponent.h"
 #include "Character/CharacterStateManager.h"
+#include "Character/GrapplingComponent.h"
+#include "Character/DashingComponent.h"
 #include "Engine/AxisPositions.h"
 #include "VertCharacter.generated.h"
 
@@ -21,117 +21,6 @@
 //   The Sprite component (inherited from APaperCharacter) handles the visuals
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVertCharacter, Log, All);
-
-UENUM()
-enum class EDashAimMode : uint8
-{
-	PlayerDirection UMETA(DisplayName = "Player Direction (Left Stick)"),
-	AimDirection UMETA(DisplayName = "Aim Direction (Right Stick)")
-};
-
-UENUM()
-enum class ERechargeRule : uint8
-{
-	OnRechargeTimer UMETA(DisplayName="Always recharge"),
-	OnContactGround UMETA(DisplayName = "Recharge on ground"),
-	OnContactGroundOrLatchedToHook UMETA(DisplayName = "Recharge on ground / Latched to climbing hooks"),
-	OnContactGroundOrLatchedAnywhere UMETA(DisplayName = "Recharge on ground / Latched to any surface")
-};
-
-USTRUCT()
-struct FGrappleConfigRules
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
-	ERechargeRule RechargeMode;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
-	bool RecieveChargeOnGroundOnly;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Aim")
-	EAimFreedom AimFreedom;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
-	FVertTimer RechargeTimer;
-
-	FGrappleConfigRules()
-	{
-		RechargeMode = ERechargeRule::OnContactGround;
-		RecieveChargeOnGroundOnly = false;
-		AimFreedom = EAimFreedom::Free;
-	}
-};
-
-USTRUCT()
-struct FDashConfigRules
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditDefaultsOnly, Category = "LaunchOptions")
-	uint8 UseMomentum : 1;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Speed", Meta = (EditCondition = "UseMomentum"))
-	float LaunchForce;
-
-	UPROPERTY(EditDefaultsOnly, Category = "LaunchOptions", Meta = (EditCondition = "UseMomentum", DisplayName = "Override Horizontal Velocity"))
-	uint8 OverrideXY : 1;
-
-	UPROPERTY(EditDefaultsOnly, Category = "LaunchOptions", Meta = (EditCondition = "UseMomentum", DisplayName = "Override Vertical Velocity"))
-	uint8 OverrideZ : 1;
-
-	UPROPERTY(EditDefaultsOnly, Category = "LaunchOptions", Meta = (EditCondition = "UseMomentum", DisplayName = "Last For (s)"))
-	float TimeToDash;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Speed", Meta = (EditCondition = "!UseMomentum"))
-	float DashLength;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Speed", Meta = (EditCondition = "!UseMomentum"))
-	float LinearSpeed;
-
-	UPROPERTY(EditDefaultsOnly, Category = "LaunchOptions")
-	uint8 DisableGravityWhenDashing : 1;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Aim")
-	EDashAimMode AimMode;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Aim")
-	EAimFreedom AimFreedom;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
-	ERechargeRule RechargeMode;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
-	bool RecieveChargeOnGroundOnly;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
-	FVertTimer RechargeTimer;
-
-	uint8 IsDashing : 1;
-	float DistanceTravelled;
-	FVector DirectionOfTravel;
-	float Timer;
-	FDashConfigRules()
-	{
-		UseMomentum = true;
-		LaunchForce = 2000.f;
-		OverrideXY = true;
-		OverrideZ = true;
-		TimeToDash = 0.5;
-		DashLength = 20.f;
-		LinearSpeed = 20.f;
-		DisableGravityWhenDashing = false;
-		AimMode = EDashAimMode::PlayerDirection;
-		AimFreedom = EAimFreedom::Free;
-		RechargeMode = ERechargeRule::OnContactGround;
-		RecieveChargeOnGroundOnly = false;
-
-		IsDashing = false;
-		DistanceTravelled = 0.f;
-		DirectionOfTravel = FVector::ZeroVector;
-		Timer = 0.f;
-	}
-};
 
 USTRUCT()
 struct FCharacterDebugSettings
@@ -146,6 +35,9 @@ struct FCharacterDebugSettings
 
 	UPROPERTY(EditAnywhere, Category = Debug)
 	FDebugGroup CharacterMovement;
+
+	UPROPERTY(EditAnywhere, Category = Debug)
+	FDebugGroup States;
 
 	UPROPERTY(EditAnywhere, Category = Debug)
 	bool InfiniteDashGrapple;
@@ -165,30 +57,24 @@ class AVertCharacter : public APaperCharacter
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Controls|GrappleConfig")
-	FGrappleConfigRules Grapple;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Controls|DashConfig")
-	FDashConfigRules Dash;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Debug)
 	FCharacterDebugSettings ShowDebug;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controls|GrappleConfig")
-	FName GrappleHandSocket;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Interact")
 	FName ItemHandSocket = "ItemSocket";
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controls|GrappleConfig", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class AGrappleLauncher> GrappleClass;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Health")
 	UHealthComponent* HealthComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Character|Interact")
 	UCharacterInteractionComponent* InteractionComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Grappling")
+	UGrapplingComponent* GrapplingComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Dashing")
+	UDashingComponent* DashingComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|States")
 	UCharacterStateManager* StateManager;
@@ -200,30 +86,27 @@ protected:
 	class USpringArmComponent* CameraBoom;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Controls)
-	int32 MaxGrapples;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Controls)
-	int32 MaxDashes;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Controls)
 	bool DisableInputWhenDashingOrGrappling;
 
 public:
 	AVertCharacter(const class FObjectInitializer& ObjectInitializer);
 
-	void RegisterGrappleHookDelegates(class AGrappleHook* hook);
+	bool CanComponentRecharge(ERechargeRule rule);
 
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type endPlayReason) override;
-	virtual void PreInitializeComponents() override;
 	virtual void Landed(const FHitResult& Hit) override;
 
 	FORCEINLINE class UCameraComponent* GetSideViewCameraComponent() const { return SideViewCameraComponent; }
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	FORCEINLINE int32 GetRemainingGrapples() const { return mRemainingGrapples; }
-	FORCEINLINE int32 DecrementRemainingGrapples() { return --mRemainingGrapples; }
+	FORCEINLINE UHealthComponent* GetHealthComponent() const { return HealthComponent; }
+	FORCEINLINE UCharacterInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
+	FORCEINLINE UGrapplingComponent* GetGrapplingComponent() const { return GrapplingComponent; }
+	FORCEINLINE UDashingComponent* GetDashingComponent() const { return DashingComponent; }
+	FORCEINLINE UCharacterStateManager* GetStateManager() const { return StateManager; }
 	FORCEINLINE const FAxisPositions& GetAxisPostisions() const { return mAxisPositions; }
+	FORCEINLINE const bool UsingGamepad() const { return mUsingGamepad; }
 
 	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
 	FORCEINLINE UVertCharacterMovementComponent* GetVertCharacterMovement() const { if (UVertCharacterMovementComponent* movement = Cast<UVertCharacterMovementComponent>(GetCharacterMovement())) { return movement; } return nullptr; }
@@ -232,88 +115,31 @@ public:
 	FORCEINLINE bool IsGrounded() const { return !GetCharacterMovement()->IsFlying() && !GetCharacterMovement()->IsFalling(); }
 
 protected:
-	/** Called to choose the correct animation to play based on the character's movement state */
-	void UpdateAnimation();
-
-	void MoveRight(float Value);
-	void GrappleShootMK();
-	void GrappleShootGamepad(const FVector2D& axis);
-	void ExecuteDash();
-	void Interact();
+	void ActionMoveRight(float Value);
+	void ActionGrappleShootMouse();
+	void ActionGrappleShootGamepad(const FVector2D& axis);
+	void ActionDash();
+	void ActionInteract();
+	void ActionJump();
 	void RightThumbstickMoveX(float value);
 	void RightThumbstickMoveY(float value);
 	void LeftThumbstickMoveY(float value);
 	void MouseMove(float value);
 	
-	void TickDash(float deltaSeconds);
 	void UpdateCharacter();
-	void SortAbilityRechargeState();
 
-	virtual void Jump() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnHooked();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnFired();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnReturned();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnLatched(class AGrappleHook* hook);
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnUnLatched(class AGrappleHook* hook);
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Recharging")
-	void OnDashRechargeTimerFinished();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Recharging")
-	void OnGrappleRechargeTimerFinished();
-
-	UFUNCTION(BlueprintCallable, Category = "Grappling")
-	FORCEINLINE AGrappleHook* GetGrappleHook() const
-	{
-		if (mGrappleLauncher.IsValid())
-		{
-			return mGrappleLauncher->GetGrappleHook();
-		}
-
-		return nullptr;
-	}
-
 	UFUNCTION(BlueprintCallable, Category = "Player Controller")
-	FORCEINLINE AVertPlayerController* GetPlayerController() const
-	{
-		if (AController* controller = GetController())
-		{
-			if (AVertPlayerController* playerController = Cast<AVertPlayerController>(controller))
-			{
-				return playerController;
-			}
-		}
-
-		return nullptr;
-	}
+	FORCEINLINE AVertPlayerController* GetPlayerController() const { if (AController* controller = GetController()) { if (AVertPlayerController* playerController = Cast<AVertPlayerController>(controller)) { return playerController; } } return nullptr; }
 
 private:
 #if !UE_BUILD_SHIPPING
 	void PrintDebugInfo();
 #endif
-	bool CanRecharge(ERechargeRule rule);
 	bool CheckShootGrappleGamepad();
 
 protected:
-	TWeakObjectPtr<AGrappleLauncher> mGrappleLauncher = nullptr;
-
 	FAxisPositions mAxisPositions;
-	int32 mRemainingGrapples = 0;
-	int32 mRemainingDashes = 0;
-	bool mDisableDash = false;
-	bool mDisableGrapple = false;
-	bool mDisableMovement = false;
-	bool mDisableJump = false;
-	bool mUsingMouse = false;
+	bool mUsingGamepad = false;
 };

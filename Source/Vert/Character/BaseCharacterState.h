@@ -6,17 +6,17 @@
 #include "BaseCharacterState.generated.h"
 
 UENUM(BlueprintType, meta = (BitFlags))
-enum class ECharacterStatePermissions : uint8
+enum class ECharacterActions : uint8
 {
 	NONE,
-	CanJump,
-	CanDash,
-	CanMove,
-	CanGrapple,
-	CanInteract,
-	CanTurn
+	Jump,
+	Dash,
+	Move,
+	Grapple,
+	Interact,
+	Block
 };
-ENUM_CLASS_FLAGS(ECharacterStatePermissions)
+ENUM_CLASS_FLAGS(ECharacterActions)
 
 UENUM(BlueprintType, meta = (BitFlags))
 enum class ECharacterState : uint8
@@ -27,13 +27,17 @@ enum class ECharacterState : uint8
 	Jump,
 	Fall,
 	GrappleShoot,
-	Dash
+	GrapplePull,
+	GrappleHang,
+	Dash,
+	BlockingGround,
+	BlockingAir
 };
 ENUM_CLASS_FLAGS(ECharacterState)
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStateEndDelegate, UBaseCharacterState*, exitingState, ECharacterState, enteringState);
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VERT_API UBaseCharacterState : public UActorComponent
 {
 	GENERATED_BODY()
@@ -43,43 +47,76 @@ public:
 	FOnStateEndDelegate OnStateExit;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State|Animation")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterState|Animation")
 	class UPaperFlipbook* StateAnimation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterState")
 	ECharacterState StateSlot;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State|Permissions", meta = (Bitmask, BitmaskEnum = "ECharacterStatePermissions"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterState|Permissions", meta = (Bitmask, BitmaskEnum = "ECharacterActions"))
 	int32 Permissions;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State|Transitions", meta = (Bitmask, BitmaskEnum = "ECharacterState"))
+	// All of the valid state transitions from this state.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterState|Transitions", meta = (Bitmask, BitmaskEnum = "ECharacterState"))
 	int32 Transitions;
 
 public:	
 	// Sets default values for this component's properties
 	UBaseCharacterState();
 
-	bool CanChangeState(ECharacterState newState);
 	void StateBegin();
-
+	
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 
-	bool HasPermission(ECharacterStatePermissions action) const;
 	FORCEINLINE ECharacterState GetCharacterState() const { return StateSlot; }
 
+	UFUNCTION(BlueprintCallable, Category = "CharacterState|Action")
+	bool OnNotifyActionTaken(ECharacterActions action);
+
+	UFUNCTION(BlueprintCallable, Category = "CharacterState|Permissions")
+	bool CanChangeState(ECharacterState newState);
+
 protected:
-	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "CharacterStates|Events")
+	UFUNCTION(BlueprintNativeEvent, Category = "CharacterState|Tick")
+	void OnStateTick(float DeltaTime);
+
+	UFUNCTION(BlueprintNativeEvent, Category = "CharacterState|Action")
+	bool TakeActionJump();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "CharacterState|Action")
+	bool TakeActionDash();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "CharacterState|Action")
+	bool TakeActionMove();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "CharacterState|Action")
+	bool TakeActionGrapple();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "CharacterState|Action")
+	bool TakeActionInteract();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "CharacterState|Action")
+	bool TakeActionBlock();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "CharacterState|Events")
 	void OnStateBegin();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "CharacterStates|Events")
+	UFUNCTION(BlueprintImplementableEvent, Category = "CharacterState|Events")
 	void OnStateEnd();
 
-	UFUNCTION(BlueprintCallable, Category = "CharacterStates")
+	UFUNCTION(BlueprintCallable, Category = "CharacterState")
 	void ChangeState(ECharacterState newState);
+
+	UFUNCTION(BlueprintCallable, Category = "CharacterState|Owner")
+	AVertCharacter* GetCharacterOwner() const { return mCharacterOwner.IsValid() ? mCharacterOwner.Get() : nullptr; }
+
+private:
+	bool HasPermission(ECharacterActions action) const;
 
 protected:
 	TWeakObjectPtr<AVertCharacter> mCharacterOwner = nullptr;
+	TWeakObjectPtr<class UCharacterStateManager> mStateMan = nullptr;
+	bool mStateChangeQueued = false;
 };

@@ -14,9 +14,9 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UVertCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)),
 	HealthComponent(CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"))),
 	InteractionComponent(CreateDefaultSubobject<UCharacterInteractionComponent>(TEXT("InteractionComponent"))),
+	GrapplingComponent(CreateDefaultSubobject<UGrapplingComponent>(TEXT("GrapplingComponent"))),
+	DashingComponent(CreateDefaultSubobject<UDashingComponent>(TEXT("DashingComponent"))),
 	StateManager(CreateDefaultSubobject<UCharacterStateManager>(TEXT("StateManager"))),
-	MaxGrapples(1),
-	MaxDashes(1),
 	DisableInputWhenDashingOrGrappling(false)
 {
 	// Use only Yaw from the controller and ignore the rest of the rotation.
@@ -72,36 +72,11 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 	bReplicates = true;
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Animation
-
-void AVertCharacter::UpdateAnimation()
-{
-	const FVector PlayerVelocity = GetVelocity();
-	const float PlayerSpeedSqr = PlayerVelocity.SizeSquared();
-
-	// Are we moving or standing still?
-// 	UPaperFlipbook* DesiredAnimation = (PlayerSpeedSqr > 0.0f) ? RunningAnimation : IdleAnimation;
-// 	if (GetSprite()->GetFlipbook() != DesiredAnimation)
-// 	{
-// 		GetSprite()->SetFlipbook(DesiredAnimation);
-// 	}
-}
-
 void AVertCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
 	UpdateCharacter();
-
-	if (Dash.IsDashing)
-	{
-		TickDash(DeltaSeconds);
-	}
-
-	SortAbilityRechargeState();
-	Dash.RechargeTimer.TickTimer(DeltaSeconds);
-	Grapple.RechargeTimer.TickTimer(DeltaSeconds);
 
 #if !UE_BUILD_SHIPPING
 	PrintDebugInfo();
@@ -111,13 +86,7 @@ void AVertCharacter::Tick(float DeltaSeconds)
 void AVertCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	mRemainingGrapples = MaxGrapples;
-	mRemainingDashes = MaxDashes;
-
-	Dash.RechargeTimer.BindAlarm(this, TEXT("OnDashRechargeTimerFinished"));
-	Grapple.RechargeTimer.BindAlarm(this, TEXT("OnGrappleRechargeTimerFinished"));
-
+	
 	if (AController* controller = GetController())
 	{
 		if (APlayerController* playerController = Cast<APlayerController>(controller))
@@ -125,30 +94,6 @@ void AVertCharacter::BeginPlay()
 			playerController->bShowMouseCursor = true;
 			playerController->bEnableClickEvents = true;
 			playerController->bEnableMouseOverEvents = true;
-		}
-	}
-
-	if (GrappleClass != nullptr && GrappleHandSocket != NAME_None)
-	{
-		if (UWorld* world = GetWorld())
-		{
-			//Setup spawn parameters for the actor.
-			FActorSpawnParameters spawnParameters;
-			spawnParameters.Owner = this;
-			spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-			//Spawn the actor.
-			AGrappleLauncher* spawnedGrapple = world->SpawnActor<AGrappleLauncher>(GrappleClass, spawnParameters);
-
-			//Assert that the actor exists.
-			check(spawnedGrapple);
-
-			if (spawnedGrapple)
-			{
-				//Attach it to the player's hand.
-				spawnedGrapple->AttachToComponent(GetSprite(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::SnapToTarget, false), GrappleHandSocket);
-				mGrappleLauncher = spawnedGrapple;
-			}
 		}
 	}
 }
@@ -173,22 +118,12 @@ void AVertCharacter::EndPlay(const EEndPlayReason::Type endPlayReason)
 	}
 }
 
-void AVertCharacter::PreInitializeComponents()
-{
-	Super::PreInitializeComponents();
-}
-
 void AVertCharacter::Landed(const FHitResult& Hit)
 {
-	if (Dash.RecieveChargeOnGroundOnly)
-	{
-		mRemainingDashes += Dash.RechargeTimer.PopAlarmBacklog();
-	}
+	GrapplingComponent->OnLanded();
+	DashingComponent->OnLanded();
 
-	if (Grapple.RecieveChargeOnGroundOnly)
-	{
-		mRemainingGrapples += Grapple.RechargeTimer.PopAlarmBacklog();
-	}
+	Super::Landed(Hit);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -197,109 +132,58 @@ void AVertCharacter::Landed(const FHitResult& Hit)
 void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// Note: the 'Jump' action and the 'MoveRight' axis are bound to actual keys/buttons/sticks in DefaultInput.ini (editable from Project Settings..Input)
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AVertCharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AVertCharacter::ActionJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
-	PlayerInputComponent->BindAction("GrappleShootMK", IE_Pressed, this, &AVertCharacter::GrappleShootMK);
-	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AVertCharacter::ExecuteDash);
-	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AVertCharacter::Interact);
+	PlayerInputComponent->BindAction("GrappleShootMK", IE_Pressed, this, &AVertCharacter::ActionGrappleShootMouse);
+	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AVertCharacter::ActionDash);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AVertCharacter::ActionInteract);
 
-	PlayerInputComponent->BindAxis("MoveRight", this, &AVertCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("MoveRight", this, &AVertCharacter::ActionMoveRight);
 	PlayerInputComponent->BindAxis("LeftThumbstickMoveY", this, &AVertCharacter::LeftThumbstickMoveY);
 	PlayerInputComponent->BindAxis("RightThumbstickMoveX", this, &AVertCharacter::RightThumbstickMoveX);
 	PlayerInputComponent->BindAxis("RightThumbstickMoveY", this, &AVertCharacter::RightThumbstickMoveY);
 	PlayerInputComponent->BindAxis("MouseMove", this, &AVertCharacter::MouseMove);
 }
 
-
-void AVertCharacter::OnDashRechargeTimerFinished_Implementation()
-{
-	if(!Dash.RecieveChargeOnGroundOnly || IsGrounded())
-		mRemainingDashes += Dash.RechargeTimer.PopAlarmBacklog();
-	Dash.RechargeTimer.Reset();
-}
-
-void AVertCharacter::OnGrappleRechargeTimerFinished_Implementation()
-{
-	if(!Grapple.RecieveChargeOnGroundOnly || IsGrounded())
-		mRemainingGrapples += Grapple.RechargeTimer.PopAlarmBacklog();
-	Grapple.RechargeTimer.Reset();	
-}
-
-void AVertCharacter::OnHooked_Implementation()
-{
-	if (DisableInputWhenDashingOrGrappling)
-	{
-		mDisableDash = mDisableGrapple = mDisableMovement = mDisableJump = false;
-	}
-}
-
-void AVertCharacter::OnFired_Implementation()
-{
-	if (DisableInputWhenDashingOrGrappling)
-	{
-		mDisableDash = mDisableGrapple = mDisableMovement = mDisableJump = true;
-	}
-}
-
-void AVertCharacter::OnReturned_Implementation()
-{
-	if (DisableInputWhenDashingOrGrappling)
-	{
-		mDisableDash = mDisableGrapple = mDisableMovement = mDisableJump = false;
-	}
-}
-
-void AVertCharacter::OnLatched_Implementation(AGrappleHook* hook)
-{
-	mDisableMovement = mDisableDash = true;
-}
-
-void AVertCharacter::OnUnLatched_Implementation(AGrappleHook* hook)
-{
-	mDisableMovement = mDisableDash = false;
-}
-
-void AVertCharacter::MoveRight(float Value)
+void AVertCharacter::ActionMoveRight(float Value)
 {
 	mAxisPositions.LeftX = Value;
 
-	if (StateManager->HasPermission(ECharacterStatePermissions::CanMove))
+	if (FMath::Abs(Value) > 0.0f)
 	{
-		if (Value > 0)
-			Value = 1.f;
-		else if (Value < 0)
-			Value = -1.f;
-
-		// Apply the input to the character motion
-		AddMovementInput(FVector(1.0f, 0.0f, 0.0f), Value);
+		StateManager->NotifyActionTaken(ECharacterActions::Move);
 	}
 }
 
-void AVertCharacter::Jump()
+void AVertCharacter::ActionJump()
 {
-	if (StateManager->HasPermission(ECharacterStatePermissions::CanJump))
+	if (StateManager->NotifyActionTaken(ECharacterActions::Jump))
 	{
-		if (mGrappleLauncher.IsValid())
-			mGrappleLauncher->ResetGrapple();
-
-		Super::Jump();
+		Jump();
 	}
 }
 
-void AVertCharacter::GrappleShootMK()
+void AVertCharacter::ActionGrappleShootMouse()
 {
-	if (StateManager->HasPermission(ECharacterStatePermissions::CanGrapple))
+#if 1
+	StateManager->NotifyActionTaken(ECharacterActions::Grapple);
+#else
+	if (StateManager->HasPermission(ECharacterActions::CanGrapple))
 	{
 		if (mGrappleLauncher.IsValid())
 		{
 			mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(Grapple.AimFreedom, mAxisPositions.GetPlayerMouseDirection()));
 		}
 	}
+#endif
 }
 
-void AVertCharacter::GrappleShootGamepad(const FVector2D& axis)
+void AVertCharacter::ActionGrappleShootGamepad(const FVector2D& axis)
 {
-	if (StateManager->HasPermission(ECharacterStatePermissions::CanGrapple))
+#if 1
+	StateManager->NotifyActionTaken(ECharacterActions::Grapple);
+#else
+	if (StateManager->HasPermission(ECharacterActions::CanGrapple))
 	{
 		if (mGrappleLauncher.IsValid())
 		{
@@ -307,47 +191,24 @@ void AVertCharacter::GrappleShootGamepad(const FVector2D& axis)
 			mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory2D(Grapple.AimFreedom, axisFixedDirection), true);
 		}
 	}
+#endif
 }
 
-void AVertCharacter::ExecuteDash()
+void AVertCharacter::ActionDash()
 {
-	if (StateManager->HasPermission(ECharacterStatePermissions::CanDash))
-	{
-		if (mRemainingDashes <= 0 && !ShowDebug.InfiniteDashGrapple)
-			return;
-
-		if (Dash.IsDashing)
-			return;
-
-		if (GetVertCharacterMovement()->CanDash())
-		{
-			if (Dash.AimMode == EDashAimMode::AimDirection)
-				Dash.DirectionOfTravel = mAxisPositions.GetPlayerRightThumbstickDirection();
-			else if (Dash.AimMode == EDashAimMode::PlayerDirection)
-				Dash.DirectionOfTravel = mAxisPositions.GetPlayerLeftThumbstickDirection();
-
-			if (Dash.DirectionOfTravel.X == 0 && Dash.DirectionOfTravel.Y == 0)
-			{
-				Dash.DirectionOfTravel = (Controller) ? Controller->GetControlRotation().RotateVector(FVector(1.f, 0.f, 0.f)) : FVector(1.f, 0.f, 0.f);
-			}
-
-			Dash.DirectionOfTravel = UVertUtilities::LimitAimTrajectory(Dash.AimFreedom, Dash.DirectionOfTravel);
-
-			Dash.IsDashing = true;
-			if (Dash.DisableGravityWhenDashing)
-				GetCharacterMovement()->GravityScale = 0.f;
-			GetCharacterMovement()->GroundFriction = 0.f;
-			mRemainingDashes--;
-		}
-	}
+	StateManager->NotifyActionTaken(ECharacterActions::Dash);
 }
 
-void AVertCharacter::Interact()
+void AVertCharacter::ActionInteract()
 {
-	if (StateManager->HasPermission(ECharacterStatePermissions::CanInteract) && InteractionComponent)
+#if 1 
+	StateManager->NotifyActionTaken(ECharacterActions::Interact);
+#else
+	if (StateManager->HasPermission(ECharacterActions::CanInteract) && InteractionComponent)
 	{
 		IInteractive* interactive = InteractionComponent->AttemptInteract();
 	}
+#endif
 }
 
 #if !UE_BUILD_SHIPPING
@@ -364,70 +225,53 @@ void AVertCharacter::PrintDebugInfo()
 
 	if (ShowDebug.Dash.Enabled)
 	{
-		FVector dashDirection = (Dash.AimMode == EDashAimMode::PlayerDirection) ? mAxisPositions.GetPlayerLeftThumbstickDirection() : mAxisPositions.GetPlayerRightThumbstickDirection();
-		dashDirection = UVertUtilities::LimitAimTrajectory(Dash.AimFreedom, dashDirection);
+		FVector dashDirection = (DashingComponent->Dash.AimMode == EDashAimMode::PlayerDirection) ? mAxisPositions.GetPlayerLeftThumbstickDirection() : mAxisPositions.GetPlayerRightThumbstickDirection();
+		dashDirection = UVertUtilities::LimitAimTrajectory(DashingComponent->Dash.AimFreedom, dashDirection);
 
 		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (dashDirection * 500), 100.f, ShowDebug.Dash.MessageColour);
 
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Dash.MessageColour, FString::Printf(TEXT("[Character-Dash] Remaining Dashes: %i / %i"), mRemainingDashes, MaxDashes));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Dash.MessageColour, FString::Printf(TEXT("[Character-Dash] Recharge at %f% (%s)"), Dash.RechargeTimer.GetProgressPercent(), Dash.RechargeTimer.IsRunning() ? TEXT("active") : TEXT("inactive")));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Dash.MessageColour, FString::Printf(TEXT("[Character-Dash] Remaining Dashes: %i / %i"), DashingComponent->GetRemainingDashes(), DashingComponent->MaxDashes));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Dash.MessageColour, FString::Printf(TEXT("[Character-Dash] Recharge at %f% (%s)"), DashingComponent->Dash.RechargeTimer.GetProgressPercent(), DashingComponent->Dash.RechargeTimer.IsRunning() ? TEXT("active") : TEXT("inactive")));
 	}
 
 	if (ShowDebug.Grapple.Enabled)
 	{
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Grapple Launched | %i / %i uses remaining"), mRemainingGrapples, MaxGrapples));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] State: %s"), *UVertUtilities::GetEnumValueToString<EGrappleState>(TEXT("EGrappleState"), mGrappleLauncher->GetGrappleHook()->GetGrappleState())));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Hook Velocity: %f, %f"), mGrappleLauncher->GetGrappleHook()->GetHookVelocity().X, mGrappleLauncher->GetGrappleHook()->GetHookVelocity().Z));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Hook Active: %s"), (mGrappleLauncher->GetGrappleHook()->GetProjectileMovementComponentIsActive()) ? TEXT("true") : TEXT("false")));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Recharge at %f% (%s)"), Grapple.RechargeTimer.GetProgressPercent(), Grapple.RechargeTimer.IsRunning() ? TEXT("active") : TEXT("inactive")));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Grapple Launched | %i / %i uses remaining"), GrapplingComponent->GetRemainingGrapples(), GrapplingComponent->MaxGrapples));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] State: %s"), *UVertUtilities::GetEnumValueToString<EGrappleState>(TEXT("EGrappleState"), GrapplingComponent->GetGrappleHook()->GetGrappleState())));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Hook Velocity: %f, %f"), GrapplingComponent->GetGrappleHook()->GetHookVelocity().X, GrapplingComponent->GetGrappleHook()->GetHookVelocity().Z));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Hook Active: %s"), (GrapplingComponent->GetGrappleHook()->GetProjectileMovementComponentIsActive()) ? TEXT("true") : TEXT("false")));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Recharge at %f% (%s)"), GrapplingComponent->Grapple.RechargeTimer.GetProgressPercent(), GrapplingComponent->Grapple.RechargeTimer.IsRunning() ? TEXT("active") : TEXT("inactive")));
 
 		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (mAxisPositions.GetPlayerRightThumbstickDirection() * 500), 50.f, ShowDebug.Grapple.MessageColour, false, -1.f, 1, 3.f);
+	}
+
+	if (ShowDebug.States.Enabled)
+	{
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.States.MessageColour, FString::Printf(TEXT("[Character-State] Current State: %s"), *UVertUtilities::GetEnumValueToString<ECharacterState>(TEXT("ECharacterState"), StateManager->GetCurrentState())));
 	}
 }
 #endif
 
-void AVertCharacter::TickDash(float deltaSeconds)
+bool AVertCharacter::CanComponentRecharge(ERechargeRule rule)
 {
-	if (Dash.UseMomentum) // Add a one time impulse in the desired direction
+	if (GrapplingComponent)
 	{
-		if (Dash.Timer <= 0.f)
-			LaunchCharacter(Dash.DirectionOfTravel*Dash.LaunchForce, Dash.OverrideXY, Dash.OverrideZ);
+		AActor* hookedActor = GrapplingComponent->GetHookedActor();
+		AGrapplePoint* grapplePoint = Cast<AGrapplePoint>(hookedActor);
 
-		Dash.Timer += deltaSeconds;
-
-		if (Dash.Timer >= Dash.TimeToDash)
-		{
-			Dash.IsDashing = false;
-			Dash.Timer = 0.f;
-		}
+		return IsGrounded() ||
+			rule == ERechargeRule::OnRechargeTimer ||
+			(rule == ERechargeRule::OnContactGroundOrLatchedAnywhere && GrapplingComponent->GetGrappleState() == EGrappleState::Latched) ||
+			(rule == ERechargeRule::OnContactGroundOrLatchedToHook && GrapplingComponent->GetGrappleState() == EGrappleState::Latched && grapplePoint);
 	}
-	else // Else it's a timed thing, and we gotta use more tick ¯\_(ツ)_/¯
-	{
-		float distanceToTravel = Dash.LinearSpeed*deltaSeconds;
-		float remainingDistance = Dash.DashLength - Dash.DistanceTravelled;
-		SetActorLocation(GetActorLocation() + (Dash.DirectionOfTravel * FMath::Min(distanceToTravel, remainingDistance)));
+	else
+		UE_LOG(LogVertCharacter, Error, TEXT("Hook associated with character [%s] is not valid."), *GetOwner()->GetName());
 
-		Dash.DistanceTravelled += distanceToTravel;
-
-		if (remainingDistance <= distanceToTravel)
-		{
-			Dash.IsDashing = false;
-			Dash.DistanceTravelled = 0.f;
-		}
-	}
-
-	if (!Dash.IsDashing)
-	{
-		GetVertCharacterMovement()->LoadGravityScale();
-		GetVertCharacterMovement()->LoadGroundFriction();
-	}
+	return false;
 }
 
 void AVertCharacter::UpdateCharacter()
 {
-	// Update animation to match the motion
-	UpdateAnimation();
-
 	// Now setup the rotation of the controller based on the direction we are travelling
 	const FVector PlayerVelocity = GetVelocity();
 	float TravelDirection = PlayerVelocity.X;
@@ -445,71 +289,6 @@ void AVertCharacter::UpdateCharacter()
 	}
 }
 
-void AVertCharacter::SortAbilityRechargeState()
-{
-	if (mRemainingDashes < MaxDashes && Dash.RechargeTimer.GetAlarmBacklog() < (MaxDashes - mRemainingDashes))
-	{
-		(CanRecharge(Dash.RechargeMode))
-			? Dash.RechargeTimer.Start()
-			: Dash.RechargeTimer.Stop();
-	}
-
-	if (mRemainingGrapples < MaxGrapples && Grapple.RechargeTimer.GetAlarmBacklog() < (MaxGrapples - mRemainingGrapples))
-	{
-		(CanRecharge(Grapple.RechargeMode))
-			? Grapple.RechargeTimer.Start()
-			: Grapple.RechargeTimer.Stop();
-	}
-}
-
-void AVertCharacter::RegisterGrappleHookDelegates(AGrappleHook* hook)
-{
-	if (hook)
-	{
-		FScriptDelegate onHookedDelegate;
-		onHookedDelegate.BindUFunction(this, TEXT("OnHooked"));
-		hook->OnHooked.Add(onHookedDelegate);
-
-		FScriptDelegate onFiredDelegate;
-		onFiredDelegate.BindUFunction(this, TEXT("OnFired"));
-		hook->OnFired.Add(onFiredDelegate);
-
-		FScriptDelegate onReturnedDelegate;
-		onReturnedDelegate.BindUFunction(this, TEXT("OnReturned"));
-		hook->OnReturned.Add(onReturnedDelegate);
-
-		FScriptDelegate onLatchedDelegate;
-		onLatchedDelegate.BindUFunction(this, TEXT("OnLatched"));
-		hook->OnLatched.Add(onLatchedDelegate);
-
-		FScriptDelegate onUnLatchedDelegate;
-		onUnLatchedDelegate.BindUFunction(this, TEXT("OnUnLatched"));
-		hook->OnUnLatched.Add(onUnLatchedDelegate);
-
-		if (UVertCharacterMovementComponent* movement = GetVertCharacterMovement())
-		{
-			movement->RegisterHookDelegates(hook);
-		}
-	}
-}
-
-
-bool AVertCharacter::CanRecharge(ERechargeRule rule)
-{
-	AGrappleHook* hook = GetGrappleHook();
-	AActor* hookedActor = hook ? hook->GetHookedActor() : nullptr;
-	AGrapplePoint* grapplePoint = Cast<AGrapplePoint>(hookedActor);
-	if (hookedActor)
-	{
-		UE_LOG(LogVertCharacter, Warning, TEXT("Hooked actor found with name [%s]"), *hookedActor->GetName());
-	}
-
-	return IsGrounded() ||
-		rule == ERechargeRule::OnRechargeTimer ||
-		(rule == ERechargeRule::OnContactGroundOrLatchedAnywhere && hook && hook->GetGrappleState() == EGrappleState::Latched) ||
-		(rule == ERechargeRule::OnContactGroundOrLatchedToHook && hook && hook->GetGrappleState() == EGrappleState::Latched && grapplePoint);
-}
-
 bool AVertCharacter::CheckShootGrappleGamepad()
 {
 	static float deadzone = 0.25f;
@@ -522,7 +301,7 @@ bool AVertCharacter::CheckShootGrappleGamepad()
 
 		if (axis.SizeSquared() > FMath::Square(deadzone))
 		{
-			GrappleShootGamepad(axis);
+			ActionGrappleShootGamepad(axis);
 			return true;
 		}
 	}

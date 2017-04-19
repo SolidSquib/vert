@@ -19,10 +19,6 @@ public:
 	virtual bool DoJump(bool replayingMoves) override;
 	virtual void BeginPlay() override;
 
-	FORCEINLINE bool CanDash() { return !mIsGrappling; }
-	FORCEINLINE void LoadGravityScale() { GravityScale = mSavedGravityScale; }
-	FORCEINLINE void LoadGroundFriction() { GroundFriction = mSavedGroundFriction; }
-
 	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
 	void OnGrapplePull(const FVector& direction, const float force);
 
@@ -40,6 +36,18 @@ public:
 	
 	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
 	void OnUnLatched(AGrappleHook* hook);
+
+	FORCEINLINE UFUNCTION(BlueprintCallable)
+	void DisableGravity() { mSavedGravityScale = GravityScale; GravityScale = 0.0f; }
+
+	FORCEINLINE UFUNCTION(BlueprintCallable)
+	void DisableGroundFriction() { mSavedGroundFriction = GroundFriction; GroundFriction = 0.0f; }
+
+	FORCEINLINE UFUNCTION(BlueprintCallable)
+	void EnableGravity() { GravityScale = mSavedGravityScale; }
+
+	FORCEINLINE UFUNCTION(BlueprintCallable)
+	void EnableGroundFriction() { GroundFriction = mSavedGroundFriction; }
 
 private:
 	void SnapCharacterToHook(AGrappleHook* hook);

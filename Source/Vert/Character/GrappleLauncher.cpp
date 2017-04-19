@@ -66,13 +66,10 @@ void AGrappleLauncher::Tick(float DeltaSeconds)
 }
 
 
-void AGrappleLauncher::FireGrapple(const FVector& fireDirection, bool wasGamepadTriggered /*= false*/)
+bool AGrappleLauncher::FireGrapple(const FVector& fireDirection, bool wasGamepadTriggered /*= false*/)
 {
 	if (mGrappleHook.IsValid() && mGrappleHook->GetGrappleState() == EGrappleState::Sheathed)
 	{
-		if (GetOwningCharacter()->GetRemainingGrapples() <= 0 && !GetOwningCharacter()->ShowDebug.InfiniteDashGrapple)
-			return;
-
 		if (mGrappleHook.IsValid())
 		{
 			mGrappleHook->Launch(fireDirection);
@@ -80,18 +77,20 @@ void AGrappleLauncher::FireGrapple(const FVector& fireDirection, bool wasGamepad
 
 		Cable->SetVisibility(true);
 
-		GetOwningCharacter()->DecrementRemainingGrapples();
+		return true;
 	}
 	else if(!wasGamepadTriggered)
 	{
 		ResetGrapple();
 	}
+
+	return false;
 }
 
-void AGrappleLauncher::FireGrapple(const FVector2D& shootDirection, bool wasGamepadTriggered /*= false*/)
+bool AGrappleLauncher::FireGrapple(const FVector2D& shootDirection, bool wasGamepadTriggered /*= false*/)
 {
 	FVector direction(shootDirection.X, 0.f, shootDirection.Y);
-	FireGrapple(direction, wasGamepadTriggered);
+	return FireGrapple(direction, wasGamepadTriggered);
 }
 
 void AGrappleLauncher::ResetGrapple()

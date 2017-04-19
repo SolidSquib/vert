@@ -8,8 +8,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHookedDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFiredDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnReturnedDelegate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLatchedDelegate, AGrappleHook*, hook);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUnLatchedDelegate, AGrappleHook*, hook);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLatchChangeDelegate, AGrappleHook*, hook);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPullDelegate, const FVector&, pullDirection, const float, pullForce);
 
 USTRUCT()
@@ -37,6 +36,7 @@ struct FHookedActorInfo
 UENUM()
 enum class EGrappleState : uint8
 {
+	None,
 	Launching,
 	Hooked,
 	Latched,
@@ -63,10 +63,10 @@ public:
 	FOnPullDelegate OnPull;
 
 	UPROPERTY(BlueprintAssignable, Category = "Grappling")
-	FOnLatchedDelegate OnLatched;
+	FOnLatchChangeDelegate OnLatched;
 
 	UPROPERTY(BlueprintAssignable, Category = "Grappling")
-	FOnUnLatchedDelegate OnUnLatched;
+	FOnLatchChangeDelegate OnUnLatched;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Sprite")
