@@ -66,7 +66,7 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 bool UGrapplingComponent::ExecuteGrapple(const FVector& aimDirection)
 {
-	if (mGrappleLauncher.IsValid() && (mRemainingGrapples > 0 || mRemainingGrapples == -1))
+	if (mGrappleLauncher.IsValid() && (mRemainingGrapples > 0 || MaxGrapples == -1))
 	{
 		if (mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(Grapple.AimFreedom, aimDirection)))
 		{

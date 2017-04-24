@@ -5,6 +5,8 @@
 
 DECLARE_LOG_CATEGORY_CLASS(LogGrappleHook, Log, All);
 
+float gHitLength = 0;
+
 // Sets default values
 AGrappleHook::AGrappleHook()
 {
@@ -169,6 +171,15 @@ void AGrappleHook::Hook(AActor* OtherActor, UPrimitiveComponent* OtherComp, cons
 	mHookAttachment.Actor = OtherActor;
 	mHookAttachment.Component = OtherComp;
 
+	if (GetOwnerAsGrappleLauncher())
+	{
+		if (AVertCharacter* character = GetOwnerAsGrappleLauncher()->GetOwningCharacter())
+		{
+			FVector diff = character->GetActorLocation() - GetActorLocation();
+			gHitLength = diff.Size();
+		}
+	}
+
 	// # TODO_MI: Check the type of object hooked (item, weapon, static, dynamic etc.)
 	// OtherComp->GetCollisionProfileName()
 }
@@ -204,8 +215,8 @@ void AGrappleHook::Pull()
 			diff.Y = 0;
 			FVector direction = (diff * 100).GetSafeNormal();
 
-			OnPull.Broadcast(direction, launcher->GrappleConfig.ReelSpeed);
-			character->LaunchCharacter(direction * (launcher->GrappleConfig.ReelSpeed/**GetWorld()->GetDeltaSeconds()*/), true, true);
+			OnPull.Broadcast(this, direction, gHitLength);
+			//character->LaunchCharacter(direction * (launcher->GrappleConfig.ReelSpeed/**GetWorld()->GetDeltaSeconds()*/), true, true);
 
 			if (mHookAttachment.Actor.IsValid() && mHookAttachment.Component.IsValid())
 			{
@@ -295,18 +306,18 @@ void AGrappleHook::OnHit(class UPrimitiveComponent* HitComp, AActor* OtherActor,
 
 void AGrappleHook::OnBeginOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult)
 {
-	if (mGrappleState == EGrappleState::Hooked)
-	{
-		if (AVertCharacter* character = Cast<AVertCharacter>(otherActor))
-		{
-			if (AGrappleLauncher* launcher = GetOwnerAsGrappleLauncher())
-			{
-				if (character == launcher->GetOwningCharacter())
-				{
-					mGrappleState = EGrappleState::Latched;
-					OnLatched.Broadcast(this);
-				}
-			}
-		}		
-	}
+	//if (mGrappleState == EGrappleState::Hooked)
+	//{
+	//	if (AVertCharacter* character = Cast<AVertCharacter>(otherActor))
+	//	{
+	//		if (AGrappleLauncher* launcher = GetOwnerAsGrappleLauncher())
+	//		{
+	//			if (character == launcher->GetOwningCharacter())
+	//			{
+	//				mGrappleState = EGrappleState::Latched;
+	//				OnLatched.Broadcast(this);
+	//			}
+	//		}
+	//	}		
+	//}
 }

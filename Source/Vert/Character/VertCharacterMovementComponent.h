@@ -20,7 +20,7 @@ public:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnGrapplePull(const FVector& direction, const float force);
+	void OnGrapplePull(AGrappleHook* hook, const FVector& direction, const float force);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
 	void OnHooked();

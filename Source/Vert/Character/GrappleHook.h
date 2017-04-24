@@ -9,7 +9,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHookedDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFiredDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnReturnedDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLatchChangeDelegate, AGrappleHook*, hook);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPullDelegate, const FVector&, pullDirection, const float, pullForce);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPullDelegate, AGrappleHook*, hook, const FVector&, pullDirection, const float, lineLength);
 
 USTRUCT()
 struct FHookedActorInfo

@@ -30,9 +30,27 @@ void UVertCharacterMovementComponent::RegisterHookDelegates(AGrappleHook* hook)
 	hook->OnUnLatched.Add(onUnLatchedDelegate);
 }
 
-void UVertCharacterMovementComponent::OnGrapplePull_Implementation(const FVector& direction, const float force)
+void UVertCharacterMovementComponent::OnGrapplePull_Implementation(AGrappleHook* hook, const FVector& direction, const float lineLength)
 {
-	//Launch(direction*force);
+	const float k = 10000.f;
+	const float b = 1000.f;
+
+	// calculate centripetal force: Fc = M * V^2 / d
+	//float magnitudeC = Mass * Velocity.SizeSquared() / lineLength;
+	//FVector forceC = magnitudeC * direction;
+
+	// calculate hookes law: F = -kx -bv
+	FVector diff = GetOwner()->GetActorLocation() - hook->GetActorLocation();
+	float actualLength = diff.Size();
+	float magnitudeH = -k * (actualLength-lineLength) - b * Velocity.Size();
+	FVector forceH = magnitudeH * -direction;
+
+	DrawDebugLine(GetWorld(), CharacterOwner->GetActorLocation(), CharacterOwner->GetActorLocation() + Velocity, FColor::Red, false, -1.f, 0, 5.f);
+	//DrawDebugLine(GetWorld(), CharacterOwner->GetActorLocation(), CharacterOwner->GetActorLocation() + forceC, FColor::Green, false, -1.f, 1, 5.f);
+	DrawDebugLine(GetWorld(), CharacterOwner->GetActorLocation(), CharacterOwner->GetActorLocation() + forceH, FColor::Blue, false, -1.f, 2, 5.f);
+
+	//AddForce(forceC);
+	AddForce(forceH);
 }
 
 void UVertCharacterMovementComponent::OnHooked_Implementation()
