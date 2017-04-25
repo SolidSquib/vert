@@ -54,6 +54,11 @@ private:
 	void UnSnapCharacterFromHook(AGrappleHook* hook);
 
 private:
+	TWeakObjectPtr<class UGrapplingComponent> mGrapplingComponent = nullptr;
+	TWeakObjectPtr<class UDashingComponent> mDashingComponent = nullptr;
+	TWeakObjectPtr<class AVertCharacter> mCharacterOwner = nullptr;
+
+	float mCurrentGrappleLengthSqr = 0.f;
 	bool mIsGrappling = false;
 	bool mIsGrappleLatched = false;
 	float mSavedGravityScale = 1.f;

@@ -5,16 +5,6 @@
 
 DECLARE_LOG_CATEGORY_CLASS(LogGrapplingComponent, Log, All);
 
-// Sets default values for this component's properties
-UGrapplingComponent::UGrapplingComponent()
-{
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
-}
-
 
 // Called when the game starts
 void UGrapplingComponent::BeginPlay()
@@ -50,7 +40,7 @@ void UGrapplingComponent::BeginPlay()
 	}
 
 	mRemainingGrapples = MaxGrapples;
-	Grapple.RechargeTimer.BindAlarm(this, TEXT("OnGrappleRechargeTimerFinished"));
+	mRechargeTimer.BindAlarm(this, TEXT("OnGrappleRechargeTimerFinished"));
 }
 
 
@@ -60,15 +50,17 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	UpdateRechargeSate();
+	mRechargeTimer.TickTimer(DeltaTime);
 
-	Grapple.RechargeTimer.TickTimer(DeltaTime);
+	//if(mPullCharacter)
+	//	mCurrentLineLength -= (DeltaTime * Grapple.)
 }
 
 bool UGrapplingComponent::ExecuteGrapple(const FVector& aimDirection)
 {
 	if (mGrappleLauncher.IsValid() && (mRemainingGrapples > 0 || MaxGrapples == -1))
 	{
-		if (mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(Grapple.AimFreedom, aimDirection)))
+		if (mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(AimFreedom, aimDirection)))
 		{
 			mRemainingGrapples = FMath::Max(0, mRemainingGrapples - 1);
 			return true;
@@ -80,19 +72,19 @@ bool UGrapplingComponent::ExecuteGrapple(const FVector& aimDirection)
 
 void UGrapplingComponent::OnLanded()
 {
-	if (Grapple.RecieveChargeOnGroundOnly)
+	if (RecieveChargeOnGroundOnly)
 	{
-		mRemainingGrapples += Grapple.RechargeTimer.PopAlarmBacklog();
+		mRemainingGrapples += mRechargeTimer.PopAlarmBacklog();
 	}
 }
 
 void UGrapplingComponent::UpdateRechargeSate()
 {
-	if (mRemainingGrapples < MaxGrapples && Grapple.RechargeTimer.GetAlarmBacklog() < (MaxGrapples - mRemainingGrapples))
+	if (mRemainingGrapples < MaxGrapples && mRechargeTimer.GetAlarmBacklog() < (MaxGrapples - mRemainingGrapples))
 	{
-		(mCharacterOwner->CanComponentRecharge(Grapple.RechargeMode))
-			? Grapple.RechargeTimer.Start()
-			: Grapple.RechargeTimer.Stop();
+		(mCharacterOwner->CanComponentRecharge(RechargeMode))
+			? mRechargeTimer.Start()
+			: mRechargeTimer.Stop();
 	}
 }
 
@@ -111,14 +103,6 @@ void UGrapplingComponent::RegisterGrappleHookDelegates(AGrappleHook* hook)
 		FScriptDelegate onReturnedDelegate;
 		onReturnedDelegate.BindUFunction(this, TEXT("OnReturned"));
 		hook->OnReturned.Add(onReturnedDelegate);
-
-		FScriptDelegate onLatchedDelegate;
-		onLatchedDelegate.BindUFunction(this, TEXT("OnLatched"));
-		hook->OnLatched.Add(onLatchedDelegate);
-
-		FScriptDelegate onUnLatchedDelegate;
-		onUnLatchedDelegate.BindUFunction(this, TEXT("OnUnLatched"));
-		hook->OnUnLatched.Add(onUnLatchedDelegate);
 
 		if (mCharacterOwner.IsValid())
 		{
@@ -148,47 +132,42 @@ bool UGrapplingComponent::Reset()
 	return false;
 }
 
+bool UGrapplingComponent::StartPulling()
+{
+	if (mGrappleHook->GetGrappleState() == EGrappleState::Hooked)
+	{
+		return mPullCharacter = true;
+	}
+
+	return false;
+}
+
 void UGrapplingComponent::OnGrappleRechargeTimerFinished_Implementation()
 {
-	if (!Grapple.RecieveChargeOnGroundOnly || (!mCharacterOwner.IsValid() || mCharacterOwner->IsGrounded()))
+	if (!RecieveChargeOnGroundOnly || (!mCharacterOwner.IsValid() || mCharacterOwner->IsGrounded()))
 	{
-		mRemainingGrapples += Grapple.RechargeTimer.PopAlarmBacklog();
+		mRemainingGrapples += mRechargeTimer.PopAlarmBacklog();
 		if (!mCharacterOwner.IsValid())
 			UE_LOG(LogGrapplingComponent, Warning, TEXT("Component has not AVertCharacter parent, grapple recharge may be innaccurate."));
 	}
-	Grapple.RechargeTimer.Reset();
+	mRechargeTimer.Reset();
 }
 
 void UGrapplingComponent::OnHooked_Implementation()
 {
-//	if (DisableInputWhenDashingOrGrappling)
-//	{
-//		mDisableDash = mDisableGrapple = mDisableMovement = mDisableJump = false;
-//	}
+	if (mGrappleLauncher.IsValid() && mGrappleHook.IsValid())
+	{
+		FVector diff = mGrappleLauncher->GetActorLocation() = mGrappleHook->GetActorLocation();
+		mCurrentLineLength = diff.Size();
+	} else { UE_LOG(LogGrapplingComponent, Error, TEXT("Invalid pointer detected [Launcher %s] [Hook %s]"), mGrappleLauncher.IsValid() ? TEXT("valid") : TEXT("invalid"), mGrappleHook.IsValid() ? TEXT("valid") : TEXT("invalid")) }
 }
 
 void UGrapplingComponent::OnFired_Implementation()
 {
-//	if (DisableInputWhenDashingOrGrappling)
-//	{
-//		mDisableDash = mDisableGrapple = mDisableMovement = mDisableJump = true;
-//	}
+	UE_LOG(LogGrapplingComponent, Log, TEXT("Hook fired successfully"));
 }
 
 void UGrapplingComponent::OnReturned_Implementation()
 {
-	//if (DisableInputWhenDashingOrGrappling)
-	//{
-	//	mDisableDash = mDisableGrapple = mDisableMovement = mDisableJump = false;
-	//}
-}
-
-void UGrapplingComponent::OnLatched_Implementation(AGrappleHook* hook)
-{
-	//mDisableMovement = mDisableDash = true;
-}
-
-void UGrapplingComponent::OnUnLatched_Implementation(AGrappleHook* hook)
-{
-	//mDisableMovement = mDisableDash = false;
+	mCurrentLineLength = 0.f;
 }

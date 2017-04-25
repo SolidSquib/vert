@@ -44,9 +44,9 @@ void UCharacterStateManager::TickComponent(float DeltaTime, ELevelTick TickType,
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void UCharacterStateManager::ForceStateChange(ECharacterState newState, bool overrideTransitions)
+void UCharacterStateManager::ForceStateChange(ECharacterState newState)
 {
-	if (mCharacterStates.Find(newState) && (overrideTransitions || mCharacterStates[mActiveState]->CanChangeState(newState)))
+	if (mCharacterStates.Find(newState))
 	{
 		mCharacterStates[mActiveState]->SetComponentTickEnabled(false);
 		mCharacterStates[newState]->SetComponentTickEnabled(true);

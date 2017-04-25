@@ -66,12 +66,12 @@ struct FVertTimer
 		return alarmsTriggered;
 	}
 
-	FORCEINLINE float GetProgressRatio()
+	FORCEINLINE float GetProgressRatio() const
 	{
 		return currentTime / EndTime;
 	}
 
-	FORCEINLINE float GetProgressPercent()
+	FORCEINLINE float GetProgressPercent() const
 	{
 		return GetProgressRatio() * 100;
 	}

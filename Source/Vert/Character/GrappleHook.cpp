@@ -47,13 +47,18 @@ void AGrappleHook::BeginPlay()
 
 	if (AGrappleLauncher* launcher = GetOwnerAsGrappleLauncher())
 	{
+		mLauncherOwner = launcher;
+		if (AVertCharacter* character = launcher->GetCharacterOwner())
+		{
+			mCharacterOwner = character;
+		} else { UE_LOG(LogGrappleHook, Error, TEXT("GrappleHook [%s] has no associated AVertCharacter."), *GetName()); }
+
 		if (UGrapplingComponent* ownerComponent = launcher->GetOwner() ? Cast<UGrapplingComponent>(launcher->GetOwner()->GetComponentByClass(UGrapplingComponent::StaticClass())) : nullptr)
 		{
-			ownerComponent->RegisterGrappleHookDelegates(this);
-		}
-		else
-			UE_LOG(LogGrappleHook, Warning, TEXT("GrappleHook [%s] has no associated UGrapplingComponent, undesirable behaviour might occur."), *GetName());
-	}
+			mGrapplingComponent = ownerComponent;
+			mGrapplingComponent->RegisterGrappleHookDelegates(this);
+		} else { UE_LOG(LogGrappleHook, Error, TEXT("GrappleHook [%s] has no associated UGrapplingComponent."), *GetName()); }
+	} else { UE_LOG(LogGrappleHook, Error, TEXT("GrappleHook [%s] has no associated AGrappleLauncher."), *GetName()); }
 }
 
 // Called every frame
@@ -64,11 +69,11 @@ void AGrappleHook::Tick(float DeltaTime)
 	switch (mGrappleState)
 	{
 	case EGrappleState::Reeling:
-		if (AGrappleLauncher* launcher = GetOwnerAsGrappleLauncher())
+		if (mGrapplingComponent.IsValid() && mLauncherOwner.IsValid())
 		{
-			FVector diff = launcher->GetActorLocation() - GetActorLocation();
+			FVector diff = mLauncherOwner->GetActorLocation() - GetActorLocation();
 			FVector direction = diff.GetSafeNormal();
-			float distance = DeltaTime * launcher->GrappleConfig.ReelSpeed;
+			float distance = DeltaTime * mGrapplingComponent->ReelSpeed;
 			float sizeSquared = diff.SizeSquared();
 			if (FMath::Square(distance) >= sizeSquared)
 			{
@@ -76,7 +81,7 @@ void AGrappleHook::Tick(float DeltaTime)
 			}
 			else
 			{
-				ProjectileMovement->Velocity = direction * launcher->GrappleConfig.ReelSpeed;
+				ProjectileMovement->Velocity = direction * mGrapplingComponent->ReelSpeed;
 			}
 		}
 		break;
@@ -85,7 +90,7 @@ void AGrappleHook::Tick(float DeltaTime)
 		if (AGrappleLauncher* launcher = GetOwnerAsGrappleLauncher())
 		{
 			FVector diff = launcher->GetActorLocation() - GetActorLocation();
-			if (diff.SizeSquared() >= FMath::Square(launcher->GrappleConfig.MaxLength))
+			if (diff.SizeSquared() >= FMath::Square(mGrapplingComponent->MaxLineLength))
 			{
 				Reel();
 			}
@@ -115,17 +120,17 @@ void AGrappleHook::DeactivateHookCollision()
 
 void AGrappleHook::Launch(const FVector& fireDirection)
 {
-	if (AGrappleLauncher* launcher = GetOwnerAsGrappleLauncher())
+	if (mGrapplingComponent.IsValid())
 	{
 		mGrappleState = EGrappleState::Launching;
 
 		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
 		ActivateHookCollision();
-		ProjectileMovement->Velocity = fireDirection * GetOwnerAsGrappleLauncher()->GrappleConfig.LineSpeed;
+		ProjectileMovement->Velocity = fireDirection * mGrapplingComponent->LaunchSpeed;
 
 		OnFired.Broadcast();
-	}
+	} else { UE_LOG(LogGrappleHook, Error, TEXT("UGrapplingComponent associated with [%s] is invalid."), *GetName()); }
 }
 
 void AGrappleHook::Reel()
@@ -173,7 +178,7 @@ void AGrappleHook::Hook(AActor* OtherActor, UPrimitiveComponent* OtherComp, cons
 
 	if (GetOwnerAsGrappleLauncher())
 	{
-		if (AVertCharacter* character = GetOwnerAsGrappleLauncher()->GetOwningCharacter())
+		if (AVertCharacter* character = GetOwnerAsGrappleLauncher()->GetCharacterOwner())
 		{
 			FVector diff = character->GetActorLocation() - GetActorLocation();
 			gHitLength = diff.Size();
@@ -209,7 +214,7 @@ void AGrappleHook::Pull()
 {
 	if (AGrappleLauncher* launcher = GetOwnerAsGrappleLauncher())
 	{
-		if (AVertCharacter* character = launcher->GetOwningCharacter())
+		if (AVertCharacter* character = launcher->GetCharacterOwner())
 		{
 			FVector diff = GetActorLocation() - launcher->GetActorLocation();
 			diff.Y = 0;
@@ -217,17 +222,6 @@ void AGrappleHook::Pull()
 
 			OnPull.Broadcast(this, direction, gHitLength);
 			//character->LaunchCharacter(direction * (launcher->GrappleConfig.ReelSpeed/**GetWorld()->GetDeltaSeconds()*/), true, true);
-
-			if (mHookAttachment.Actor.IsValid() && mHookAttachment.Component.IsValid())
-			{
-				if (mHookAttachment.Component->Mobility == EComponentMobility::Movable)
-				{
-					if (mHookAttachment.Component->IsSimulatingPhysics())
-					{
-						mHookAttachment.Component->AddForceAtLocation(launcher->GrappleConfig.ReelSpeed * -direction, GetActorLocation());
-					}					
-				}					
-			}
 		}
 	}
 }
@@ -260,12 +254,12 @@ void AGrappleHook::OnHit(class UPrimitiveComponent* HitComp, AActor* OtherActor,
 {
 	if (OtherActor && mGrappleState == EGrappleState::Launching)
 	{
-		if (AGrappleLauncher* launcher = GetOwnerAsGrappleLauncher())
+		if (mGrapplingComponent.IsValid())
 		{
 			FName collisionProfile = OtherComp->GetCollisionProfileName();
 			UE_LOG(LogTemp, Warning, TEXT("Collision profile: %s"), *collisionProfile.ToString());
 
-			if (OtherComp && launcher->GrappleConfig.GrapplePointCollisionProfileName == collisionProfile)
+			if (OtherComp && mGrapplingComponent->GrapplePointCollisionProfileName == collisionProfile)
 			{
 				if (AGrapplePoint* point = Cast<AGrapplePoint>(OtherActor))
 				{
@@ -276,7 +270,7 @@ void AGrappleHook::OnHit(class UPrimitiveComponent* HitComp, AActor* OtherActor,
 			}
 			else
 			{
-				if (launcher->GrappleConfig.HookGrapplePointsOnly)
+				if (mGrapplingComponent->HookGrapplePointsOnly)
 				{
 					Reel();
 				}

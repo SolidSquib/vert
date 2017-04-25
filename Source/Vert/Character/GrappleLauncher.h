@@ -6,40 +6,6 @@
 #include "Character/GrappleHook.h"
 #include "GrappleLauncher.generated.h"
 
-USTRUCT()
-struct FHookshotGrappleConfig
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditDefaultsOnly, Category = "Rope")
-	float MaxLength;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Speed")
-	float LineSpeed;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Speed")
-	float ReturnSpeed;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Speed")
-	float ReelSpeed;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Collision")
-	bool HookGrapplePointsOnly;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Collision", Meta = (EditCondition = "HookGrapplePointsOnly"))
-	FName GrapplePointCollisionProfileName;
-
-	FHookshotGrappleConfig()
-	{
-		MaxLength = 500.f;
-		LineSpeed = 3000.f;
-		ReturnSpeed = 35.f;
-		ReelSpeed = 3500;
-		HookGrapplePointsOnly = false;
-		GrapplePointCollisionProfileName = "GrapplePoint";
-	}
-};
-
 UCLASS()
 class VERT_API AGrappleLauncher : public AActor
 {
@@ -51,9 +17,6 @@ class VERT_API AGrappleLauncher : public AActor
 public:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Grappling")
 	class UCableComponent* Cable;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grappling")
-	FHookshotGrappleConfig GrappleConfig;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grappling")
 	TSubclassOf<AGrappleHook> HookClass;
@@ -69,13 +32,16 @@ public:
 	bool FireGrapple(const FVector2D& shootDirection, bool wasGamepadTriggered = false);
 	void ResetGrapple();
 
-	class AVertCharacter* GetOwningCharacter() const;
-
 	FORCEINLINE const TWeakObjectPtr<AGrappleHook>& GetGrappleHook() const { return mGrappleHook; }
+
+	UFUNCTION(BlueprintCallable)
+	class AVertCharacter* GetCharacterOwner() const;
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
 	void OnHooked();
 	
 protected:
 	TWeakObjectPtr<AGrappleHook> mGrappleHook = nullptr;
+	TWeakObjectPtr<class AVertCharacter> mCharacterOwner = nullptr;
+	TWeakObjectPtr<class UGrapplingComponent> mGrapplingComponent = nullptr;
 };

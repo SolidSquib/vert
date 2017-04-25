@@ -119,6 +119,10 @@ private:
 	void DeactivateHookCollision();
 
 protected:
+	TWeakObjectPtr<class AVertCharacter> mCharacterOwner = nullptr;
+	TWeakObjectPtr<class UGrapplingComponent> mGrapplingComponent = nullptr;
+	TWeakObjectPtr<class AGrappleLauncher> mLauncherOwner = nullptr;
+
 	FHookedActorInfo mHookAttachment;
 	EGrappleState mGrappleState = EGrappleState::Sheathed;
 	bool mIsActive = false;

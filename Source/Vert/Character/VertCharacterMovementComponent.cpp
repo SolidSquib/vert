@@ -3,6 +3,8 @@
 #include "Vert.h"
 #include "VertCharacterMovementComponent.h"
 
+DECLARE_LOG_CATEGORY_CLASS(LogVertCharacterMovement, Log, All);
+
 void UVertCharacterMovementComponent::RegisterHookDelegates(AGrappleHook* hook)
 {
 	FScriptDelegate onHookedDelegate;
@@ -103,17 +105,26 @@ bool UVertCharacterMovementComponent::DoJump(bool replayingMoves)
 
 void UVertCharacterMovementComponent::BeginPlay()
 {
+	Super::BeginPlay();
+
 	mSavedGravityScale = GravityScale;
 	mSavedGroundFriction = GroundFriction;
+
+	if (AVertCharacter* character = Cast<AVertCharacter>(CharacterOwner))
+	{
+		mCharacterOwner = character;
+		mDashingComponent = character->GetDashingComponent();
+		mGrapplingComponent = character->GetGrapplingComponent();
+
+		check(mGrapplingComponent.IsValid() && mDashingComponent.IsValid());
+	} else { UE_LOG(LogVertCharacterMovement, Error, TEXT("[%s] unable to find AVertCharacter owner.")); }
 }
 
 void UVertCharacterMovementComponent::SnapCharacterToHook(AGrappleHook* hook)
 {
 	if (AVertCharacter* character = Cast<AVertCharacter>(CharacterOwner))
 	{
-		//FTransform socketTrans = character->GetSprite()->GetSocketTransform(character->GrappleHandSocket) * character->GetTransform().Inverse();
 		character->AttachToActor(hook, FAttachmentTransformRules::KeepWorldTransform);
-		//character->SetActorRelativeLocation(socketTrans.GetLocation());
 	}	
 }
 

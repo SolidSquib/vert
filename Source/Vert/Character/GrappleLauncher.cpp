@@ -3,6 +3,8 @@
 #include "Vert.h"
 #include "GrappleLauncher.h"
 
+DECLARE_LOG_CATEGORY_CLASS(LogGrappleLauncher, Log, All);
+
 // Sets default values for this component's properties
 AGrappleLauncher::AGrappleLauncher()
 	: ShowDebug(true)
@@ -26,6 +28,7 @@ void AGrappleLauncher::BeginPlay()
 	Super::BeginPlay();
 	SetActorTickEnabled(true);
 
+	// Attempt to create the hook
 	if (HookClass != nullptr)
 	{
 		if (UWorld* world = GetWorld())
@@ -50,6 +53,22 @@ void AGrappleLauncher::BeginPlay()
 		}
 	}
 
+	if (GetOwner())
+	{
+		if (AVertCharacter* character = Cast<AVertCharacter>(GetOwner()))
+		{
+			mCharacterOwner = character;
+
+			if (mCharacterOwner->GetGrapplingComponent())
+			{
+				mGrapplingComponent = mCharacterOwner->GetGrapplingComponent();
+			}
+			else { UE_LOG(LogGrappleLauncher, Error, TEXT("Unable to find a UGrapplingComponent to associate to GrappleLauncher [%s]"), *GetName()); }
+		}
+		else { UE_LOG(LogGrappleLauncher, Error, TEXT("Unable to find AVertCharacter owner of GrappleLauncher [%s]"), *GetName()); }
+	}
+
+	// Bind to the hook's events if it was successfully created
 	if (mGrappleHook.IsValid())
 	{
 		FScriptDelegate onHookedDelegate;
@@ -105,17 +124,9 @@ void AGrappleLauncher::ResetGrapple()
 	}
 }
 
-AVertCharacter* AGrappleLauncher::GetOwningCharacter() const
+AVertCharacter* AGrappleLauncher::GetCharacterOwner() const
 {
-	if (GetOwner())
-	{
-		if (AVertCharacter* character = Cast<AVertCharacter>(GetOwner()))
-		{
-			return character;
-		}
-	}
-
-	return nullptr;
+	return mCharacterOwner.IsValid() ? mCharacterOwner.Get() : nullptr;
 }
 
 void AGrappleLauncher::OnHooked_Implementation()
