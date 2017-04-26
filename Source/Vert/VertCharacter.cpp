@@ -238,8 +238,6 @@ void AVertCharacter::PrintDebugInfo()
 	{
 		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Grapple Launched | %i / %i uses remaining"), GrapplingComponent->GetRemainingGrapples(), GrapplingComponent->MaxGrapples));
 		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] State: %s"), *UVertUtilities::GetEnumValueToString<EGrappleState>(TEXT("EGrappleState"), GrapplingComponent->GetGrappleHook()->GetGrappleState())));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Hook Velocity: %f, %f"), GrapplingComponent->GetGrappleHook()->GetHookVelocity().X, GrapplingComponent->GetGrappleHook()->GetHookVelocity().Z));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Hook Active: %s"), (GrapplingComponent->GetGrappleHook()->GetProjectileMovementComponentIsActive()) ? TEXT("true") : TEXT("false")));
 		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Recharge at %f% (%s)"), GrapplingComponent->GetRechargePercent(), GrapplingComponent->IsRecharging() ? TEXT("active") : TEXT("inactive")));
 
 		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (mAxisPositions.GetPlayerRightThumbstickDirection() * 500), 50.f, ShowDebug.Grapple.MessageColour, false, -1.f, 1, 3.f);
@@ -257,12 +255,10 @@ bool AVertCharacter::CanComponentRecharge(ERechargeRule rule)
 	if (GrapplingComponent)
 	{
 		AActor* hookedActor = GrapplingComponent->GetHookedActor();
-		AGrapplePoint* grapplePoint = Cast<AGrapplePoint>(hookedActor);
 
 		return IsGrounded() ||
 			rule == ERechargeRule::OnRechargeTimer ||
-			(rule == ERechargeRule::OnContactGroundOrLatchedAnywhere && GrapplingComponent->GetGrappleState() == EGrappleState::Latched) ||
-			(rule == ERechargeRule::OnContactGroundOrLatchedToHook && GrapplingComponent->GetGrappleState() == EGrappleState::Latched && grapplePoint);
+			(rule == ERechargeRule::OnContactGroundOrLatchedAnywhere && GrapplingComponent->GetGrappleState() == EGrappleState::Latched);
 	}
 	else
 		UE_LOG(LogVertCharacter, Error, TEXT("Hook associated with character [%s] is not valid."), *GetOwner()->GetName());

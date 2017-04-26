@@ -51,9 +51,6 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 	UpdateRechargeSate();
 	mRechargeTimer.TickTimer(DeltaTime);
-
-	//if(mPullCharacter)
-	//	mCurrentLineLength -= (DeltaTime * Grapple.)
 }
 
 bool UGrapplingComponent::ExecuteGrapple(const FVector& aimDirection)
@@ -92,28 +89,6 @@ void UGrapplingComponent::RegisterGrappleHookDelegates(AGrappleHook* hook)
 {
 	if (hook)
 	{
-		FScriptDelegate onHookedDelegate;
-		onHookedDelegate.BindUFunction(this, TEXT("OnHooked"));
-		hook->OnHooked.Add(onHookedDelegate);
-
-		FScriptDelegate onFiredDelegate;
-		onFiredDelegate.BindUFunction(this, TEXT("OnFired"));
-		hook->OnFired.Add(onFiredDelegate);
-
-		FScriptDelegate onReturnedDelegate;
-		onReturnedDelegate.BindUFunction(this, TEXT("OnReturned"));
-		hook->OnReturned.Add(onReturnedDelegate);
-
-		if (mCharacterOwner.IsValid())
-		{
-			if (UVertCharacterMovementComponent* movement = mCharacterOwner->GetVertCharacterMovement())
-			{
-				movement->RegisterHookDelegates(hook);
-			}
-		}
-		else
-			UE_LOG(LogGrapplingComponent, Warning, TEXT("Component has no AVertCharacter parent, cannot register AGrappleHook delegates."));
-
 		mGrappleHook = hook;
 	}
 }
@@ -122,7 +97,7 @@ bool UGrapplingComponent::Reset()
 {
 	if (mGrappleLauncher.IsValid() && mGrappleHook.IsValid())
 	{
-		if (mGrappleHook->GetGrappleState() == EGrappleState::Hooked || mGrappleHook->GetGrappleState() == EGrappleState::Latched)
+		if (mGrappleHook->GetGrappleState() == EGrappleState::HookDeployed || mGrappleHook->GetGrappleState() == EGrappleState::Latched)
 		{
 			mGrappleLauncher->ResetGrapple();
 			return true;
@@ -134,9 +109,9 @@ bool UGrapplingComponent::Reset()
 
 bool UGrapplingComponent::StartPulling()
 {
-	if (mGrappleHook->GetGrappleState() == EGrappleState::Hooked)
+	if (mGrappleLauncher.IsValid())
 	{
-		return mPullCharacter = true;
+		return mGrappleLauncher->StartPulling();
 	}
 
 	return false;
@@ -151,23 +126,4 @@ void UGrapplingComponent::OnGrappleRechargeTimerFinished_Implementation()
 			UE_LOG(LogGrapplingComponent, Warning, TEXT("Component has not AVertCharacter parent, grapple recharge may be innaccurate."));
 	}
 	mRechargeTimer.Reset();
-}
-
-void UGrapplingComponent::OnHooked_Implementation()
-{
-	if (mGrappleLauncher.IsValid() && mGrappleHook.IsValid())
-	{
-		FVector diff = mGrappleLauncher->GetActorLocation() = mGrappleHook->GetActorLocation();
-		mCurrentLineLength = diff.Size();
-	} else { UE_LOG(LogGrapplingComponent, Error, TEXT("Invalid pointer detected [Launcher %s] [Hook %s]"), mGrappleLauncher.IsValid() ? TEXT("valid") : TEXT("invalid"), mGrappleHook.IsValid() ? TEXT("valid") : TEXT("invalid")) }
-}
-
-void UGrapplingComponent::OnFired_Implementation()
-{
-	UE_LOG(LogGrapplingComponent, Log, TEXT("Hook fired successfully"));
-}
-
-void UGrapplingComponent::OnReturned_Implementation()
-{
-	mCurrentLineLength = 0.f;
 }

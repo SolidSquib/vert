@@ -61,6 +61,9 @@ public:
 	float LaunchSpeed = 3000.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Grapple|Line")
+	float PullSpeed = 700.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Grapple|Line")
 	float ReelSpeed = 3500.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Grapple|Hook")
@@ -70,7 +73,6 @@ public:
 	FName GrapplePointCollisionProfileName = "GrapplePoint";
 
 public:
-	bool ExecuteGrapple(const FVector& aimDirection);
 	void OnLanded();
 	void RegisterGrappleHookDelegates(AGrappleHook* hook);
 
@@ -86,13 +88,16 @@ public:
 	bool Reset();
 
 	UFUNCTION(BlueprintCallable, Category = "Grappling")
+	bool ExecuteGrapple(const FVector& aimDirection);
+
+	UFUNCTION(BlueprintCallable, Category = "Grappling")
 	bool StartPulling();
 
 	FORCEINLINE UFUNCTION(BlueprintCallable)
 	AActor* GetHookedActor() const { return mGrappleHook.IsValid() ? mGrappleHook->GetHookedActor() : nullptr; }
 
 	FORCEINLINE UFUNCTION(BlueprintCallable, Category = "Grappling")
-	float GetLineLength() const { return mCurrentLineLength; }
+	float GetLineLength() const { return mGrappleHook.IsValid() ? mGrappleHook->GetCurrentDistanceFromLauncher() : 0.f; }
 
 	UFUNCTION(BlueprintCallable, Category = "Grappling", meta = (DisplayName = "Get Grapple Hook"))
 	FORCEINLINE AGrappleHook* GetGrappleHookBP() const { return mGrappleHook.Get(); }
@@ -107,21 +112,12 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnHooked();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnFired();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnReturned();
-
 	UFUNCTION(BlueprintNativeEvent, Category = "Recharging")
 	void OnGrappleRechargeTimerFinished();
 	
 private:
 	void UpdateRechargeSate();
-
+	
 private:
 	TWeakObjectPtr<class AVertCharacter> mCharacterOwner = nullptr;
 	TWeakObjectPtr<AGrappleLauncher> mGrappleLauncher = nullptr;
@@ -129,6 +125,5 @@ private:
 	
 	int32 mRemainingGrapples = 0;
 	bool mPullCharacter = false;
-	float mCurrentLineLength = 0.f;
 	FVertTimer mRechargeTimer;
 };

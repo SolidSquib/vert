@@ -14,29 +14,12 @@ class VERT_API UVertCharacterMovementComponent : public UCharacterMovementCompon
 	GENERATED_BODY()
 
 public:
-	void RegisterHookDelegates(class AGrappleHook* hook);
+	void AddGrappleLineForce(const float desiredLineLength, const float actualLineLength, const FVector& direction, const float k, const float b);
+	void AddGrappleLineForce(const FVector& desiredLineLength, const FVector& actualLineLength, const float k, const float b);
 
 	virtual bool DoJump(bool replayingMoves) override;
 	virtual void BeginPlay() override;
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnGrapplePull(AGrappleHook* hook, const FVector& direction, const float force);
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnHooked();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnFired();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnReturned();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnLatched(AGrappleHook* hook);
 	
-	UFUNCTION(BlueprintNativeEvent, Category = "Grappling")
-	void OnUnLatched(AGrappleHook* hook);
-
 	FORCEINLINE UFUNCTION(BlueprintCallable)
 	void DisableGravity() { mSavedGravityScale = GravityScale; GravityScale = 0.0f; }
 
@@ -49,9 +32,9 @@ public:
 	FORCEINLINE UFUNCTION(BlueprintCallable)
 	void EnableGroundFriction() { GroundFriction = mSavedGroundFriction; }
 
-private:
-	void SnapCharacterToHook(AGrappleHook* hook);
-	void UnSnapCharacterFromHook(AGrappleHook* hook);
+protected:
+	virtual void PerformMovement(float DeltaTime) override;
+	virtual void SimulateMovement(float DeltaTime) override;
 
 private:
 	TWeakObjectPtr<class UGrapplingComponent> mGrapplingComponent = nullptr;
