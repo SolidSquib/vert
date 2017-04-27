@@ -92,6 +92,7 @@ public:
 	AVertCharacter(const class FObjectInitializer& ObjectInitializer);
 
 	bool CanComponentRecharge(ERechargeRule rule);
+	const bool UsingGamepad() const;
 
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -106,7 +107,6 @@ public:
 	FORCEINLINE UDashingComponent* GetDashingComponent() const { return DashingComponent; }
 	FORCEINLINE UCharacterStateManager* GetStateManager() const { return StateManager; }
 	FORCEINLINE const FAxisPositions& GetAxisPostisions() const { return mAxisPositions; }
-	FORCEINLINE const bool UsingGamepad() const { return mUsingGamepad; }
 
 	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
 	FORCEINLINE UVertCharacterMovementComponent* GetVertCharacterMovement() const { if (UVertCharacterMovementComponent* movement = Cast<UVertCharacterMovementComponent>(GetCharacterMovement())) { return movement; } return nullptr; }
@@ -124,8 +124,7 @@ protected:
 	void RightThumbstickMoveX(float value);
 	void RightThumbstickMoveY(float value);
 	void LeftThumbstickMoveY(float value);
-	void MouseMove(float value);
-	
+	void MouseMove(float value);	
 	void UpdateCharacter();
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
@@ -141,5 +140,4 @@ private:
 
 protected:
 	FAxisPositions mAxisPositions;
-	bool mUsingGamepad = false;
 };

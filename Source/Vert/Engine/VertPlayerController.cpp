@@ -23,9 +23,17 @@ void AVertPlayerController::DropOut()
 	// #MI_TODO: possess by AIController or remove character...
 }
 
-bool AVertPlayerController::CanRestartPlayer()
+bool AVertPlayerController::UsingGamepad() const
 {
-	return Super::CanRestartPlayer();
+	return mControllerType != EControllerType::Keyboard_Mouse;
+}
+
+bool AVertPlayerController::InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad)
+{
+	// #MI_TODO: input device type for UI
+	mControllerType = bGamepad ? EControllerType::Gamepad_Xbox : EControllerType::Keyboard_Mouse;
+
+	return Super::InputKey(Key, EventType, AmountDepressed, bGamepad);
 }
 
 UVertLocalPlayer* AVertPlayerController::GetVertLocalPlayer()
