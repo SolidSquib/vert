@@ -56,31 +56,19 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterState|Permissions", meta = (Bitmask, BitmaskEnum = "ECharacterActions"))
 	int32 Permissions;
 
-	// All of the valid state transitions from this state.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CharacterState|Transitions", meta = (Bitmask, BitmaskEnum = "ECharacterState"))
-	int32 Transitions;
-
 public:	
 	// Sets default values for this component's properties
 	UBaseCharacterState();
 
 	void StateBegin();
 	
-	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
-
 	FORCEINLINE ECharacterState GetCharacterState() const { return StateSlot; }
 
 	UFUNCTION(BlueprintCallable, Category = "CharacterState|Action")
 	bool OnNotifyActionTaken(ECharacterActions action);
 
-	UFUNCTION(BlueprintCallable, Category = "CharacterState|Permissions")
-	bool CanChangeState(ECharacterState newState);
-
 protected:
 	virtual void BeginPlay() override;
-
-	UFUNCTION(BlueprintNativeEvent, Category = "CharacterState|Tick")
-	void OnStateTick(float DeltaTime);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "CharacterState|Action")
 	bool TakeActionJump();
@@ -107,7 +95,7 @@ protected:
 	void OnStateEnd();
 
 	UFUNCTION(BlueprintCallable, Category = "CharacterState")
-	void ChangeState(ECharacterState newState);
+	bool ChangeState(ECharacterState newState);
 
 	UFUNCTION(BlueprintCallable, Category = "CharacterState|Owner")
 	AVertCharacter* GetCharacterOwner() const { return mCharacterOwner.IsValid() ? mCharacterOwner.Get() : nullptr; }

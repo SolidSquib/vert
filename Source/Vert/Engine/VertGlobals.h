@@ -10,6 +10,5 @@ enum class ERechargeRule : uint8
 {
 	OnRechargeTimer UMETA(DisplayName = "Always recharge"),
 	OnContactGround UMETA(DisplayName = "Recharge on ground"),
-	OnContactGroundOrLatchedToHook UMETA(DisplayName = "Recharge on ground / Latched to climbing hooks"),
 	OnContactGroundOrLatchedAnywhere UMETA(DisplayName = "Recharge on ground / Latched to any surface")
 };

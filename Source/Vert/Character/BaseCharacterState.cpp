@@ -18,11 +18,6 @@ void UBaseCharacterState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (CanChangeState(StateSlot))
-	{
-		UE_LOG(LogCharacterState, Error, TEXT("State [%s] can change to itself, possible loop!"), *GetName());
-	}
-
 	if (AVertCharacter* character = Cast<AVertCharacter>(GetOwner()))
 	{
 		mCharacterOwner = character;
@@ -42,12 +37,6 @@ void UBaseCharacterState::BeginPlay()
 	UE_LOG(LogCharacterState, Log, TEXT("State [%s->%s] initialised."), *GetOwner()->GetName(), *GetName());
 }
 
-bool UBaseCharacterState::CanChangeState(ECharacterState newState)
-{
-	int32 bitFlag = static_cast<int32>(1 << (int32)newState);
-	return (Transitions & bitFlag) == bitFlag;
-}
-
 void UBaseCharacterState::StateBegin()
 {
 	UE_LOG(LogCharacterState, Log, TEXT("State begin for state %s"), *GetName());
@@ -55,40 +44,6 @@ void UBaseCharacterState::StateBegin()
 	mCharacterOwner->GetSprite()->SetFlipbook(StateAnimation);
 	mStateChangeQueued = false;
 	OnStateBegin();
-}
-
-void UBaseCharacterState::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	OnStateTick(DeltaTime);
-}
-
-void UBaseCharacterState::OnStateTick_Implementation(float DeltaTime)
-{	
-	if (mCharacterOwner.IsValid())
-	{
-		const FVector PlayerVelocity = mCharacterOwner->GetVelocity();
-
-		// Check whether we should change to a falling state
-		if (CanChangeState(ECharacterState::Fall))
-		{
-			if (!mCharacterOwner->GetCharacterMovement()->IsMovingOnGround()) //PlayerVelocity.Z < 0.0f)
-			{
-				ChangeState(ECharacterState::Fall);
-			}
-		}
-
-		if (CanChangeState(ECharacterState::Idle))
-		{
-			const float PlayerSpeedSqr = PlayerVelocity.SizeSquared();
-
-			// Are we moving or standing still?
-			if (PlayerSpeedSqr <= 0.0f)
-			{
-				ChangeState(ECharacterState::Idle);
-			}
-		}
-	}
 }
 
 // Not called if overridden in blueprint.
@@ -134,7 +89,7 @@ bool UBaseCharacterState::TakeActionDash_Implementation()
 {
 	if (mCharacterOwner.IsValid() && mCharacterOwner->GetDashingComponent())
 	{
-		if (CanChangeState(ECharacterState::Dash) && mCharacterOwner->GetDashingComponent()->ExecuteDash())
+		if (mCharacterOwner->GetDashingComponent()->ExecuteDash())
 		{
 			ChangeState(ECharacterState::Dash);
 			return true;
@@ -157,7 +112,7 @@ bool UBaseCharacterState::TakeActionMove_Implementation()
 
 		// Apply the input to the character motion
 		mCharacterOwner->AddMovementInput(FVector(1.0f, 0.0f, 0.0f), value);
-		ChangeState(ECharacterState::Walk);
+		//ChangeState(ECharacterState::Walk);
 		return true;
 	}
 
@@ -168,7 +123,7 @@ bool UBaseCharacterState::TakeActionGrapple_Implementation()
 {
 	if (mCharacterOwner.IsValid() && mCharacterOwner->GetGrapplingComponent())
 	{
-		if (CanChangeState(ECharacterState::GrappleShoot) && mCharacterOwner->GetGrapplingComponent()->ExecuteGrapple(mCharacterOwner->UsingGamepad() ? mCharacterOwner->GetAxisPostisions().GetPlayerRightThumbstickDirection() : mCharacterOwner->GetAxisPostisions().GetPlayerMouseDirection()))
+		if (mCharacterOwner->GetGrapplingComponent()->ExecuteGrapple(mCharacterOwner->UsingGamepad() ? mCharacterOwner->GetAxisPostisions().GetPlayerRightThumbstickDirection() : mCharacterOwner->GetAxisPostisions().GetPlayerMouseDirection()))
 		{
 			ChangeState(ECharacterState::GrappleShoot);
 			return true;
@@ -194,21 +149,27 @@ bool UBaseCharacterState::TakeActionBlock_Implementation()
 	return false;
 }
 
-void UBaseCharacterState::ChangeState(ECharacterState newState)
+bool UBaseCharacterState::ChangeState(ECharacterState newState)
 {
-	if (!mStateChangeQueued && CanChangeState(newState) && mStateMan->HasValidCharacterState(newState))
+	if (newState != StateSlot && !mStateChangeQueued && mStateMan->HasValidCharacterState(newState))
 	{
 		OnStateExit.Broadcast(this, newState);
 		mStateChangeQueued = true;
 		OnStateEnd();
+
+		return true;
 	}
 	else
 	{
+		// UE_LOG(LogCharacterState, Warning, TEXT("State [%s] attempted to change to state [%s] but was unable; check your logic."), *GetName(), *UVertUtilities::GetEnumValueToString(TEXT("ECharacterState"), newState));
+
 		if (!mStateMan->HasValidCharacterState(newState))
 		{
 			UE_LOG(LogCharacterState, Warning, TEXT("State [%s]->[%s] attempted to change to state [%s] but no state of that type found on owning actor."), *GetOwner()->GetName(), *GetName(), *UVertUtilities::GetEnumValueToString<ECharacterState>(TEXT("ECharacterState"), newState));
 		}
 	}
+
+	return false;
 }
 
 bool UBaseCharacterState::HasPermission(ECharacterActions action) const

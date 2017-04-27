@@ -26,7 +26,6 @@
 // Actors
 #include "VertCharacter.h"
 #include "VertSpectator.h"
-#include "Environment/GrapplePoint.h"
 #include "GameFramework/Pawn.h"
 #include "VertGameMode.h"
 #include "UserInterface/VertHUD.h"

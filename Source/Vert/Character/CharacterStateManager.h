@@ -26,7 +26,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable, Category = "CharacterStates")
-	void ForceStateChange(ECharacterState newState, bool overrideTransitions = false);
+	void ForceStateChange(ECharacterState newState);
 
 	UFUNCTION(BlueprintCallable, Category = "CharacterStates|Action")
 	bool NotifyActionTaken(ECharacterActions action);
