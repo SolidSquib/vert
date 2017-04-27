@@ -64,7 +64,7 @@ void AGrappleLauncher::BeginPlay()
 			if (spawnedHook)
 			{
 				mGrappleHook = spawnedHook;
-				Cable->SetAttachEndTo(mGrappleHook.Get(), mGrappleHook->GetRootComponent()->GetFName());
+				Cable->SetAttachEndTo(mGrappleHook.Get(), mGrappleHook->GetSprite()->GetFName());
 			}
 		}
 	}
@@ -191,6 +191,7 @@ void AGrappleHook::BeginPlay()
 	if (AGrappleLauncher* launcher = Cast<AGrappleLauncher>(GetOwner()))
 	{
 		mLauncherOwner = launcher;
+
 		if (AVertCharacter* character = launcher->GetCharacterOwner())
 		{
 			mCharacterOwner = character;
@@ -282,6 +283,9 @@ void AGrappleHook::Launch(const FVector& fireDirection)
 
 		ActivateHookCollision();
 		ProjectileMovement->Velocity = fireDirection * mGrapplingComponent->LaunchSpeed;
+
+		if(mLauncherOwner.IsValid())
+			mLauncherOwner->Cable->SetVisibility(true);
 
 		OnFired.Broadcast();
 	}
@@ -397,18 +401,45 @@ void AGrappleHook::TickHookDeployed(float DeltaSeconds)
 		FVector difference = mCharacterOwner->GetActorLocation() - GetActorLocation();
 		FVector direction = difference.GetSafeNormal();
 		float actualLength = difference.Size();
+		mLauncherOwner->Cable->CableLength = mDistanceFromLauncher;
 
-		if (UVertCharacterMovementComponent* movement = mCharacterOwner->GetVertCharacterMovement())
-			movement->AddGrappleLineForce(mDistanceFromLauncher, actualLength, direction, mGrapplingComponent->LineSpringCoefficient, mGrapplingComponent->LineDampingCoefficient);
-		else { UE_LOG(LogGrappleHook, Warning, TEXT("Unable to apply spring force because UVertMovementComponent associated with [%s] is invalid."), *GetName()); }
+		if ((mGrapplingComponent->StringContraint && actualLength > mDistanceFromLauncher) || !mGrapplingComponent->StringContraint)
+		{
+			FVector dampingVelocity = mGrapplingComponent->LineDampingCoefficient * mCharacterOwner->GetVelocity();
+			FVector springVelocity = mGrapplingComponent->LineSpringCoefficient * (direction*(mDistanceFromLauncher - actualLength));
+			FVector launchVelocity = springVelocity - dampingVelocity;
+
+			mCharacterOwner->LaunchCharacter(launchVelocity, false, false);
+		}
 	} else { UE_LOG(LogGrappleHook, Warning, TEXT("Cannot pull character associated with [%s] because it is invalid."), *GetName()); }
 }
 
+//************************************
+// Method:    TickHookDeployedAndReturning
+// FullName:  AGrappleHook::TickHookDeployedAndReturning
+// Access:    private 
+// Returns:   void
+// Qualifier:
+// Parameter: float DeltaSeconds
+//************************************
 void AGrappleHook::TickHookDeployedAndReturning(float DeltaSeconds)
 {
-	if (mGrapplingComponent.IsValid())
+	if (mGrapplingComponent.IsValid() && mGrapplingComponent->UseSimpleGrapple)
 	{
-		float distance = DeltaSeconds * mGrapplingComponent->ReelSpeed;
+		FVector diff = GetActorLocation() - mLauncherOwner->GetActorLocation();
+		FVector direction = diff.GetSafeNormal();
+
+		float distance = DeltaSeconds * mGrapplingComponent->PullSpeed;
+		FVector newLocation = diff - (distance * direction);
+
+		if (newLocation.SizeSquared() <= FMath::Square(mGrapplingComponent->LineCutLength))
+			ResetHook();
+		else
+			mCharacterOwner->LaunchCharacter(mGrapplingComponent->PullSpeed * direction, true, true);
+	}
+	else if (mGrapplingComponent.IsValid())
+	{
+		float distance = DeltaSeconds * mGrapplingComponent->PullSpeed;
 		float newLength = mDistanceFromLauncher - distance;
 
 		if (newLength <= mGrapplingComponent->LineCutLength)
@@ -418,8 +449,7 @@ void AGrappleHook::TickHookDeployedAndReturning(float DeltaSeconds)
 			mDistanceFromLauncher -= (DeltaSeconds * mGrapplingComponent->PullSpeed);
 			TickHookDeployed(DeltaSeconds);
 		}			
-	}	
-	else { UE_LOG(LogGrappleHook, Warning, TEXT("Unable to shorten rope because UGrapplingComponent associated with [%s] is invalid."), *GetName()); }
+	}
 }
 
 //************************************
@@ -438,6 +468,9 @@ void AGrappleHook::SheatheHook()
 		ProjectileMovement->Velocity = FVector::ZeroVector;
 		AttachToActor(mLauncherOwner.Get(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		SetActorRelativeLocation(FVector::ZeroVector);
+		
+		mLauncherOwner->Cable->CableLength = 0.f;
+		mLauncherOwner->Cable->SetVisibility(false);
 	}
 
 	mDistanceFromLauncher = 0.f;

@@ -123,6 +123,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
+	FORCEINLINE UPaperFlipbookComponent* GetSprite() const { return Sprite; }
 	FORCEINLINE EGrappleState GetGrappleState() const { return mGrappleState; }
 	FORCEINLINE float GetCurrentDistanceFromLauncher() const { return mDistanceFromLauncher; }
 

@@ -97,7 +97,7 @@ bool UGrapplingComponent::Reset()
 {
 	if (mGrappleLauncher.IsValid() && mGrappleHook.IsValid())
 	{
-		if (mGrappleHook->GetGrappleState() == EGrappleState::HookDeployed || mGrappleHook->GetGrappleState() == EGrappleState::Latched)
+		if (mGrappleHook->GetGrappleState() == EGrappleState::HookDeployed || mGrappleHook->GetGrappleState() == EGrappleState::HookDeployedAndReturning)
 		{
 			mGrappleLauncher->ResetGrapple();
 			return true;
@@ -115,6 +115,11 @@ bool UGrapplingComponent::StartPulling()
 	}
 
 	return false;
+}
+
+AGrappleHook* UGrapplingComponent::GetGrappleHookBP() const 
+{
+	return mGrappleHook.Get();
 }
 
 void UGrapplingComponent::OnGrappleRechargeTimerFinished_Implementation()

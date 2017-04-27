@@ -32,10 +32,6 @@ public:
 	FORCEINLINE UFUNCTION(BlueprintCallable)
 	void EnableGroundFriction() { GroundFriction = mSavedGroundFriction; }
 
-protected:
-	virtual void PerformMovement(float DeltaTime) override;
-	virtual void SimulateMovement(float DeltaTime) override;
-
 private:
 	TWeakObjectPtr<class UGrapplingComponent> mGrapplingComponent = nullptr;
 	TWeakObjectPtr<class UDashingComponent> mDashingComponent = nullptr;

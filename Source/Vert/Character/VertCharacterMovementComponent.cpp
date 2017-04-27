@@ -8,7 +8,8 @@ DECLARE_LOG_CATEGORY_CLASS(LogVertCharacterMovement, Log, All);
 void UVertCharacterMovementComponent::AddGrappleLineForce(const float desiredLineLength, const float actualLineLength, const FVector& direction, const float k, const float b)
 {
 	float magnitude = -k * (actualLineLength - desiredLineLength) - b * Velocity.Size();
-	AddForce(magnitude*direction.GetSafeNormal());
+	//AddForce(magnitude*direction.GetSafeNormal());
+	CharacterOwner->LaunchCharacter(magnitude*direction.GetSafeNormal(), false, false);
 }
 
 void UVertCharacterMovementComponent::AddGrappleLineForce(const FVector& desiredLineLength, const FVector& actualLineLength, const float k, const float b)
@@ -43,14 +44,4 @@ void UVertCharacterMovementComponent::BeginPlay()
 
 		check(mGrapplingComponent.IsValid() && mDashingComponent.IsValid());
 	} else { UE_LOG(LogVertCharacterMovement, Error, TEXT("[%s] unable to find AVertCharacter owner.")); }
-}
-
-void UVertCharacterMovementComponent::PerformMovement(float DeltaTime)
-{
-	Super::PerformMovement(DeltaTime);
-}
-
-void UVertCharacterMovementComponent::SimulateMovement(float DeltaTime)
-{
-	Super::SimulateMovement(DeltaTime);
 }

@@ -54,23 +54,21 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Grapple|Line", meta = (EditCondition = "!UseSimpleGrapple"))
 	float LineCutLength = 20.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Grapple|Line")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Grapple|Line")
 	float MaxLineLength = 500.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Grapple|Line")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Grapple|Line")
 	float LaunchSpeed = 3000.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Grapple|Line")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Grapple|Line")
 	float PullSpeed = 700.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Grapple|Line")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Grapple|Line")
 	float ReelSpeed = 3500.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Grapple|Hook")
-	bool HookGrapplePointsOnly = false;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Grapple|Hook", Meta = (EditCondition = "HookGrapplePointsOnly"))
-	FName GrapplePointCollisionProfileName = "GrapplePoint";
+	/* Determines whether the line should behave as a string or a spring. Strings will only correct themselves if they are too long, springs will bounce in a more uniform manner. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Grapple|Line")
+	bool StringContraint = true;
 
 public:
 	void OnLanded();
@@ -100,7 +98,7 @@ public:
 	float GetLineLength() const { return mGrappleHook.IsValid() ? mGrappleHook->GetCurrentDistanceFromLauncher() : 0.f; }
 
 	UFUNCTION(BlueprintCallable, Category = "Grappling", meta = (DisplayName = "Get Grapple Hook"))
-	FORCEINLINE AGrappleHook* GetGrappleHookBP() const { return mGrappleHook.Get(); }
+	AGrappleHook* GetGrappleHookBP() const;
 
 	FORCEINLINE UFUNCTION(BlueprintCallable, Category = "Grappling")
 	float GetRechargePercent() const { return mRechargeTimer.GetProgressPercent(); }
