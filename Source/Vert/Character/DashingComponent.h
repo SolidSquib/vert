@@ -13,72 +13,6 @@ enum class EDashAimMode : uint8
 	AimDirection UMETA(DisplayName = "Aim Direction (Right Stick)")
 };
 
-USTRUCT()
-struct FDashConfigRules
-{
-	GENERATED_USTRUCT_BODY()
-		
-	UPROPERTY(EditDefaultsOnly, Category = "LaunchOptions")
-	uint8 UseMomentum : 1;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Speed", Meta = (EditCondition = "UseMomentum"))
-	float LaunchForce;
-
-	UPROPERTY(EditDefaultsOnly, Category = "LaunchOptions", Meta = (EditCondition = "UseMomentum", DisplayName = "Override Horizontal Velocity"))
-	uint8 OverrideXY : 1;
-
-	UPROPERTY(EditDefaultsOnly, Category = "LaunchOptions", Meta = (EditCondition = "UseMomentum", DisplayName = "Override Vertical Velocity"))
-	uint8 OverrideZ : 1;
-
-	UPROPERTY(EditDefaultsOnly, Category = "LaunchOptions", Meta = (EditCondition = "UseMomentum", DisplayName = "Last For (s)"))
-	float TimeToDash;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Speed", Meta = (EditCondition = "!UseMomentum"))
-	float DashLength;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Speed", Meta = (EditCondition = "!UseMomentum"))
-	float LinearSpeed;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Aim")
-	EDashAimMode AimMode;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Aim")
-	EAimFreedom AimFreedom;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
-	ERechargeRule RechargeMode;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
-	bool RecieveChargeOnGroundOnly;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
-	FVertTimer RechargeTimer;
-
-	uint8 IsDashing : 1;
-	float DistanceTravelled;
-	FVector DirectionOfTravel;
-	float Timer;
-	FDashConfigRules()
-	{
-		UseMomentum = true;
-		LaunchForce = 2000.f;
-		OverrideXY = true;
-		OverrideZ = true;
-		TimeToDash = 0.5;
-		DashLength = 20.f;
-		LinearSpeed = 20.f;
-		AimMode = EDashAimMode::PlayerDirection;
-		AimFreedom = EAimFreedom::Free;
-		RechargeMode = ERechargeRule::OnContactGround;
-		RecieveChargeOnGroundOnly = false;
-
-		IsDashing = false;
-		DistanceTravelled = 0.f;
-		DirectionOfTravel = FVector::ZeroVector;
-		Timer = 0.f;
-	}
-};
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDashEndedDelegate);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -87,14 +21,47 @@ class VERT_API UDashingComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dash")
-	FDashConfigRules Dash;
+	UPROPERTY(EditDefaultsOnly, Category = "Launch")
+	uint8 UseMomentum : 1;
 
-	UPROPERTY(BlueprintAssignable, Category = "Dash|Events")
+	UPROPERTY(EditDefaultsOnly, Category = "Launch", Meta = (EditCondition = "UseMomentum", DisplayName = "Override Horizontal Velocity"))
+	uint8 OverrideXY : 1;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Launch", Meta = (EditCondition = "UseMomentum", DisplayName = "Override Vertical Velocity"))
+	uint8 OverrideZ : 1;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Speed", Meta = (EditCondition = "UseMomentum"))
+	float LaunchForce = 2000.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Launch", Meta = (EditCondition = "UseMomentum", DisplayName = "Last For (s)"))
+	FVertTimer DashTimer;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Speed", Meta = (EditCondition = "!UseMomentum"))
+	float DashLength = 20.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Speed", Meta = (EditCondition = "!UseMomentum"))
+	float LinearSpeed = 20.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Aim")
+	EDashAimMode AimMode = EDashAimMode::PlayerDirection;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Aim")
+	EAimFreedom AimFreedom = EAimFreedom::Ninety;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
+	ERechargeRule RechargeMode = ERechargeRule::OnRechargeTimer;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
+	bool RecieveChargeOnGroundOnly = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Recharge")
+	FVertTimer RechargeTimer;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Usage")
+	int32 MaxDashes = 3;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnDashEndedDelegate OnDashEnd;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dash")
-	int32 MaxDashes;
 
 public:	
 	// Sets default values for this component's properties
@@ -106,7 +73,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	FORCEINLINE const int32 GetRemainingDashes() const { return mRemainingDashes; }
-	FORCEINLINE const bool IsCurrentlyDashing() const { return Dash.IsDashing; }
+	FORCEINLINE const bool IsCurrentlyDashing() const { return mIsDashing; }
 	FORCEINLINE const TWeakObjectPtr<class AVertCharacter>& GetCharacterOwner() const { return mCharacterOwner; }
 
 protected:
@@ -122,5 +89,9 @@ private:
 
 private:
 	TWeakObjectPtr<class AVertCharacter> mCharacterOwner = nullptr;
+
+	bool mIsDashing = false;
 	int32 mRemainingDashes = 0;
+	FVector mDirectionOfTravel = FVector::ZeroVector;
+	float mDistanceTravelled = 0.f;
 };

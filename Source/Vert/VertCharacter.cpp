@@ -201,14 +201,7 @@ void AVertCharacter::ActionDash()
 
 void AVertCharacter::ActionInteract()
 {
-#if 1 
 	StateManager->NotifyActionTaken(ECharacterActions::Interact);
-#else
-	if (StateManager->HasPermission(ECharacterActions::CanInteract) && InteractionComponent)
-	{
-		IInteractive* interactive = InteractionComponent->AttemptInteract();
-	}
-#endif
 }
 
 #if !UE_BUILD_SHIPPING
@@ -226,13 +219,13 @@ void AVertCharacter::PrintDebugInfo()
 
 	if (ShowDebug.Dash.Enabled)
 	{
-		FVector dashDirection = (DashingComponent->Dash.AimMode == EDashAimMode::PlayerDirection) ? mAxisPositions.GetPlayerLeftThumbstickDirection() : mAxisPositions.GetPlayerRightThumbstickDirection();
-		dashDirection = UVertUtilities::LimitAimTrajectory(DashingComponent->Dash.AimFreedom, dashDirection);
+		FVector dashDirection = (DashingComponent->AimMode == EDashAimMode::PlayerDirection) ? mAxisPositions.GetPlayerLeftThumbstickDirection() : mAxisPositions.GetPlayerRightThumbstickDirection();
+		dashDirection = UVertUtilities::LimitAimTrajectory(DashingComponent->AimFreedom, dashDirection);
 
 		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (dashDirection * 500), 100.f, ShowDebug.Dash.MessageColour);
 
 		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Dash.MessageColour, FString::Printf(TEXT("[Character-Dash] Remaining Dashes: %i / %i"), DashingComponent->GetRemainingDashes(), DashingComponent->MaxDashes));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Dash.MessageColour, FString::Printf(TEXT("[Character-Dash] Recharge at %f% (%s)"), DashingComponent->Dash.RechargeTimer.GetProgressPercent(), DashingComponent->Dash.RechargeTimer.IsRunning() ? TEXT("active") : TEXT("inactive")));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Dash.MessageColour, FString::Printf(TEXT("[Character-Dash] Recharge at %f% (%s)"), DashingComponent->RechargeTimer.GetProgressPercent(), DashingComponent->RechargeTimer.IsRunning() ? TEXT("active") : TEXT("inactive")));
 	}
 
 	if (ShowDebug.Grapple.Enabled)
