@@ -219,7 +219,7 @@ void AVertCharacter::PrintDebugInfo()
 
 	if (ShowDebug.Dash.Enabled)
 	{
-		FVector dashDirection = (DashingComponent->AimMode == EDashAimMode::PlayerDirection) ? mAxisPositions.GetPlayerLeftThumbstickDirection() : mAxisPositions.GetPlayerRightThumbstickDirection();
+		FVector dashDirection = mAxisPositions.GetPlayerLeftThumbstickDirection();
 		dashDirection = UVertUtilities::LimitAimTrajectory(DashingComponent->AimFreedom, dashDirection);
 
 		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (dashDirection * 500), 100.f, ShowDebug.Dash.MessageColour);

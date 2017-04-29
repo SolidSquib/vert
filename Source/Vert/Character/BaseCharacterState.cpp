@@ -89,7 +89,7 @@ bool UBaseCharacterState::TakeActionDash_Implementation()
 {
 	if (mCharacterOwner.IsValid() && mCharacterOwner->GetDashingComponent())
 	{
-		if (mCharacterOwner->GetDashingComponent()->ExecuteDash())
+		if (mCharacterOwner->GetDashingComponent()->ExecuteGroundDash())
 		{
 			ChangeState(ECharacterState::Dash);
 			return true;
