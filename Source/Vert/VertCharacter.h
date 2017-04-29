@@ -116,8 +116,8 @@ public:
 
 protected:
 	void ActionMoveRight(float Value);
-	void ActionGrappleShootMouse();
-	void ActionGrappleShootGamepad(const FVector2D& axis);
+	void ActionGrappleShoot();
+	void ExecuteActionGrappleShoot();
 	void ActionDash();
 	void ActionInteract();
 	void ActionJump();
@@ -138,6 +138,11 @@ private:
 #endif
 	bool CheckShootGrappleGamepad();
 
+	FORCEINLINE void EndGamepadStandby() { mGamepadOnStandby = false; }
+
 protected:
 	FAxisPositions mAxisPositions;
+	FTimerHandle mTimerHandle;
+	FTimerHandle mGamepadGrappleDelay;
+	bool mGamepadOnStandby = false;
 };

@@ -134,7 +134,7 @@ void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	// Note: the 'Jump' action and the 'MoveRight' axis are bound to actual keys/buttons/sticks in DefaultInput.ini (editable from Project Settings..Input)
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AVertCharacter::ActionJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
-	PlayerInputComponent->BindAction("GrappleShootMK", IE_Pressed, this, &AVertCharacter::ActionGrappleShootMouse);
+	PlayerInputComponent->BindAction("GrappleShoot", IE_Pressed, this, &AVertCharacter::ActionGrappleShoot);
 	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AVertCharacter::ActionDash);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AVertCharacter::ActionInteract);
 
@@ -163,35 +163,28 @@ void AVertCharacter::ActionJump()
 	}
 }
 
-void AVertCharacter::ActionGrappleShootMouse()
+void AVertCharacter::ActionGrappleShoot()
 {
-#if 1
-	StateManager->NotifyActionTaken(ECharacterActions::Grapple);
-#else
-	if (StateManager->HasPermission(ECharacterActions::CanGrapple))
+	switch (UsingGamepad())
 	{
-		if (mGrappleLauncher.IsValid())
+	case true:
+		if (!mGamepadOnStandby)
 		{
-			mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(Grapple.AimFreedom, mAxisPositions.GetPlayerMouseDirection()));
+			mGamepadOnStandby = true;
+			GetWorld()->GetTimerManager().SetTimer(mTimerHandle, this, &AVertCharacter::ExecuteActionGrappleShoot, SMALL_NUMBER, false);
+			GetWorld()->GetTimerManager().SetTimer(mGamepadGrappleDelay, this, &AVertCharacter::EndGamepadStandby, 0.1f, false);			
 		}
+		break;
+
+	case false:
+		ExecuteActionGrappleShoot();
+		break;
 	}
-#endif
 }
 
-void AVertCharacter::ActionGrappleShootGamepad(const FVector2D& axis)
+void AVertCharacter::ExecuteActionGrappleShoot()
 {
-#if 1
 	StateManager->NotifyActionTaken(ECharacterActions::Grapple);
-#else
-	if (StateManager->HasPermission(ECharacterActions::CanGrapple))
-	{
-		if (mGrappleLauncher.IsValid())
-		{
-			FVector2D axisFixedDirection = (axis * 100).GetSafeNormal();
-			mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory2D(Grapple.AimFreedom, axisFixedDirection), true);
-		}
-	}
-#endif
 }
 
 void AVertCharacter::ActionDash()
@@ -291,7 +284,6 @@ bool AVertCharacter::CheckShootGrappleGamepad()
 
 		if (axis.SizeSquared() > FMath::Square(deadzone))
 		{
-			ActionGrappleShootGamepad(axis);
 			return true;
 		}
 	}
@@ -302,15 +294,11 @@ bool AVertCharacter::CheckShootGrappleGamepad()
 void AVertCharacter::RightThumbstickMoveX(float value)
 {
 	mAxisPositions.RightX = value;
-	if (FMath::Abs(value) > 0.1f)
-		CheckShootGrappleGamepad();
 }
 
 void AVertCharacter::RightThumbstickMoveY(float value)
 {
 	mAxisPositions.RightY = value;
-	if(FMath::Abs(value) > 0.1f)
-		CheckShootGrappleGamepad();
 }
 
 void AVertCharacter::LeftThumbstickMoveY(float value)
