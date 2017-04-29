@@ -11,3 +11,6 @@
 *DebugGame.dll
 /*.opendb
 /Content/2DSideScrollerCPP/Maps/*.tmp0
+/Binaries/Win64/Vert.exe
+/Binaries/Win64/Vert.exp
+/Binaries/Win64/Vert.lib
