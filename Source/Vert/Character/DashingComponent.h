@@ -9,6 +9,26 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDashEndedDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDashStartedDelegate, const FVector&, direction);
 
+UENUM(BlueprintType)
+enum class EGrappleDashBehaviour : uint8
+{
+	None,
+	Impulse,
+	Break
+};
+
+USTRUCT(BlueprintType)
+struct FGrappleDashResponse 
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Response)
+	EGrappleDashBehaviour Action = EGrappleDashBehaviour::None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Response)
+	FVector Direction = FVector::ZeroVector;
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VERT_API UDashingComponent : public UActorComponent
 {
@@ -74,7 +94,7 @@ public:
 	bool ExecuteGroundDash();
 
 	UFUNCTION(BlueprintCallable, Category = "Dash")
-	bool ExecuteGrappleDash(const FVector& hookDirection);
+	bool ExecuteGrappleDash(const FVector& hookDirection, FGrappleDashResponse& response);
 
 protected:
 	// Called when the game starts

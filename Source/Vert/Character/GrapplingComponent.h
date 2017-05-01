@@ -71,6 +71,8 @@ public:
 	bool StringContraint = true;
 
 public:
+	UGrapplingComponent();
+
 	void OnLanded();
 	void RegisterGrappleHookDelegates(AGrappleHook* hook);
 
@@ -96,6 +98,9 @@ public:
 
 	FORCEINLINE UFUNCTION(BlueprintCallable, Category = "Grappling")
 	float GetLineLength() const { return mGrappleHook.IsValid() ? mGrappleHook->GetCurrentDistanceFromLauncher() : 0.f; }
+
+	UFUNCTION(BlueprintCallable, Category = "Grappling")
+	FORCEINLINE FVector GetLineDirection() const { return (mGrappleHook->GetActorLocation() - mGrappleLauncher->GetActorLocation()).GetSafeNormal(); }
 
 	UFUNCTION(BlueprintCallable, Category = "Grappling", meta = (DisplayName = "Get Grapple Hook"))
 	AGrappleHook* GetGrappleHookBP() const;

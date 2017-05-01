@@ -5,6 +5,10 @@
 
 DECLARE_LOG_CATEGORY_CLASS(LogGrapplingComponent, Log, All);
 
+UGrapplingComponent::UGrapplingComponent()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+}
 
 // Called when the game starts
 void UGrapplingComponent::BeginPlay()

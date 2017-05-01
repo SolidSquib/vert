@@ -52,8 +52,6 @@ bool UDashingComponent::ExecuteGroundDash()
 		FVector launchDirection = FindLimitedLaunchDirection();
 		float dot = FVector::DotProduct(launchDirection, FVector::UpVector);
 
-		UE_LOG(LogTemp, Warning, TEXT("dot = %f"), dot);
-
 		if (dot < -0.5f && mCharacterOwner->IsGrounded())
 			return false;
 
@@ -64,8 +62,8 @@ bool UDashingComponent::ExecuteGroundDash()
 		mCharacterOwner->GetCharacterMovement()->GroundFriction = 0;
 		mCharacterOwner->GetCharacterMovement()->AddImpulse(LaunchForce*launchDirection);
 
-		DashTimer.Start();
 		OnDashStarted.Broadcast(launchDirection);
+		DashTimer.Start();
 
 		UE_LOG(LogDashingComponent, Log, TEXT("Dash successfully started by actor [%s]"), *GetOwner()->GetName());
 		return true;
@@ -74,28 +72,40 @@ bool UDashingComponent::ExecuteGroundDash()
 	return false;
 }
 
-bool UDashingComponent::ExecuteGrappleDash(const FVector& hookDirection)
+bool UDashingComponent::ExecuteGrappleDash(const FVector& hookDirection, FGrappleDashResponse& response)
 {
+	constexpr float direction_threshold = 0.7f;
+
 	if (CanDash())
 	{
-		mIsDashing = true;
-		mIsGroundDash = false;
-
-		mRemainingDashes = FMath::Max(0, mRemainingDashes - 1);
-
 		FVector launchDirection = FindLaunchDirection();
 		float dot = FVector::DotProduct(launchDirection, hookDirection);
+		FVector rightVector = FVector::CrossProduct(hookDirection, FVector::RightVector);
+		float dotRight = FVector::DotProduct(launchDirection, rightVector);
 
-		if (dot < -SMALL_NUMBER)
+		if (dot > direction_threshold)
 		{
-			UE_LOG(LogDashingComponent, Log, TEXT("Attempted dash towards hook."));
+			response.Action = EGrappleDashBehaviour::Break;
+			response.Direction = hookDirection;
+			mIsGroundDash = true;
+
+			UE_LOG(LogDashingComponent, Log, TEXT("[%s] attempted dash towards grapple hook."), *GetName());
 		}
-		else if (dot > SMALL_NUMBER)
-		{
-			UE_LOG(LogDashingComponent, Log, TEXT("Attempted dash away from hook."));
+		else// if (FMath::Abs(dotRight) > KINDA_SMALL_NUMBER)
+		{			
+			response.Action = EGrappleDashBehaviour::Impulse;
+			response.Direction = (dotRight > 0) ? rightVector : -rightVector;
+			mIsGroundDash = false;
+
+			UE_LOG(LogDashingComponent, Log, TEXT("[%s] attempted lateral dash while grappled."), *GetName());
 		}
 
-		OnDashStarted.Broadcast(launchDirection);
+		mIsDashing = true;
+		mRemainingDashes = FMath::Max(0, mRemainingDashes - 1);
+
+		mCharacterOwner->GetCharacterMovement()->AddImpulse(LaunchForce*response.Direction);
+
+		OnDashStarted.Broadcast(response.Direction);
 		DashTimer.Start();
 
 		UE_LOG(LogDashingComponent, Log, TEXT("Dash successfully started by actor [%s]"), *GetOwner()->GetName());

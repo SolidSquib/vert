@@ -243,9 +243,10 @@ bool AVertCharacter::CanComponentRecharge(ERechargeRule rule)
 	{
 		AActor* hookedActor = GrapplingComponent->GetHookedActor();
 
-		return IsGrounded() ||
-			rule == ERechargeRule::OnRechargeTimer ||
-			(rule == ERechargeRule::OnContactGroundOrLatchedAnywhere && GrapplingComponent->GetGrappleState() == EGrappleState::Latched);
+		return IsGrounded() 
+			|| rule == ERechargeRule::OnRechargeTimer 
+			|| (rule == ERechargeRule::OnContactGroundOrLatchedAnywhere 
+				&& GrapplingComponent->GetGrappleState() == EGrappleState::HookDeployed);
 	}
 	else
 		UE_LOG(LogVertCharacter, Error, TEXT("Hook associated with character [%s] is not valid."), *GetOwner()->GetName());
