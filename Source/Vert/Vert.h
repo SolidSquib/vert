@@ -29,6 +29,7 @@
 #include "GameFramework/Pawn.h"
 #include "VertGameMode.h"
 #include "UserInterface/VertHUD.h"
+#include "Weapons/BaseWeapon.h"
 
 // Interfaces
 #include "Weapons/WeaponPickup.h"
@@ -37,3 +38,5 @@
 // Define custom collision object types in code
 #define ECC_Grappler ECC_GameTraceChannel1
 #define ECC_Interactive ECC_GameTraceChannel2
+
+#define ECC_DisabledInteractive ECC_GameTraceChannel18

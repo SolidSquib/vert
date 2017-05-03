@@ -8,32 +8,18 @@
 #include "RangedWeapon.generated.h"
 
 UCLASS()
-class VERT_API ARangedWeapon : public AActor, public IWeaponPickup, public IInteractive
+class VERT_API ARangedWeapon : public ABaseWeapon
 {
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon|Sprite")
-	class UPaperFlipbook* DefaultAnimation;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Ranged")
+	float MaximumEffectiveRange = 500.f;
 
-private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Sprite", meta = (AllowPrivateAccess = "true"))
-	class UPaperFlipbookComponent* Sprite;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Collision", meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* CollisionComponent;
-
-public:	
-	// Sets default values for this actor's properties
-	ARangedWeapon();
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon|Ranged")
+	float BulletSpread = 0;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	virtual void Attack() override;
-	virtual void Interact(TWeakObjectPtr<class UCharacterInteractionComponent> instigator) override;
 };

@@ -108,6 +108,9 @@ public:
 	FORCEINLINE UCharacterStateManager* GetStateManager() const { return StateManager; }
 	FORCEINLINE const FAxisPositions& GetAxisPostisions() const { return mAxisPositions; }
 
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void StopAttacking();
+
 	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
 	FORCEINLINE UVertCharacterMovementComponent* GetVertCharacterMovement() const { if (UVertCharacterMovementComponent* movement = Cast<UVertCharacterMovementComponent>(GetCharacterMovement())) { return movement; } return nullptr; }
 
@@ -120,6 +123,7 @@ protected:
 	void ExecuteActionGrappleShoot();
 	void ActionDash();
 	void ActionInteract();
+	void ActionAttack();
 	void ActionJump();
 	void RightThumbstickMoveX(float value);
 	void RightThumbstickMoveY(float value);
@@ -136,8 +140,6 @@ private:
 #if !UE_BUILD_SHIPPING
 	void PrintDebugInfo();
 #endif
-	bool CheckShootGrappleGamepad();
-
 	FORCEINLINE void EndGamepadStandby() { mGamepadOnStandby = false; }
 
 protected:

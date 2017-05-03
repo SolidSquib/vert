@@ -33,8 +33,9 @@ void UVertCharacterMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	mSavedGravityScale = GravityScale;
-	mSavedGroundFriction = GroundFriction;
+	mStartingGravityScale = mSavedGravityScale = GravityScale;
+	mStartingGroundFriction = mSavedGroundFriction = GroundFriction;
+	mStartingAirLateralFriction = mSavedAirLateralFriction = FallingLateralFriction;
 
 	if (AVertCharacter* character = Cast<AVertCharacter>(CharacterOwner))
 	{
@@ -44,4 +45,15 @@ void UVertCharacterMovementComponent::BeginPlay()
 
 		check(mGrapplingComponent.IsValid() && mDashingComponent.IsValid());
 	} else { UE_LOG(LogVertCharacterMovement, Error, TEXT("[%s] unable to find AVertCharacter owner.")); }
+}
+
+void UVertCharacterMovementComponent::AlterAirLateralFriction(float newFriction)
+{
+	if (mSavedAirLateralFriction != mStartingAirLateralFriction)
+	{
+		UE_LOG(LogVertCharacterMovement, Warning, TEXT("Might be altering an altered value for lateral friction!"));
+	}
+	
+	mSavedAirLateralFriction = FallingLateralFriction;
+	FallingLateralFriction = newFriction;
 }

@@ -58,8 +58,7 @@ bool UDashingComponent::ExecuteGroundDash()
 		mIsDashing = mIsGroundDash = true;
 		mRemainingDashes = FMath::Max(0, mRemainingDashes - 1);
 
-		mStoredGroundFriction = mCharacterOwner->GetCharacterMovement()->GroundFriction;
-		mCharacterOwner->GetCharacterMovement()->GroundFriction = 0;
+		mCharacterOwner->GetVertCharacterMovement()->DisableGroundFriction();
 		mCharacterOwner->GetCharacterMovement()->AddImpulse(LaunchForce*launchDirection);
 
 		OnDashStarted.Broadcast(launchDirection);
@@ -137,8 +136,7 @@ void UDashingComponent::DashTimerEnded()
 	mIsDashing = false;
 	OnDashEnd.Broadcast();
 
-	UCharacterMovementComponent* movement = mCharacterOwner->GetCharacterMovement();
-	mCharacterOwner->GetCharacterMovement()->GroundFriction = mStoredGroundFriction;
+	mCharacterOwner->GetVertCharacterMovement()->EnableGroundFriction();
 
 	mOnCooldown = true;
 
@@ -146,8 +144,7 @@ void UDashingComponent::DashTimerEnded()
 
 	if (mIsGroundDash && !mCharacterOwner->IsGrounded())
 	{
-		mStoredAirLateralFriction = mCharacterOwner->GetCharacterMovement()->FallingLateralFriction;
-		mCharacterOwner->GetCharacterMovement()->FallingLateralFriction = AirSlowdownFriction;
+		mCharacterOwner->GetVertCharacterMovement()->AlterAirLateralFriction(AirSlowdownFriction);
 		AirSlowdownTimer.Start();
 	}
 
@@ -164,7 +161,7 @@ void UDashingComponent::CooldownEnded()
 
 void UDashingComponent::AirSlowdownTimerEnded()
 {
-	mCharacterOwner->GetCharacterMovement()->FallingLateralFriction = mStoredAirLateralFriction;
+	mCharacterOwner->GetVertCharacterMovement()->ResetAirLateralFriction();
 	AirSlowdownTimer.Reset();
 }
 

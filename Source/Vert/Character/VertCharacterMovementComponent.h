@@ -20,11 +20,17 @@ public:
 	virtual bool DoJump(bool replayingMoves) override;
 	virtual void BeginPlay() override;
 	
+	UFUNCTION(BlueprintCallable)
+	void AlterAirLateralFriction(float newFriction);
+
 	FORCEINLINE UFUNCTION(BlueprintCallable)
 	void DisableGravity() { mSavedGravityScale = GravityScale; GravityScale = 0.0f; }
 
 	FORCEINLINE UFUNCTION(BlueprintCallable)
 	void DisableGroundFriction() { mSavedGroundFriction = GroundFriction; GroundFriction = 0.0f; }
+
+	FORCEINLINE UFUNCTION(BlueprintCallable)
+	void ResetAirLateralFriction() { FallingLateralFriction = mSavedAirLateralFriction; }
 
 	FORCEINLINE UFUNCTION(BlueprintCallable)
 	void EnableGravity() { GravityScale = mSavedGravityScale; }
@@ -42,4 +48,8 @@ private:
 	bool mIsGrappleLatched = false;
 	float mSavedGravityScale = 1.f;
 	float mSavedGroundFriction = 3.0f;
+	float mSavedAirLateralFriction = 0.f;
+	float mStartingGravityScale = 1.f;
+	float mStartingGroundFriction = 3.0f;
+	float mStartingAirLateralFriction = 0.f;
 };

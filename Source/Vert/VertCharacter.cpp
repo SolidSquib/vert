@@ -116,6 +116,8 @@ void AVertCharacter::EndPlay(const EEndPlayReason::Type endPlayReason)
 			}
 		}
 	}
+
+	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 }
 
 void AVertCharacter::Landed(const FHitResult& Hit)
@@ -124,6 +126,11 @@ void AVertCharacter::Landed(const FHitResult& Hit)
 	DashingComponent->OnLanded();
 
 	Super::Landed(Hit);
+}
+
+void AVertCharacter::StopAttacking()
+{
+	InteractionComponent->StopAttacking();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -137,6 +144,8 @@ void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("GrappleShoot", IE_Pressed, this, &AVertCharacter::ActionGrappleShoot);
 	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AVertCharacter::ActionDash);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AVertCharacter::ActionInteract);
+	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &AVertCharacter::ActionAttack);
+	PlayerInputComponent->BindAction("Attack", IE_Released, this, &AVertCharacter::StopAttacking);
 
 	PlayerInputComponent->BindAxis("MoveRight", this, &AVertCharacter::ActionMoveRight);
 	PlayerInputComponent->BindAxis("LeftThumbstickMoveY", this, &AVertCharacter::LeftThumbstickMoveY);
@@ -172,7 +181,7 @@ void AVertCharacter::ActionGrappleShoot()
 		{
 			mGamepadOnStandby = true;
 			GetWorld()->GetTimerManager().SetTimer(mTimerHandle, this, &AVertCharacter::ExecuteActionGrappleShoot, SMALL_NUMBER, false);
-			GetWorld()->GetTimerManager().SetTimer(mGamepadGrappleDelay, this, &AVertCharacter::EndGamepadStandby, 0.1f, false);			
+			GetWorld()->GetTimerManager().SetTimer(mGamepadGrappleDelay, this, &AVertCharacter::EndGamepadStandby, 0.1f, false);
 		}
 		break;
 
@@ -195,6 +204,11 @@ void AVertCharacter::ActionDash()
 void AVertCharacter::ActionInteract()
 {
 	StateManager->NotifyActionTaken(ECharacterActions::Interact);
+}
+
+void AVertCharacter::ActionAttack()
+{
+	StateManager->NotifyActionTaken(ECharacterActions::Attack);
 }
 
 #if !UE_BUILD_SHIPPING
@@ -271,25 +285,6 @@ void AVertCharacter::UpdateCharacter()
 			Controller->SetControlRotation(FRotator(0.0f, 0.0f, 0.0f));
 		}
 	}
-}
-
-bool AVertCharacter::CheckShootGrappleGamepad()
-{
-	static float deadzone = 0.25f;
-
-	FVector2D axis = FVector2D::ZeroVector;
-	if (AVertPlayerController* controller = GetPlayerController())
-	{
-		controller->GetInputAnalogStickState(EControllerAnalogStick::CAS_RightStick, axis.X, axis.Y);
-		axis.Y = -axis.Y;
-
-		if (axis.SizeSquared() > FMath::Square(deadzone))
-		{
-			return true;
-		}
-	}
-
-	return false;
 }
 
 void AVertCharacter::RightThumbstickMoveX(float value)

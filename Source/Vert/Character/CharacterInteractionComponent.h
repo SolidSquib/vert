@@ -43,6 +43,8 @@ public:
 	bool HoldInteractive(IInteractive* interactive, const FVector& localOffset = FVector::ZeroVector, bool forceDrop = false);
 	void DropInteractive();
 	void ForceDropInteractive(FVector force, float radialForce);
+	bool AttemptAttack();
+	void StopAttacking();
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

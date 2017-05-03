@@ -14,6 +14,7 @@ enum class ECharacterActions : uint8
 	Move,
 	Grapple,
 	Interact,
+	Attack,
 	Block
 };
 ENUM_CLASS_FLAGS(ECharacterActions)
@@ -84,6 +85,9 @@ protected:
 
 	UFUNCTION(BlueprintNativeEvent, Category = "CharacterState|Action")
 	bool TakeActionInteract();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "CharacterState|Action")
+	bool TakeActionAttack();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "CharacterState|Action")
 	bool TakeActionBlock();

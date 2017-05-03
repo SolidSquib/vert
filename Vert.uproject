@@ -19,5 +19,14 @@
 			"Name": "Paper2D",
 			"Enabled": true
 		}
+	],
+	"TargetPlatforms": [
+		"AllDesktop",
+		"LinuxNoEditor",
+		"MacNoEditor",
+		"PS4",
+		"Switch",
+		"WindowsNoEditor",
+		"XboxOne"
 	]
 }

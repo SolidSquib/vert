@@ -9,6 +9,10 @@ UINTERFACE(MinimalAPI)
 class UWeaponPickup : public UInterface
 {
 	GENERATED_UINTERFACE_BODY()
+
+//public:
+//	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Test")
+//	int32 testproperty = 0;
 };
 
 /**
@@ -20,6 +24,7 @@ class VERT_API IWeaponPickup
 
 public:
 	virtual void Attack() = 0;
+	virtual void StopAttacking() = 0;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon|Throw")
 	void OnCatch(class APawn* newOwner);
@@ -31,6 +36,7 @@ public:
 	void OnImpact(class APawn* owner, class AActor* hitActor);
 
 protected:
+	bool mIsAttacking = false;
 	int32 mChargeLevel = 0;
 	TWeakObjectPtr<class UCharacterInteractionComponent> mCharacterInteractionOwner = nullptr;
 };

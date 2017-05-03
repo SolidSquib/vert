@@ -63,6 +63,8 @@ bool UBaseCharacterState::OnNotifyActionTaken(ECharacterActions action)
 			return TakeActionGrapple();
 		case ECharacterActions::Interact:
 			return TakeActionInteract();
+		case ECharacterActions::Attack:
+			return TakeActionAttack();
 		case ECharacterActions::Block:
 			return TakeActionBlock();
 		default:
@@ -139,6 +141,16 @@ bool UBaseCharacterState::TakeActionInteract_Implementation()
 	{
 		if (mCharacterOwner->GetInteractionComponent()->AttemptInteract())
 			return true;
+	}
+
+	return false;
+}
+
+bool UBaseCharacterState::TakeActionAttack_Implementation()
+{
+	if (mCharacterOwner.IsValid() && mCharacterOwner->GetInteractionComponent())
+	{
+		return mCharacterOwner->GetInteractionComponent()->AttemptAttack();
 	}
 
 	return false;

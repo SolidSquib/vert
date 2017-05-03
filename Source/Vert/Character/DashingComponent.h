@@ -126,7 +126,5 @@ private:
 	bool mIsDashing = false;
 	bool mOnCooldown = false;
 	bool mIsGroundDash = true;
-	int32 mRemainingDashes = 0;	
-	float mStoredGroundFriction = 0;
-	float mStoredAirLateralFriction = 0;
+	int32 mRemainingDashes = 0;
 };

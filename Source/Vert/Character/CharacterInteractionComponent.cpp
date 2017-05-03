@@ -8,11 +8,10 @@ DECLARE_LOG_CATEGORY_CLASS(LogCharacterInteractionComponent, Log, All);
 // Sets default values for this component's properties
 UCharacterInteractionComponent::UCharacterInteractionComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
+	if(ShowDebug)
+		PrimaryComponentTick.bCanEverTick = true;
+	else
+		PrimaryComponentTick.bCanEverTick = false;
 }
 
 
@@ -126,6 +125,27 @@ void UCharacterInteractionComponent::DropInteractive()
 void UCharacterInteractionComponent::ForceDropInteractive(FVector force, float radialForce)
 {
 
+}
+
+bool UCharacterInteractionComponent::AttemptAttack()
+{
+	if (mHeldWeapon)
+	{
+		mHeldWeapon->Attack();
+		UE_LOG(LogTemp, Log, TEXT("Hello"));
+
+		return true;
+	}
+
+	return false;
+}
+
+void UCharacterInteractionComponent::StopAttacking()
+{
+	if (mHeldWeapon)
+	{
+		mHeldWeapon->StopAttacking();
+	}
 }
 
 IInteractive* UCharacterInteractionComponent::TraceForSingleInteractive()

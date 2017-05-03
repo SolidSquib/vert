@@ -8,7 +8,7 @@ DECLARE_LOG_CATEGORY_CLASS(LogVertBaseWeapon, Log, All);
 ABaseWeapon::ABaseWeapon()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	Sprite = CreateDefaultSubobject<UPaperFlipbookComponent>(TEXT("Sprite"));
 	if (Sprite)
@@ -33,9 +33,7 @@ ABaseWeapon::ABaseWeapon()
 
 	AttachPoint = CreateDefaultSubobject<USceneComponent>(TEXT("AttachPoint"));
 	AttachPoint->SetupAttachment(RootComponent);
-
-	BaseDamage = 10;
-
+	
 	bReplicates = true;
 }
 
@@ -49,22 +47,39 @@ void ABaseWeapon::BeginPlay()
 	}
 }
 
-void ABaseWeapon::Tick(float DeltaTime)
+void ABaseWeapon::EndPlay(const EEndPlayReason::Type endPlayReason)
 {
-	Super::Tick(DeltaTime);
+	Super::EndPlay(endPlayReason);
 
+	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 }
 
 void ABaseWeapon::Attack()
 {
+	switch (FiringMode)
+	{
+	case EWeaponFiremode::Automatic:
+		GetWorld()->GetTimerManager().SetTimer(mAttackTimer, this, &ABaseWeapon::ExecuteAttack, RateOfFire, true, 0.f);
+		break;
+
+	default:
+		ExecuteAttack();
+		break;
+	}
+}
+
+void ABaseWeapon::StopAttacking()
+{
+	mIsAttacking = false;
+	GetWorld()->GetTimerManager().ClearTimer(mAttackTimer);
+}
+
+void ABaseWeapon::ExecuteAttack_Implementation()
+{
 	if (mCharacterInteractionOwner.IsValid())
 	{
-		AVertCharacter* character = mCharacterInteractionOwner->GetCharacterOwner();
-		if (!character)
-			return;
-
-		//character->GetSprite()->SetFlipbook(character->AttackAnimation);
 		Sprite->SetFlipbook(AttackAnimation);
+		UE_LOG(LogVertBaseWeapon, Log, TEXT("%s is attacking with %s"), *mCharacterInteractionOwner->GetCharacterOwner()->GetName(), *GetName());
 	}
 }
 
@@ -78,6 +93,7 @@ void ABaseWeapon::Interact(TWeakObjectPtr<class UCharacterInteractionComponent> 
 
 			if (instigator->HoldInteractive(this, localOffset, false))
 			{
+				DisableInteractionDetection();
 				mCharacterInteractionOwner = instigator;
 
 				UE_LOG(LogVertBaseWeapon, Log, TEXT("Weapon %s picked up by player %s"), *GetName(), *instigator->GetName());
@@ -85,12 +101,12 @@ void ABaseWeapon::Interact(TWeakObjectPtr<class UCharacterInteractionComponent> 
 		}
 		else
 		{
-			Throw();
+			NativeOnThrow();
 		}
 	}
 }
 
-void ABaseWeapon::Throw()
+void ABaseWeapon::NativeOnThrow()
 {
 	if (mCharacterInteractionOwner.IsValid())
 	{
@@ -98,10 +114,12 @@ void ABaseWeapon::Throw()
 
 		if (AVertCharacter* character = mCharacterInteractionOwner->GetCharacterOwner())
 		{
+			EnableInteractionDetection();
+
 			FVector launchDirection = UVertUtilities::SnapVectorToAngle(character->GetAxisPostisions().GetPlayerLeftThumbstickDirection(), 45.f);
 			Sprite->SetSimulatePhysics(true);
 			Sprite->AddImpulse(launchDirection * 100000.f);
-			Sprite->AddAngularImpulse(FVector(0, 1.f, 0) * 5000.f);
+			Sprite->AddAngularImpulse(FVector(1.f, 0, 0) * 5000.f);
 
 			if (auto i = Cast<IWeaponPickup>(this))
 			{
@@ -115,10 +133,20 @@ void ABaseWeapon::Throw()
 
 void ABaseWeapon::OnHit_Implementation(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-
+	UE_LOG(LogVertBaseWeapon, Log, TEXT("Weapon %s hit %s"), *GetName(), OtherActor ? *OtherActor->GetName() : TEXT("NULL"));
 }
 
 void ABaseWeapon::OnBeginOverlap_Implementation(class UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult)
 {
+	UE_LOG(LogVertBaseWeapon, Log, TEXT("Weapon %s begin overlap with %s"), *GetName(), otherActor ? *otherActor->GetName() : TEXT("NULL"));
+}
 
+void ABaseWeapon::DisableInteractionDetection()
+{
+	Sprite->SetCollisionObjectType(ECC_DisabledInteractive);
+}
+
+void ABaseWeapon::EnableInteractionDetection()
+{
+	Sprite->SetCollisionObjectType(ECC_Interactive);
 }

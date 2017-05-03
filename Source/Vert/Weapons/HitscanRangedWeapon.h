@@ -3,37 +3,16 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
-#include "WeaponPickup.h"
+#include "RangedWeapon.h"
 #include "Interactives/Interactive.h"
 #include "HitscanRangedWeapon.generated.h"
 
 UCLASS()
-class VERT_API AHitscanRangedWeapon : public AActor, public IWeaponPickup, public IInteractive
+class VERT_API AHitscanRangedWeapon : public ARangedWeapon
 {
 	GENERATED_BODY()
-	
-protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon|Sprite")
-	class UPaperFlipbook* DefaultAnimation;
-
-private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Sprite", meta = (AllowPrivateAccess = "true"))
-	class UPaperFlipbookComponent* Sprite;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Collision", meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* CollisionComponent;
-
-public:	
-	// Sets default values for this actor's properties
-	AHitscanRangedWeapon();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	virtual void Attack() override;
-	virtual void Interact(TWeakObjectPtr<class UCharacterInteractionComponent> instigator) override;
 };
