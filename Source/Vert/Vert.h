@@ -38,5 +38,6 @@
 // Define custom collision object types in code
 #define ECC_Grappler ECC_GameTraceChannel1
 #define ECC_Interactive ECC_GameTraceChannel2
-
-#define ECC_DisabledInteractive ECC_GameTraceChannel18
+#define ECC_SphereTracer ECC_GameTraceChannel3
+#define ECC_CharacterHitBox ECC_GameTraceChannel4
+#define ECC_HeldWeapon ECC_GameTraceChannel5

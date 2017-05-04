@@ -62,6 +62,12 @@ public:
 	virtual void StopAttacking() final;
 	virtual void Interact(TWeakObjectPtr<class UCharacterInteractionComponent> instigator) final;
 
+	UFUNCTION()
+	void OnHit(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+	void OnBeginOverlap(class UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult);
+
 protected:
 	void NativeOnThrow();
 
@@ -72,16 +78,24 @@ protected:
 	void ExecuteAttack();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Weapon|Collision")
-	void OnHit(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	void NativeOnHit(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Weapon|Collision")
-	void OnBeginOverlap(class UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult);
+	void NativeOnBeginOverlap(class UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void AttackAnimationEnd();
 
 private:
 	void DisableInteractionDetection();
 	void EnableInteractionDetection();
 
+public:
+	static const FName scCollisionProfileName;
+	static const FName scAttackingCollisionProfileName;
+
 private:
 	float mTimeOfLastAttack = 0.f;
 	FTimerHandle mAttackTimer;
+	FTimerHandle mDelayTimer;
 };

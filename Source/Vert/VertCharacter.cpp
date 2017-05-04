@@ -68,6 +68,9 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 	GetCharacterMovement()->bUseFlatBaseForFloorChecks = true;
 
 	// Enable replication on the Sprite component so animations show up when networked
+	GetSprite()->bGenerateOverlapEvents = true;
+	GetSprite()->CanCharacterStepUpOn = ECB_No;
+	GetSprite()->SetCollisionProfileName(TEXT("CharacterSprite"));
 	GetSprite()->SetIsReplicated(true);
 	bReplicates = true;
 }
@@ -180,7 +183,7 @@ void AVertCharacter::ActionGrappleShoot()
 		if (!mGamepadOnStandby)
 		{
 			mGamepadOnStandby = true;
-			GetWorld()->GetTimerManager().SetTimer(mTimerHandle, this, &AVertCharacter::ExecuteActionGrappleShoot, SMALL_NUMBER, false);
+			GetWorld()->GetTimerManager().SetTimer(mTimerHandle, this, &AVertCharacter::ExecuteActionGrappleShoot, 0.01f, false);
 			GetWorld()->GetTimerManager().SetTimer(mGamepadGrappleDelay, this, &AVertCharacter::EndGamepadStandby, 0.1f, false);
 		}
 		break;

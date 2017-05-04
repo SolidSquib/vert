@@ -132,7 +132,6 @@ bool UCharacterInteractionComponent::AttemptAttack()
 	if (mHeldWeapon)
 	{
 		mHeldWeapon->Attack();
-		UE_LOG(LogTemp, Log, TEXT("Hello"));
 
 		return true;
 	}
