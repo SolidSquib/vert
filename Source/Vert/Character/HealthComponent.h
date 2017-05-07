@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Components/ActorComponent.h"
+#include "GameFramework/DamageType.h"
 #include "HealthComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHitDelegate);
@@ -29,7 +30,7 @@ public:
 	UHealthComponent();
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Health")
-	int32 DealDamage(int32 magnitude, class UDamageType* type);
+	int32 DealDamage(int32 magnitude, TSubclassOf<UDamageType> type, const FVector& knockbackImpulse = FVector::ZeroVector);
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Health")
 	int32 HealDamage(int32 magnitude);

@@ -27,7 +27,7 @@ void UHealthComponent::BeginPlay()
 	// #MI_TODO: setup damage types (resistences etc)
 }
 
-int32 UHealthComponent::DealDamage(int32 magnitude, class UDamageType* type)
+int32 UHealthComponent::DealDamage(int32 magnitude, TSubclassOf<UDamageType> type = UDamageType::StaticClass(), const FVector& knockbackImpulse)
 {
 	SetDamageTaken(mDamageTaken + magnitude);
 	OnHit.Broadcast();
