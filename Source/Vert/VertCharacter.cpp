@@ -131,6 +131,11 @@ void AVertCharacter::Landed(const FHitResult& Hit)
 	Super::Landed(Hit);
 }
 
+float AVertCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser)
+{
+	return HealthComponent->DealDamage(Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser), DamageEvent.DamageTypeClass);
+}
+
 void AVertCharacter::StopAttacking()
 {
 	InteractionComponent->StopAttacking();

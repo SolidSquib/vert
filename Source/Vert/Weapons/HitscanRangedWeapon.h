@@ -13,6 +13,12 @@ class VERT_API AHitscanRangedWeapon : public ARangedWeapon
 	GENERATED_BODY()
 
 protected:
-	// Called when the game starts or when spawned
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|FX")
+	UParticleSystem* TrailFX;
+
+protected:
+	void ProcessInstantHit(const FHitResult& Impact, const FVector& Origin, const FVector& ShootDir, int32 RandomSeed, float ReticleSpread)
+
 	virtual void BeginPlay() override;
+	virtual void ExecuteAttack_Implementation() override;
 };

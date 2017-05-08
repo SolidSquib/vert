@@ -88,7 +88,7 @@ bool UCharacterInteractionComponent::HoldInteractive(IInteractive* interactive, 
 	if (interactive && !mHeldInteractive && !mHeldWeapon)
 	{
 		mHeldInteractive = interactive;
-		if (IWeaponPickup* weapon = Cast<IWeaponPickup>(interactive))
+		if (ABaseWeapon* weapon = Cast<ABaseWeapon>(interactive))
 		{
 			mHeldWeapon = weapon;
 		}
@@ -131,7 +131,7 @@ bool UCharacterInteractionComponent::AttemptAttack()
 {
 	if (mHeldWeapon)
 	{
-		mHeldWeapon->Attack();
+		mHeldWeapon->NotifyAttackCommand();
 
 		return true;
 	}
@@ -143,7 +143,7 @@ void UCharacterInteractionComponent::StopAttacking()
 {
 	if (mHeldWeapon)
 	{
-		mHeldWeapon->StopAttacking();
+		mHeldWeapon->NotifyStopAttacking();
 	}
 }
 

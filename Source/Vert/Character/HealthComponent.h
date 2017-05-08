@@ -29,7 +29,7 @@ public:
 	UHealthComponent();
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Health")
-	int32 DealDamage(int32 magnitude, class UDamageType* type);
+	int32 DealDamage(int32 magnitude, TSubclassOf<UDamageType> type);
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Health")
 	int32 HealDamage(int32 magnitude);

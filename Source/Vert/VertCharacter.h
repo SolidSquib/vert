@@ -108,6 +108,9 @@ public:
 	FORCEINLINE UCharacterStateManager* GetStateManager() const { return StateManager; }
 	FORCEINLINE const FAxisPositions& GetAxisPostisions() const { return mAxisPositions; }
 
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
+
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void StopAttacking();
 

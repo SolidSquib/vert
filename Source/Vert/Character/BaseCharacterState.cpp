@@ -165,9 +165,9 @@ bool UBaseCharacterState::ChangeState(ECharacterState newState)
 {
 	if (newState != StateSlot && !mStateChangeQueued && mStateMan->HasValidCharacterState(newState))
 	{
+		OnStateEnd();
 		OnStateExit.Broadcast(this, newState);
 		mStateChangeQueued = true;
-		OnStateEnd();
 
 		return true;
 	}

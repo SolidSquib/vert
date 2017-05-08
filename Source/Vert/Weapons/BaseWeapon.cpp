@@ -66,7 +66,7 @@ void ABaseWeapon::EndPlay(const EEndPlayReason::Type endPlayReason)
 	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 }
 
-void ABaseWeapon::Attack()
+void ABaseWeapon::NotifyAttackCommand()
 {
 	switch (FiringMode)
 	{
@@ -93,7 +93,7 @@ void ABaseWeapon::Attack()
 	}
 }
 
-void ABaseWeapon::StopAttacking()
+void ABaseWeapon::NotifyStopAttacking()
 {
 	if (FiringMode == EWeaponFiremode::Automatic)
 	{
@@ -129,6 +129,7 @@ void ABaseWeapon::Interact(TWeakObjectPtr<class UCharacterInteractionComponent> 
 			{
 				DisableInteractionDetection();
 				mCharacterInteractionOwner = instigator;
+				Instigator = mCharacterInteractionOwner->GetCharacterOwner();
 
 				UE_LOG(LogVertBaseWeapon, Log, TEXT("Weapon %s picked up by player %s"), *GetName(), *instigator->GetName());
 			}
@@ -154,33 +155,46 @@ void ABaseWeapon::NativeOnThrow()
 			Sprite->SetSimulatePhysics(true);
 			Sprite->AddImpulse(launchDirection * 100000.f);
 			Sprite->AddAngularImpulse(FVector(1.f, 0, 0) * 5000.f);
-
-			if (auto i = Cast<IWeaponPickup>(this))
-			{
-				i->Execute_OnThrow(Cast<UObject>(i), character);
-			}
+			OnThrow();
 
 			UE_LOG(LogVertBaseWeapon, Log, TEXT("Weapon %s thrown by player %s"), *GetName(), *character->GetName());
 		}
 	}
 }
 
-void ABaseWeapon::OnHit(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+bool ABaseWeapon::ShouldDealDamage(AActor* TestActor) const
 {
-	NativeOnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit); 
+	// if we're an actor on the server, or the actor's role is authoritative, we should register damage
+	if (TestActor)
+	{
+		if (GetNetMode() != NM_Client ||
+			TestActor->Role == ROLE_Authority ||
+			TestActor->bTearOff)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
-void ABaseWeapon::OnBeginOverlap(class UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult)
+void ABaseWeapon::DealDamage(const FHitResult& Impact, const FVector& ShootDir)
 {
-	NativeOnBeginOverlap(overlappedComp, otherActor, otherComp, otherBodyIndex, fromSweep, sweepResult);
+	FPointDamageEvent PointDmg;
+	PointDmg.DamageTypeClass = DamageType;
+	PointDmg.HitInfo = Impact;
+	PointDmg.ShotDirection = ShootDir;
+	PointDmg.Damage = BaseDamage;
+
+	Impact.GetActor()->TakeDamage(PointDmg.Damage, PointDmg, mCharacterInteractionOwner->GetCharacterOwner()->GetController(), this);
 }
 
-void ABaseWeapon::NativeOnHit_Implementation(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void ABaseWeapon::OnHit_Implementation(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	UE_LOG(LogVertBaseWeapon, Log, TEXT("Weapon %s hit %s"), *GetName(), OtherActor ? *OtherActor->GetName() : TEXT("NULL"));
 }
 
-void ABaseWeapon::NativeOnBeginOverlap_Implementation(class UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult)
+void ABaseWeapon::OnBeginOverlap_Implementation(class UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult)
 {
 	UE_LOG(LogVertBaseWeapon, Log, TEXT("Weapon %s begin overlap with %s"), *GetName(), otherActor ? *otherActor->GetName() : TEXT("NULL"));
 }

@@ -4,7 +4,7 @@
 
 #include "Components/ActorComponent.h"
 #include "Interactives/Interactive.h"
-#include "Weapons/WeaponPickup.h"
+#include "Weapons/BaseWeapon.h"
 #include "CharacterInteractionComponent.generated.h"
 
 UENUM()
@@ -50,7 +50,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	FORCEINLINE IInteractive* GetHeldInteractive() const { return mHeldInteractive; }
-	FORCEINLINE IWeaponPickup* GetHeldWeapon() const { return mHeldWeapon; }
+	FORCEINLINE ABaseWeapon* GetHeldWeapon() const { return mHeldWeapon; }
 
 	UFUNCTION(BlueprintCallable, Category = "Interact|Character")
 	FORCEINLINE AVertCharacter* GetCharacterOwner() const { return mCharacterOwner.Get(); }
@@ -67,6 +67,6 @@ private:
 private:
 	TWeakObjectPtr<AVertCharacter> mCharacterOwner = nullptr;
 	IInteractive* mHeldInteractive = nullptr;
-	IWeaponPickup* mHeldWeapon = nullptr;
+	ABaseWeapon* mHeldWeapon = nullptr;
 	EInteractionState mInteractionState = EInteractionState::Free;
 };
