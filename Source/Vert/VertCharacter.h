@@ -92,6 +92,7 @@ public:
 	AVertCharacter(const class FObjectInitializer& ObjectInitializer);
 
 	bool CanComponentRecharge(ERechargeRule rule);
+	bool IsMoving();
 	const bool UsingGamepad() const;
 
 	virtual void Tick(float DeltaSeconds) override;

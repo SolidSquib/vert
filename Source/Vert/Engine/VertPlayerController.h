@@ -60,6 +60,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "InputMethod")
 	bool UsingGamepad() const;
 
+	UFUNCTION(BlueprintCallable)
+	bool HasInfiniteAmmo() const;
+	
+	UFUNCTION(BlueprintCallable)
+	bool HasInfiniteClip() const;
+
 protected:
 	virtual void SetupInputComponent() override;
 	virtual ASpectatorPawn* SpawnSpectatorPawn() override;

@@ -276,6 +276,12 @@ bool AVertCharacter::CanComponentRecharge(ERechargeRule rule)
 	return false;
 }
 
+bool AVertCharacter::IsMoving()
+{
+	FVector velocity = GetVelocity();
+	return velocity.SizeSquared() > KINDA_SMALL_NUMBER;
+}
+
 void AVertCharacter::UpdateCharacter()
 {
 	// Now setup the rotation of the controller based on the direction we are travelling

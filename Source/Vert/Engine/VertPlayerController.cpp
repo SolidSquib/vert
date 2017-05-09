@@ -92,6 +92,16 @@ ASpectatorPawn* AVertPlayerController::SpawnSpectatorPawn()
 	return pawn;
 }
 
+bool AVertPlayerController::HasInfiniteAmmo() const
+{
+	return false;
+}
+
+bool AVertPlayerController::HasInfiniteClip() const
+{
+	return false;
+}
+
 void AVertPlayerController::DisplayClientMessage(FString s)
 {
 	ClientMessage(s);

@@ -17,7 +17,7 @@ enum class EWeaponFiremode : uint8
 UCLASS(BlueprintType, Abstract)
 class VERT_API ABaseWeapon : public AActor, public IInteractive
 {
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Damage")
@@ -41,6 +41,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Sprite", meta = (AllowPrivateAccess = "true"))
 	class UPaperFlipbookComponent* Sprite;
 
+	///** force feedback effect to play when the weapon is fired */
+	//UPROPERTY(EditDefaultsOnly, Category = Effects)
+	//UForceFeedbackEffect *FireForceFeedback;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Usage")
 	EWeaponFiremode FiringMode = EWeaponFiremode::SemiAutomatic;
 
@@ -56,10 +60,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Usage")
 	float WindUpTime = 0;
 
-public:	
-	// Sets default values for this actor's properties
-	ABaseWeapon();
-
+public:
 	virtual void NotifyAttackCommand();
 	virtual void NotifyStopAttacking();
 	virtual void Interact(TWeakObjectPtr<class UCharacterInteractionComponent> instigator) final;
@@ -83,19 +84,19 @@ protected:
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Weapon|Attack")
 	void ExecuteAttack();
-	virtual void ExecuteAttack_Implementation();
+	//virtual void ExecuteAttack_Implementation();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Weapon|Collision")
 	void OnHit(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-	virtual void OnHit_Implementation(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	//virtual void OnHit_Implementation(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Weapon|Collision")
 	void OnBeginOverlap(class UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult);
-	virtual void OnBeginOverlap_Implementation(class UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult);
+	//virtual void OnBeginOverlap_Implementation(class UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult);
 
 	UFUNCTION(BlueprintNativeEvent)
 	void AttackAnimationEnd();
-	virtual void AttackAnimationEnd_Implementation();
+	//virtual void AttackAnimationEnd_Implementation();
 
 private:
 	void DisableInteractionDetection();

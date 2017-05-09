@@ -8,7 +8,7 @@ DECLARE_LOG_CATEGORY_CLASS(LogVertBaseWeapon, Log, All);
 const FName ABaseWeapon::scCollisionProfileName = TEXT("InteractiveItemPhysics");
 const FName ABaseWeapon::scAttackingCollisionProfileName = TEXT("AttackingWeapon");
 
-ABaseWeapon::ABaseWeapon()
+ABaseWeapon::ABaseWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
