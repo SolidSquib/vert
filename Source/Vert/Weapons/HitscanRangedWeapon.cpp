@@ -109,7 +109,7 @@
 
 AHitscanRangedWeapon::AHitscanRangedWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	CurrentFiringSpread = 0.0f;
+	mCurrentFiringSpread = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -117,6 +117,8 @@ AHitscanRangedWeapon::AHitscanRangedWeapon(const FObjectInitializer& ObjectIniti
 
 void AHitscanRangedWeapon::FireWeapon()
 {
+
+
 	const int32 RandomSeed = FMath::Rand();
 	FRandomStream WeaponRandomStream(RandomSeed);
 	const float CurrentSpread = GetCurrentSpread();
@@ -125,12 +127,13 @@ void AHitscanRangedWeapon::FireWeapon()
 	const FVector AimDir = GetAdjustedAim();
 	const FVector StartTrace = GetMuzzleLocation();
 	const FVector ShootDir = WeaponRandomStream.VRandCone(AimDir, ConeHalfAngle, ConeHalfAngle);
-	const FVector EndTrace = StartTrace + ShootDir * InstantConfig.WeaponRange;
+	const FVector ShootDir2D = (FVector(ShootDir.X, 0.f, ShootDir.Z) * 100).GetSafeNormal();
+	const FVector EndTrace = StartTrace + ShootDir2D * InstantConfig.WeaponRange;
 
 	const FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
-	ProcessInstantHit(Impact, StartTrace, ShootDir, RandomSeed, CurrentSpread);
+	ProcessInstantHit(Impact, StartTrace, ShootDir2D, RandomSeed, CurrentSpread);
 
-	CurrentFiringSpread = FMath::Min(InstantConfig.FiringSpreadMax, CurrentFiringSpread + InstantConfig.FiringSpreadIncrement);
+	mCurrentFiringSpread = FMath::Min(InstantConfig.FiringSpreadMax, mCurrentFiringSpread + InstantConfig.FiringSpreadIncrement);
 }
 
 bool AHitscanRangedWeapon::ServerNotifyHit_Validate(const FHitResult& Impact, FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread)
@@ -233,7 +236,7 @@ void AHitscanRangedWeapon::ServerNotifyMiss_Implementation(FVector_NetQuantizeNo
 
 void AHitscanRangedWeapon::ProcessInstantHit(const FHitResult& Impact, const FVector& Origin, const FVector& ShootDir, int32 RandomSeed, float ReticleSpread)
 {
-	if (MyPawn && MyPawn->IsLocallyControlled() && GetNetMode() == NM_Client)
+	if (mCharacterInteractionOwner.IsValid() && mCharacterInteractionOwner->GetCharacterOwner()->IsLocallyControlled() && GetNetMode() == NM_Client)
 	{
 		// if we're a client and we've hit something that is being controlled by the server
 		if (Impact.GetActor() && Impact.GetActor()->GetRemoteRole() == ROLE_Authority)
@@ -311,14 +314,14 @@ void AHitscanRangedWeapon::DealDamage(const FHitResult& Impact, const FVector& S
 	PointDmg.ShotDirection = ShootDir;
 	PointDmg.Damage = InstantConfig.HitDamage;
 
-	Impact.GetActor()->TakeDamage(PointDmg.Damage, PointDmg, MyPawn->Controller, this);
+	Impact.GetActor()->TakeDamage(PointDmg.Damage, PointDmg, mCharacterInteractionOwner->GetCharacterOwner()->Controller, this);
 }
 
 void AHitscanRangedWeapon::OnBurstFinished()
 {
 	Super::OnBurstFinished();
 
-	CurrentFiringSpread = 0.0f;
+	mCurrentFiringSpread = 0.0f;
 }
 
 
@@ -327,8 +330,8 @@ void AHitscanRangedWeapon::OnBurstFinished()
 
 float AHitscanRangedWeapon::GetCurrentSpread() const
 {
-	float FinalSpread = InstantConfig.WeaponSpread + CurrentFiringSpread;
-	if (MyPawn && MyPawn->IsMoving())
+	float FinalSpread = InstantConfig.WeaponSpread + mCurrentFiringSpread;
+	if (mCharacterInteractionOwner.IsValid() && mCharacterInteractionOwner->GetCharacterOwner()->IsMoving())
 	{
 		FinalSpread *= InstantConfig.MovingSpreadMod;
 	}

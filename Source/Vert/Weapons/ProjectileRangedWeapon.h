@@ -18,10 +18,6 @@ struct FProjectileWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
 	float ProjectileLife;
 
-	/** damage at impact point */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-	int32 ExplosionDamage;
-
 	/** radius of damage */
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	float ExplosionRadius;
@@ -35,7 +31,6 @@ struct FProjectileWeaponData
 	{
 		ProjectileClass = NULL;
 		ProjectileLife = 10.0f;
-		ExplosionDamage = 100;
 		ExplosionRadius = 300.0f;
 		DamageType = UDamageType::StaticClass();
 	}

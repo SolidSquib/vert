@@ -21,7 +21,7 @@ class VERT_API ABaseWeapon : public AActor, public IInteractive
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Damage")
-	int32 BaseDamage = 10;
+	float BaseDamage = 10.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Damage")
 	float KnockbackMagnitude = 1000.f;

@@ -12,32 +12,35 @@ class AWeaponProjectile : public AActor
 {
 	GENERATED_UCLASS_BODY()
 
-		/** initial setup */
-		virtual void PostInitializeComponents() override;
+	/** initial setup */
+	virtual void PostInitializeComponents() override;
 
 	/** setup velocity */
 	void InitVelocity(FVector& ShootDirection);
 
 	/** handle hit */
 	UFUNCTION()
-		void OnImpact(const FHitResult& HitResult);
+	void OnImpact(const FHitResult& HitResult);
 
 private:
 	/** movement component */
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
-		UProjectileMovementComponent* MovementComp;
+	UProjectileMovementComponent* MovementComp;
 
 	/** collisions */
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
-		USphereComponent* CollisionComp;
+	USphereComponent* CollisionComp;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
-		UParticleSystemComponent* ParticleComp;
-protected:
+	UParticleSystemComponent* ParticleComp;
 
+protected:
 	/** effects for explosion */
 	UPROPERTY(EditDefaultsOnly, Category = Effects)
-		TSubclassOf<class AVertExplosionEffect> ExplosionTemplate;
+	TSubclassOf<class AVertExplosionEffect> ExplosionTemplate;
+
+	UPROPERTY(EditDefaultsOnly, Category = Damage)
+	float BaseDamage = 10.f;
 
 	/** controller that fired me (cache for damage calculations) */
 	TWeakObjectPtr<AController> MyController;
@@ -47,11 +50,11 @@ protected:
 
 	/** did it explode? */
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_Exploded)
-		bool bExploded;
+	bool bExploded;
 
 	/** [client] explosion happened */
 	UFUNCTION()
-		void OnRep_Exploded();
+	void OnRep_Exploded();
 
 	/** trigger explosion */
 	void Explode(const FHitResult& Impact);

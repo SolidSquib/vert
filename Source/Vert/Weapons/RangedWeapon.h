@@ -4,6 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include "Interactives/Interactive.h"
+#include "PaperFlipbook.h"
 #include "RangedWeapon.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRangedWeapon, Log, All);
@@ -65,20 +66,6 @@ struct FWeaponData
 	}
 };
 
-USTRUCT()
-struct FRangedWeaponAnim
-{
-	GENERATED_BODY()
-
-	/** animation played on pawn (1st person view) */
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
-	UPaperFlipbook* ReloadAnimation;
-
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
-	UPaperFlipbook* EquipAnimation;
-	// Add more if needed
-};
-
 UCLASS(Abstract, Blueprintable)
 class ARangedWeapon : public ABaseWeapon
 {
@@ -90,9 +77,6 @@ class ARangedWeapon : public ABaseWeapon
 		ERocket,
 		EMax,
 	};
-
-	UPROPERTY(Transient, ReplicatedUsing = OnRep_MyPawn)
-	class AVertCharacter* MyPawn;
 
 	UPROPERTY(EditDefaultsOnly, Category = Config)
 	FWeaponData WeaponConfig;
@@ -116,6 +100,9 @@ class ARangedWeapon : public ABaseWeapon
 	UPROPERTY(EditDefaultsOnly, Category = Effects)
 	UForceFeedbackEffect *FireForceFeedback;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Sprite")
+	UPaperFlipbook* ReloadAnim;
+
 	/** single fire sound (bLoopedFireSound not set) */
 	UPROPERTY(EditDefaultsOnly, Category = Sound)
 	USoundCue* FireSound;
@@ -134,37 +121,27 @@ class ARangedWeapon : public ABaseWeapon
 	UPROPERTY(EditDefaultsOnly, Category = Sound)
 	USoundCue* ReloadSound;
 
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
-	FRangedWeaponAnim ReloadAnim;
-
 	UPROPERTY(EditDefaultsOnly, Category = Sound)
 	USoundCue* EquipSound;
 
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
-	FRangedWeaponAnim EquipAnim;
-
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
-	FRangedWeaponAnim FireAnim;
-
 	UPROPERTY(EditDefaultsOnly, Category = Effects)
-	uint32 bLoopedMuzzleFX : 1;
+	uint32 LoopedMuzzleFX : 1;
 
 	UPROPERTY(EditDefaultsOnly, Category = Sound)
-	uint32 bLoopedFireSound : 1;
+	uint32 LoopedFireSound : 1;
 
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
-	uint32 bLoopedFireAnim : 1;
+	uint32 mLoopedFireAnim : 1;
 
-	uint32 bPlayingFireAnim : 1;
+	uint32 mPlayingFireAnim : 1;
 
-	uint32 bIsEquipped : 1;
+	uint32 mIsEquipped : 1;
 
-	uint32 bWantsToFire : 1;
+	uint32 mWantsToFire : 1;
 
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_Reload)
-	uint32 bPendingReload : 1;
+	uint32 PendingReload : 1;
 
-	uint32 bPendingEquip : 1;
+	uint32 PendingEquip : 1;
 
 	UPROPERTY(Transient, Replicated) /** current total ammo */
 	int32 CurrentAmmo;
@@ -197,12 +174,11 @@ protected:
 	void SetOwningPawn(AVertCharacter* AVertCharacter);
 	float GetEquipStartedTime() const;
 	float GetEquipDuration() const;
+	float PlayWeaponAnimation(UPaperFlipbook* newAnim);
 	void SetWeaponState(EWeaponState::Type NewState); /** update weapon state */
 	void DetermineWeaponState(); /** determine current weapon state */
 	void HandleFiring(); /** [local + server] handle weapon fire */
 	UAudioComponent* PlayWeaponSound(USoundCue* Sound); /** play weapon sounds */
-	float PlayWeaponAnimation(const FRangedWeaponAnim& Animation); /** play weapon animations */
-	void StopWeaponAnimation(const FRangedWeaponAnim& Animation); /** stop playing weapon animations */
 	FVector GetCameraAim() const; /** Get the aim of the camera */
 	FVector GetMuzzleLocation() const; /** get the muzzle location of the weapon */
 	FVector GetMuzzleDirection() const; /** get direction of weapon's muzzle */
@@ -210,9 +186,6 @@ protected:
 
 	virtual void PostInitializeComponents() override;
 	virtual void Destroyed() override;
-	virtual void OnEquip(const ARangedWeapon* LastWeapon);
-	virtual void OnEquipFinished();
-	virtual void OnUnEquip();
 	virtual void OnEnterInventory(AVertCharacter* NewOwner); // [server]
 	virtual void OnLeaveInventory(); // [server]
 	virtual void StartFire(); // [local + server]
@@ -226,7 +199,7 @@ protected:
 	virtual void OnBurstStarted(); /** [local + server] firing started */
 	virtual void OnBurstFinished(); /** [local + server] firing finished */
 	virtual FVector GetAdjustedAim() const; /** Get the aim of the weapon, allowing for adjustments to be made by the weapon */
-	virtual void ExecuteAttack_Implementation();
+	virtual void ExecuteAttack_Implementation() final;
 
 	UFUNCTION(reliable, client)
 	void ClientStartReload();
@@ -251,9 +224,6 @@ protected:
 
 	//////////////////////////////////////////////////////////////////////////
 	// Replication & effects
-
-	UFUNCTION()
-	void OnRep_MyPawn();
 
 	UFUNCTION()
 	void OnRep_BurstCounter();
