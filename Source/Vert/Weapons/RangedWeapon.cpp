@@ -7,19 +7,20 @@ DEFINE_LOG_CATEGORY(LogRangedWeapon);
 
 ARangedWeapon::ARangedWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	bLoopedMuzzleFX = false;
-	bLoopedFireAnim = false;
-	bPlayingFireAnim = false;
-	bIsEquipped = false;
-	bWantsToFire = false;
-	bPendingReload = false;
-	bPendingEquip = false;
+	LoopedMuzzleFX = false;
+	mLoopedFireAnim = false;
+	mPlayingFireAnim = false;
+	mIsEquipped = false;
+	mWantsToFire = false;
+	PendingReload = false;
+	PendingEquip = false;
 	CurrentState = EWeaponState::Idle;
 
 	CurrentAmmo = 0;
 	CurrentAmmoInClip = 0;
 	BurstCounter = 0;
 	LastFireTime = 0.0f;
+	mLoopedFireAnim = FiringMode != EWeaponFiremode::SemiAutomatic;
 
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup = TG_PrePhysics;
@@ -46,86 +47,6 @@ void ARangedWeapon::Destroyed()
 	StopSimulatingWeaponFire();
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Inventory
-
-void ARangedWeapon::OnEquip(const ARangedWeapon* LastWeapon)
-{
-	bPendingEquip = true;
-	DetermineWeaponState();
-
-	// Only play animation if last weapon is valid
-	if (LastWeapon)
-	{
-		float Duration = PlayWeaponAnimation(EquipAnim);
-		if (Duration <= 0.0f)
-		{
-			// failsafe
-			Duration = 0.5f;
-		}
-		EquipStartedTime = GetWorld()->GetTimeSeconds();
-		EquipDuration = Duration;
-
-		GetWorldTimerManager().SetTimer(TimerHandle_OnEquipFinished, this, &ARangedWeapon::OnEquipFinished, Duration, false);
-	}
-	else
-	{
-		OnEquipFinished();
-	}
-
-	if (MyPawn && MyPawn->IsLocallyControlled())
-	{
-		PlayWeaponSound(EquipSound);
-	}
-}
-
-void ARangedWeapon::OnEquipFinished()
-{
-	bIsEquipped = true;
-	bPendingEquip = false;
-
-	// Determine the state so that the can reload checks will work
-	DetermineWeaponState();
-
-	if (MyPawn)
-	{
-		// try to reload empty clip
-		if (MyPawn->IsLocallyControlled() &&
-			CurrentAmmoInClip <= 0 &&
-			CanReload())
-		{
-			StartReload();
-		}
-	}
-
-
-}
-
-void ARangedWeapon::OnUnEquip()
-{
-	bIsEquipped = false;
-	StopFire();
-
-	if (bPendingReload)
-	{
-		StopWeaponAnimation(ReloadAnim);
-		bPendingReload = false;
-
-		GetWorldTimerManager().ClearTimer(TimerHandle_StopReload);
-		GetWorldTimerManager().ClearTimer(TimerHandle_ReloadWeapon);
-	}
-
-	if (bPendingEquip)
-	{
-		StopWeaponAnimation(EquipAnim);
-		bPendingEquip = false;
-
-		GetWorldTimerManager().ClearTimer(TimerHandle_OnEquipFinished);
-	}
-
-	DetermineWeaponState();
-}
-
 void ARangedWeapon::OnEnterInventory(AVertCharacter* NewOwner)
 {
 	SetOwningPawn(NewOwner);
@@ -136,11 +57,6 @@ void ARangedWeapon::OnLeaveInventory()
 	if (Role == ROLE_Authority)
 	{
 		SetOwningPawn(NULL);
-	}
-
-	if (IsAttachedToPawn())
-	{
-		OnUnEquip();
 	}
 }
 
@@ -154,9 +70,9 @@ void ARangedWeapon::StartFire()
 		ServerStartFire();
 	}
 
-	if (!bWantsToFire)
+	if (!mWantsToFire)
 	{
-		bWantsToFire = true;
+		mWantsToFire = true;
 		DetermineWeaponState();
 	}
 }
@@ -168,9 +84,9 @@ void ARangedWeapon::StopFire()
 		ServerStopFire();
 	}
 
-	if (bWantsToFire)
+	if (mWantsToFire)
 	{
-		bWantsToFire = false;
+		mWantsToFire = false;
 		DetermineWeaponState();
 	}
 }
@@ -184,7 +100,7 @@ void ARangedWeapon::StartReload(bool bFromReplication)
 
 	if (bFromReplication || CanReload())
 	{
-		bPendingReload = true;
+		PendingReload = true;
 		DetermineWeaponState();
 
 		float AnimDuration = PlayWeaponAnimation(ReloadAnim);
@@ -199,7 +115,7 @@ void ARangedWeapon::StartReload(bool bFromReplication)
 			GetWorldTimerManager().SetTimer(TimerHandle_ReloadWeapon, this, &ARangedWeapon::ReloadWeapon, FMath::Max(0.1f, AnimDuration - 0.1f), false);
 		}
 
-		if (MyPawn && MyPawn->IsLocallyControlled())
+		if (mCharacterInteractionOwner->GetCharacterOwner() && mCharacterInteractionOwner->GetCharacterOwner()->IsLocallyControlled())
 		{
 			PlayWeaponSound(ReloadSound);
 		}
@@ -210,9 +126,9 @@ void ARangedWeapon::StopReload()
 {
 	if (CurrentState == EWeaponState::Reloading)
 	{
-		bPendingReload = false;
+		PendingReload = false;
 		DetermineWeaponState();
-		StopWeaponAnimation(ReloadAnim);
+		Sprite->SetFlipbook(DefaultAnimation);
 	}
 }
 
@@ -267,7 +183,7 @@ void ARangedWeapon::ClientStartReload_Implementation()
 bool ARangedWeapon::CanFire() const
 {
 	bool bStateOKToFire = ((CurrentState == EWeaponState::Idle) || (CurrentState == EWeaponState::Firing));
-	return ((bStateOKToFire == true) && (bPendingReload == false));
+	return ((bStateOKToFire == true) && (PendingReload == false));
 }
 
 bool ARangedWeapon::CanReload() const
@@ -310,7 +226,7 @@ void ARangedWeapon::HandleFiring()
 			SimulateWeaponFire();
 		}
 
-		if (MyPawn && MyPawn->IsLocallyControlled())
+		if (mCharacterInteractionOwner.IsValid() && mCharacterInteractionOwner->GetCharacterOwner()->IsLocallyControlled())
 		{
 			FireWeapon();
 
@@ -324,7 +240,7 @@ void ARangedWeapon::HandleFiring()
 	{
 		StartReload();
 	}
-	else if (MyPawn && MyPawn->IsLocallyControlled())
+	else if (mCharacterInteractionOwner.IsValid() && mCharacterInteractionOwner->GetCharacterOwner()->IsLocallyControlled())
 	{
 		if (GetCurrentAmmo() == 0 && !bRefiring)
 		{
@@ -338,7 +254,7 @@ void ARangedWeapon::HandleFiring()
 		}
 	}
 
-	if (MyPawn && MyPawn->IsLocallyControlled())
+	if (mCharacterInteractionOwner.IsValid() && mCharacterInteractionOwner->GetCharacterOwner()->IsLocallyControlled())
 	{
 		// local client will notify server
 		if (Role < ROLE_Authority)
@@ -425,9 +341,9 @@ void ARangedWeapon::DetermineWeaponState()
 {
 	EWeaponState::Type NewState = EWeaponState::Idle;
 
-	if (bIsEquipped)
+	if (mIsEquipped)
 	{
-		if (bPendingReload)
+		if (PendingReload)
 		{
 			if (CanReload() == false)
 			{
@@ -438,12 +354,12 @@ void ARangedWeapon::DetermineWeaponState()
 				NewState = EWeaponState::Reloading;
 			}
 		}
-		else if ((bPendingReload == false) && (bWantsToFire == true) && (CanFire() == true))
+		else if ((PendingReload == false) && (mWantsToFire == true) && (CanFire() == true))
 		{
 			NewState = EWeaponState::Firing;
 		}
 	}
-	else if (bPendingEquip)
+	else if (PendingEquip)
 	{
 		NewState = EWeaponState::Equipping;
 	}
@@ -488,24 +404,12 @@ void ARangedWeapon::OnBurstFinished()
 UAudioComponent* ARangedWeapon::PlayWeaponSound(USoundCue* Sound)
 {
 	UAudioComponent* AC = NULL;
-	if (Sound && MyPawn)
+	if (Sound && mCharacterInteractionOwner.IsValid())
 	{
-		AC = UGameplayStatics::SpawnSoundAttached(Sound, MyPawn->GetRootComponent());
+		AC = UGameplayStatics::SpawnSoundAttached(Sound, mCharacterInteractionOwner->GetCharacterOwner()->GetRootComponent());
 	}
 
 	return AC;
-}
-
-float ARangedWeapon::PlayWeaponAnimation(const FRangedWeaponAnim& Animation)
-{
-	float Duration = 0.0f;
-
-	return Duration;
-}
-
-void ARangedWeapon::StopWeaponAnimation(const FRangedWeaponAnim& Animation)
-{
-	
 }
 
 FVector ARangedWeapon::GetCameraAim() const
@@ -579,27 +483,11 @@ FHitResult ARangedWeapon::WeaponTrace(const FVector& StartTrace, const FVector& 
 
 void ARangedWeapon::SetOwningPawn(AVertCharacter* NewOwner)
 {
-	if (MyPawn != NewOwner)
+	if (!mCharacterInteractionOwner.IsValid() || mCharacterInteractionOwner->GetCharacterOwner() != NewOwner)
 	{
 		Instigator = NewOwner;
-		MyPawn = NewOwner;
 		// net owner for RPC calls
 		SetOwner(NewOwner);
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Replication & effects
-
-void ARangedWeapon::OnRep_MyPawn()
-{
-	if (MyPawn)
-	{
-		OnEnterInventory(MyPawn);
-	}
-	else
-	{
-		OnLeaveInventory();
 	}
 }
 
@@ -617,7 +505,7 @@ void ARangedWeapon::OnRep_BurstCounter()
 
 void ARangedWeapon::OnRep_Reload()
 {
-	if (bPendingReload)
+	if (PendingReload)
 	{
 		StartReload(true);
 	}
@@ -625,6 +513,17 @@ void ARangedWeapon::OnRep_Reload()
 	{
 		StopReload();
 	}
+}
+
+float ARangedWeapon::PlayWeaponAnimation(UPaperFlipbook* newAnim)
+{
+	if (newAnim)
+	{
+		Sprite->SetFlipbook(newAnim);
+		return newAnim->GetTotalDuration();
+	}
+
+	return 0.f;
 }
 
 void ARangedWeapon::SimulateWeaponFire()
@@ -636,12 +535,12 @@ void ARangedWeapon::SimulateWeaponFire()
 
 	if (MuzzleFX)
 	{
-		if (!bLoopedMuzzleFX || MuzzlePSC == NULL)
+		if (!LoopedMuzzleFX || MuzzlePSC == NULL)
 		{
 			// Split screen requires we create 2 effects. One that we see and one that the other player sees.
-			if ((MyPawn != NULL) && (MyPawn->IsLocallyControlled() == true))
+			if ((mCharacterInteractionOwner.IsValid()) && (mCharacterInteractionOwner->GetCharacterOwner()->IsLocallyControlled() == true))
 			{
-				AController* PlayerCon = MyPawn->GetController();
+				AController* PlayerCon = mCharacterInteractionOwner->GetCharacterOwner()->GetController();
 				if (PlayerCon != NULL)
 				{
 					Sprite->GetSocketLocation(MuzzleAttachPoint);
@@ -657,13 +556,13 @@ void ARangedWeapon::SimulateWeaponFire()
 		}
 	}
 
-	if (!bLoopedFireAnim || !bPlayingFireAnim)
+	if (!mLoopedFireAnim || !mPlayingFireAnim)
 	{
-		PlayWeaponAnimation(FireAnim);
-		bPlayingFireAnim = true;
+		PlayWeaponAnimation(AttackAnimation);
+		mPlayingFireAnim = true;
 	}
 
-	if (bLoopedFireSound)
+	if (LoopedFireSound)
 	{
 		if (FireAC == NULL)
 		{
@@ -675,7 +574,7 @@ void ARangedWeapon::SimulateWeaponFire()
 		PlayWeaponSound(FireSound);
 	}
 
-	AVertPlayerController* PC = (MyPawn != NULL) ? Cast<AVertPlayerController>(MyPawn->Controller) : NULL;
+	AVertPlayerController* PC = (mCharacterInteractionOwner.IsValid()) ? Cast<AVertPlayerController>(mCharacterInteractionOwner->GetCharacterOwner()->Controller) : NULL;
 	if (PC != NULL && PC->IsLocalController())
 	{
 		if (FireForceFeedback != NULL)
@@ -687,7 +586,7 @@ void ARangedWeapon::SimulateWeaponFire()
 
 void ARangedWeapon::StopSimulatingWeaponFire()
 {
-	if (bLoopedMuzzleFX)
+	if (LoopedMuzzleFX)
 	{
 		if (MuzzlePSC != NULL)
 		{
@@ -701,10 +600,10 @@ void ARangedWeapon::StopSimulatingWeaponFire()
 		}
 	}
 
-	if (bLoopedFireAnim && bPlayingFireAnim)
+	if (mLoopedFireAnim && mPlayingFireAnim)
 	{
-		StopWeaponAnimation(FireAnim);
-		bPlayingFireAnim = false;
+		Sprite->SetFlipbook(DefaultAnimation);
+		mPlayingFireAnim = false;
 	}
 
 	if (FireAC)
@@ -720,28 +619,26 @@ void ARangedWeapon::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ARangedWeapon, MyPawn);
-
 	DOREPLIFETIME_CONDITION(ARangedWeapon, CurrentAmmo, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(ARangedWeapon, CurrentAmmoInClip, COND_OwnerOnly);
 
 	DOREPLIFETIME_CONDITION(ARangedWeapon, BurstCounter, COND_SkipOwner);
-	DOREPLIFETIME_CONDITION(ARangedWeapon, bPendingReload, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(ARangedWeapon, PendingReload, COND_SkipOwner);
 }
 
 class AVertCharacter* ARangedWeapon::GetPawnOwner() const
 {
-	return MyPawn;
+	return mCharacterInteractionOwner.IsValid() ? mCharacterInteractionOwner->GetCharacterOwner() : nullptr;
 }
 
 bool ARangedWeapon::IsEquipped() const
 {
-	return bIsEquipped;
+	return mIsEquipped;
 }
 
 bool ARangedWeapon::IsAttachedToPawn() const
 {
-	return bIsEquipped || bPendingEquip;
+	return mIsEquipped || PendingEquip;
 }
 
 EWeaponState::Type ARangedWeapon::GetCurrentState() const
@@ -771,13 +668,13 @@ int32 ARangedWeapon::GetMaxAmmo() const
 
 bool ARangedWeapon::HasInfiniteAmmo() const
 {
-	const AVertPlayerController* MyPC = (MyPawn != NULL) ? Cast<const AVertPlayerController>(MyPawn->Controller) : NULL;
+	const AVertPlayerController* MyPC = (mCharacterInteractionOwner.IsValid()) ? Cast<const AVertPlayerController>(mCharacterInteractionOwner->GetCharacterOwner()->Controller) : NULL;
 	return WeaponConfig.bInfiniteAmmo || (MyPC && MyPC->HasInfiniteAmmo());
 }
 
 bool ARangedWeapon::HasInfiniteClip() const
 {
-	const AVertPlayerController* MyPC = (MyPawn != NULL) ? Cast<const AVertPlayerController>(MyPawn->Controller) : NULL;
+	const AVertPlayerController* MyPC = (mCharacterInteractionOwner.IsValid()) ? Cast<const AVertPlayerController>(mCharacterInteractionOwner->GetCharacterOwner()->Controller) : NULL;
 	return WeaponConfig.bInfiniteClip || (MyPC && MyPC->HasInfiniteClip());
 }
 
