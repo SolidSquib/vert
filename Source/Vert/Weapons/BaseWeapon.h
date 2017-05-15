@@ -29,6 +29,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon|Damage")
 	TSubclassOf<UDamageType> DamageType;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Collision")
+	class USphereComponent* InteractiveCollisionComponent;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon|Sprite")
 	class UPaperFlipbook* DefaultAnimation;
 
@@ -41,9 +44,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Sprite", meta = (AllowPrivateAccess = "true"))
 	class UPaperFlipbookComponent* Sprite;
 
-	///** force feedback effect to play when the weapon is fired */
-	//UPROPERTY(EditDefaultsOnly, Category = Effects)
-	//UForceFeedbackEffect *FireForceFeedback;
+	/* #MI_TODO: Replace sprites with meshes!
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Mesh", meta = (AllowPrivateAccess = "true"))
+	class USkeletalMeshComponent* Mesh; */
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Usage")
 	EWeaponFiremode FiringMode = EWeaponFiremode::SemiAutomatic;

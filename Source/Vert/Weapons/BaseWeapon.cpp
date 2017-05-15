@@ -28,11 +28,15 @@ ABaseWeapon::ABaseWeapon(const FObjectInitializer& ObjectInitializer) : Super(Ob
 		Sprite->SetMassOverrideInKg(NAME_None, 100.f);
 		Sprite->SetSimulatePhysics(true);
 		Sprite->SetIsReplicated(true);
-
-		
+				
 		Sprite->OnComponentHit.AddDynamic(this, &ABaseWeapon::OnHit);
 	}
 	SetRootComponent(Sprite);
+
+	InteractiveCollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("InteractiveCollisionComponent"));
+	InteractiveCollisionComponent->SetCollisionObjectType(ECC_Interactive);
+	InteractiveCollisionComponent->SetCollisionProfileName(TEXT("InteractiveItem"));
+	InteractiveCollisionComponent->SetupAttachment(RootComponent);
 
 	AttachPoint = CreateDefaultSubobject<USceneComponent>(TEXT("AttachPoint"));
 	AttachPoint->SetupAttachment(RootComponent);
@@ -99,6 +103,7 @@ void ABaseWeapon::NotifyStopAttacking()
 	{
 		GetWorld()->GetTimerManager().ClearTimer(mAttackTimer);
 
+		Sprite->SetFlipbook(DefaultAnimation);
 		Sprite->SetCollisionProfileName(scCollisionProfileName);
 	}
 }

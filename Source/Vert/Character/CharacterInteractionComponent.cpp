@@ -149,6 +149,8 @@ void UCharacterInteractionComponent::StopAttacking()
 
 IInteractive* UCharacterInteractionComponent::TraceForSingleInteractive()
 {
+	UE_LOG(LogTemp, Warning, TEXT("INTERACT"));
+
 	if (UWorld* world = GetWorld())
 	{
 		FCollisionQueryParams params;
@@ -163,8 +165,11 @@ IInteractive* UCharacterInteractionComponent::TraceForSingleInteractive()
 		if (mCharacterOwner.IsValid() && controller)
 		{
 			FVector start = mCharacterOwner->GetActorLocation() + controller->GetControlRotation().RotateVector(LocalSphereTraceOffset);
+			FVector end = start;
+			end.Z += mCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+			start.Z -= mCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
-			bool hasHit = UVertUtilities::SphereTraceSingleByObjectTypes(start, start, TraceRange, hit, params, objectParams);
+			bool hasHit = UVertUtilities::SphereTraceSingleByObjectTypes(start, end, TraceRange, hit, params, objectParams);
 
 			if (hit.Actor.IsValid())
 			{
@@ -191,7 +196,7 @@ TArray<IInteractive*> UCharacterInteractionComponent::TraceForMultipleInteractiv
 		FCollisionQueryParams params;
 		params.AddIgnoredActor(GetOwner());
 		params.bFindInitialOverlaps = false;
-
+		
 		FCollisionObjectQueryParams objectParams;
 		objectParams.AddObjectTypesToQuery(ECC_Interactive);
 

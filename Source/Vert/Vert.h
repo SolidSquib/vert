@@ -44,3 +44,4 @@
 #define ECC_HeldWeapon ECC_GameTraceChannel6
 #define ECC_WeaponTrace ECC_GameTraceChannel7
 #define ECC_WeaponProjectile ECC_GameTraceChannel8
+#define ECC_InteractionTrace ECC_GameTraceChannel9
