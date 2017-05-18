@@ -15,9 +15,13 @@ class VERT_API AVertPlayerState : public APlayerState
 
 public:
 	UPROPERTY(Transient, Replicated)
-	int32 DamageTaken;
+	int32 ActualDamageTaken = 0;
+
+	UPROPERTY(Transient, Replicated)
+	int32 ShownDamageTaken = 0;
 
 public:
-	void SetDamageTaken(int32 newDamage);
-	int32 GetDamageTaken() const;
+	void SetDamageTaken(int32 newDamage, int32 newShownDamage);
+	int32 GetActualDamageTaken() const;
+	int32 GetShownDamageTaken() const;
 };

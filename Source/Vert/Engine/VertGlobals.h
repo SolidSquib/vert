@@ -67,22 +67,22 @@ struct FDecalData
 {
 	GENERATED_USTRUCT_BODY()
 
-		/** material */
-		UPROPERTY(EditDefaultsOnly, Category = Decal)
-		UMaterial* DecalMaterial;
+	/** material */
+	UPROPERTY(EditDefaultsOnly, Category = Decal)
+	UMaterial* DecalMaterial;
 
 	/** quad size (width & height) */
 	UPROPERTY(EditDefaultsOnly, Category = Decal)
-		float DecalSize;
+	float DecalSize;
 
 	/** lifespan */
 	UPROPERTY(EditDefaultsOnly, Category = Decal)
-		float LifeSpan;
+	float LifeSpan;
 
 	/** defaults */
 	FDecalData()
-		: DecalSize(256.f)
-		, LifeSpan(10.f)
+		: DecalSize(256.f),
+		LifeSpan(10.f)
 	{
 	}
 };
@@ -93,47 +93,46 @@ struct FTakeHitInfo
 {
 	GENERATED_USTRUCT_BODY()
 
-		/** The amount of damage actually applied */
-		UPROPERTY()
-		float ActualDamage;
+	/** The amount of damage actually applied */
+	UPROPERTY()
+	float ActualDamage;
 
 	/** The damage type we were hit with. */
 	UPROPERTY()
-		UClass* DamageTypeClass;
+	UClass* DamageTypeClass;
 
 	/** Who hit us */
 	UPROPERTY()
-		TWeakObjectPtr<class AVertCharacter> PawnInstigator;
+	TWeakObjectPtr<class AVertCharacter> PawnInstigator;
 
 	/** Who actually caused the damage */
 	UPROPERTY()
-		TWeakObjectPtr<class AActor> DamageCauser;
+	TWeakObjectPtr<class AActor> DamageCauser;
 
 	/** Specifies which DamageEvent below describes the damage received. */
 	UPROPERTY()
-		int32 DamageEventClassID;
+	int32 DamageEventClassID;
 
 	/** Rather this was a kill */
 	UPROPERTY()
-		uint32 bKilled : 1;
+	uint32 bKilled : 1;
 
 private:
-
 	/** A rolling counter used to ensure the struct is dirty and will replicate. */
 	UPROPERTY()
-		uint8 EnsureReplicationByte;
+	uint8 EnsureReplicationByte;
 
 	/** Describes general damage. */
 	UPROPERTY()
-		FDamageEvent GeneralDamageEvent;
+	FDamageEvent GeneralDamageEvent;
 
 	/** Describes point damage, if that is what was received. */
 	UPROPERTY()
-		FPointDamageEvent PointDamageEvent;
+	FPointDamageEvent PointDamageEvent;
 
 	/** Describes radial damage, if that is what was received. */
 	UPROPERTY()
-		FRadialDamageEvent RadialDamageEvent;
+	FRadialDamageEvent RadialDamageEvent;
 
 public:
 	FTakeHitInfo();

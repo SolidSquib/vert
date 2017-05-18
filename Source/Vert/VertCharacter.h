@@ -99,6 +99,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type endPlayReason) override;
 	virtual void Landed(const FHitResult& Hit) override;
+	virtual void ApplyDamageMomentum(float DamageTaken, FDamageEvent const& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser) override;
 
 	FORCEINLINE class UCameraComponent* GetSideViewCameraComponent() const { return SideViewCameraComponent; }
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -137,13 +138,19 @@ protected:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character|Health")
+	void OnNotifyDeath(const FTakeHitInfo& lastHit);
+
 	UFUNCTION(BlueprintCallable, Category = "Player Controller")
 	FORCEINLINE AVertPlayerController* GetPlayerController() const { if (AController* controller = GetController()) { if (AVertPlayerController* playerController = Cast<AVertPlayerController>(controller)) { return playerController; } } return nullptr; }
 
 private:
+	void SetRagdollPhysics();
+
 #if !UE_BUILD_SHIPPING
 	void PrintDebugInfo();
 #endif
+
 	FORCEINLINE void EndGamepadStandby() { mGamepadOnStandby = false; }
 
 protected:

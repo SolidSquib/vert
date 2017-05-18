@@ -31,7 +31,20 @@ bool AVertPlayerController::UsingGamepad() const
 bool AVertPlayerController::InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad)
 {
 	// #MI_TODO: input device type for UI
-	mControllerType = bGamepad ? EControllerType::Gamepad_Xbox : EControllerType::Keyboard_Mouse;
+	if (bGamepad)
+	{
+		bShowMouseCursor = false;
+		bEnableClickEvents = false;
+		bEnableMouseOverEvents = false;
+		mControllerType = EControllerType::Gamepad_Xbox;
+	}
+	else
+	{
+		bShowMouseCursor = true;
+		bEnableClickEvents = true;
+		bEnableMouseOverEvents = true;
+		mControllerType = EControllerType::Keyboard_Mouse;
+	}
 
 	return Super::InputKey(Key, EventType, AmountDepressed, bGamepad);
 }
@@ -92,14 +105,34 @@ ASpectatorPawn* AVertPlayerController::SpawnSpectatorPawn()
 	return pawn;
 }
 
-bool AVertPlayerController::HasInfiniteAmmo() const
+void AVertPlayerController::SetGodMode(bool enable)
 {
-	return false;
+	mGodMode = enable;
+}
+
+void AVertPlayerController::SetInfiniteWeaponUsage(bool enable)
+{
+	mInfiniteWeaponUsage = enable;
+}
+
+void AVertPlayerController::SetInfiniteClip(bool enable)
+{
+	mInfiniteClip = enable;
+}
+
+bool AVertPlayerController::HasInfiniteWeaponUsage() const
+{
+	return mInfiniteWeaponUsage;
 }
 
 bool AVertPlayerController::HasInfiniteClip() const
 {
-	return false;
+	return mInfiniteClip;
+}
+
+bool AVertPlayerController::HasGodMode() const 
+{
+	return mGodMode;
 }
 
 void AVertPlayerController::DisplayClientMessage(FString s)

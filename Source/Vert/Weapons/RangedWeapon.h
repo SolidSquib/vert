@@ -127,9 +127,6 @@ class ARangedWeapon : public ABaseWeapon
 	UPROPERTY(EditDefaultsOnly, Category = Effects)
 	uint32 LoopedMuzzleFX : 1;
 
-	UPROPERTY(EditDefaultsOnly, Category = Sound)
-	uint32 LoopedFireSound : 1;
-
 	uint32 mLoopedFireAnim : 1;
 
 	uint32 mPlayingFireAnim : 1;

@@ -436,6 +436,7 @@ FVector ARangedWeapon::GetAdjustedAim() const
 {
 	if (AController* controller = Instigator->GetController())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Ding Dong"));
 		return controller->GetControlRotation().Vector();
 	}
 
@@ -562,7 +563,7 @@ void ARangedWeapon::SimulateWeaponFire()
 		mPlayingFireAnim = true;
 	}
 
-	if (LoopedFireSound)
+	if (FiringMode != EWeaponFiremode::SemiAutomatic)
 	{
 		if (FireAC == NULL)
 		{
@@ -669,7 +670,7 @@ int32 ARangedWeapon::GetMaxAmmo() const
 bool ARangedWeapon::HasInfiniteAmmo() const
 {
 	const AVertPlayerController* MyPC = (mCharacterInteractionOwner.IsValid()) ? Cast<const AVertPlayerController>(mCharacterInteractionOwner->GetCharacterOwner()->Controller) : NULL;
-	return WeaponConfig.bInfiniteAmmo || (MyPC && MyPC->HasInfiniteAmmo());
+	return WeaponConfig.bInfiniteAmmo || (MyPC && MyPC->HasInfiniteWeaponUsage());
 }
 
 bool ARangedWeapon::HasInfiniteClip() const

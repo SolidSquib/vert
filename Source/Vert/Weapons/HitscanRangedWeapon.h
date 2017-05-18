@@ -49,10 +49,6 @@ struct FInstantWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	float WeaponRange;
 
-	/** damage amount */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-	int32 HitDamage;
-
 	/** type of damage */
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	TSubclassOf<UDamageType> DamageType;
@@ -73,7 +69,6 @@ struct FInstantWeaponData
 		FiringSpreadIncrement = 1.0f;
 		FiringSpreadMax = 10.0f;
 		WeaponRange = 10000.0f;
-		HitDamage = 10;
 		DamageType = UDamageType::StaticClass();
 		ClientSideHitLeeway = 200.0f;
 		AllowedViewDotHitDir = 0.8f;

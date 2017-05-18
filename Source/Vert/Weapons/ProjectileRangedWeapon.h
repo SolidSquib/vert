@@ -18,8 +18,11 @@ struct FProjectileWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
 	float ProjectileLife;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
+	bool IsExplosive;
+
 	/** radius of damage */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat, meta = (EditCondition = "IsExplosive"))
 	float ExplosionRadius;
 
 	/** type of damage */
@@ -31,6 +34,7 @@ struct FProjectileWeaponData
 	{
 		ProjectileClass = NULL;
 		ProjectileLife = 10.0f;
+		IsExplosive = true;
 		ExplosionRadius = 300.0f;
 		DamageType = UDamageType::StaticClass();
 	}

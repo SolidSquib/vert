@@ -90,14 +90,11 @@ void AVertCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (AController* controller = GetController())
+	if (HealthComponent)
 	{
-		if (APlayerController* playerController = Cast<APlayerController>(controller))
-		{
-			playerController->bShowMouseCursor = true;
-			playerController->bEnableClickEvents = true;
-			playerController->bEnableMouseOverEvents = true;
-		}
+		FScriptDelegate onDeath;
+		onDeath.BindUFunction(this, TEXT("OnNotifyDeath"));
+		HealthComponent->OnDeath.Add(onDeath);
 	}
 }
 
@@ -131,9 +128,25 @@ void AVertCharacter::Landed(const FHitResult& Hit)
 	Super::Landed(Hit);
 }
 
-float AVertCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser)
+float AVertCharacter::TakeDamage(float Damage, const FDamageEvent& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser)
 {
-	return HealthComponent->DealDamage(Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser), DamageEvent.DamageTypeClass);
+	if (AVertPlayerController* pc = Cast<AVertPlayerController>(Controller))
+	{
+		if (pc->HasGodMode())
+		{
+			return 0.f;
+		}
+	}
+
+	APawn* pawnInstigator = EventInstigator ? EventInstigator->GetPawn() : nullptr;
+	return HealthComponent->DealDamage(Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser), DamageEvent, pawnInstigator, DamageCauser);
+}
+
+void AVertCharacter::ApplyDamageMomentum(float DamageTaken, FDamageEvent const& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser)
+{
+	Super::ApplyDamageMomentum(DamageTaken, DamageEvent, PawnInstigator, DamageCauser);
+
+	UE_LOG(LogTemp, Log, TEXT("Applyinmg damage momentum"));
 }
 
 void AVertCharacter::StopAttacking()
@@ -298,6 +311,50 @@ void AVertCharacter::UpdateCharacter()
 		{
 			Controller->SetControlRotation(FRotator(0.0f, 0.0f, 0.0f));
 		}
+	}
+}
+
+void AVertCharacter::OnNotifyDeath_Implementation(const FTakeHitInfo& lastHit)
+{
+
+}
+
+void AVertCharacter::SetRagdollPhysics()
+{
+	bool bInRagdoll = false;
+
+	if (IsPendingKill())
+	{
+		bInRagdoll = false;
+	}
+	else if (!GetMesh() || !GetMesh()->GetPhysicsAsset())
+	{
+		bInRagdoll = false;
+	}
+	else
+	{
+		// initialize physics/etc
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->WakeAllRigidBodies();
+		GetMesh()->bBlendPhysics = true;
+
+		bInRagdoll = true;
+	}
+
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->SetComponentTickEnabled(false);
+
+	if (!bInRagdoll)
+	{
+		// hide and set short lifespan
+		TurnOff();
+		SetActorHiddenInGame(true);
+		SetLifeSpan(1.0f);
+	}
+	else
+	{
+		SetLifeSpan(10.0f);
 	}
 }
 

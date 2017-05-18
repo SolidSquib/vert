@@ -28,6 +28,8 @@ void AHitscanRangedWeapon::FireWeapon()
 	const FVector ShootDir2D = (FVector(ShootDir.X, 0.f, ShootDir.Z) * 100).GetSafeNormal();
 	const FVector EndTrace = StartTrace + ShootDir2D * InstantConfig.WeaponRange;
 
+	DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Emerald, true);
+
 	const FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
 	ProcessInstantHit(Impact, StartTrace, ShootDir2D, RandomSeed, CurrentSpread);
 
@@ -42,6 +44,8 @@ bool AHitscanRangedWeapon::ServerNotifyHit_Validate(const FHitResult& Impact, FV
 void AHitscanRangedWeapon::ServerNotifyHit_Implementation(const FHitResult& Impact, FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread)
 {
 	const float WeaponAngleDot = FMath::Abs(FMath::Sin(ReticleSpread * PI / 180.f));
+
+	UE_LOG(LogTemp, Log, TEXT("Oh baby, a triple"));
 
 	// if we have an instigator, calculate dot between the view and the shot
 	if (Instigator && (Impact.GetActor() || Impact.bBlockingHit))
@@ -119,6 +123,8 @@ void AHitscanRangedWeapon::ServerNotifyMiss_Implementation(FVector_NetQuantizeNo
 {
 	const FVector Origin = GetMuzzleLocation();
 
+	UE_LOG(LogTemp, Log, TEXT("Shit baby, a miss."));
+
 	// play FX on remote clients
 	HitNotify.Origin = Origin;
 	HitNotify.RandomSeed = RandomSeed;
@@ -144,6 +150,8 @@ void AHitscanRangedWeapon::ProcessInstantHit(const FHitResult& Impact, const FVe
 		}
 		else if (Impact.GetActor() == NULL)
 		{
+			UE_LOG(LogRangedWeapon, Log, TEXT("[%s] hit [%s] with [%s]"), *Instigator->GetName(), *Impact.GetActor()->GetName(), *GetName());
+
 			if (Impact.bBlockingHit)
 			{
 				// notify the server of the hit
@@ -210,7 +218,7 @@ void AHitscanRangedWeapon::DealDamage(const FHitResult& Impact, const FVector& S
 	PointDmg.DamageTypeClass = InstantConfig.DamageType;
 	PointDmg.HitInfo = Impact;
 	PointDmg.ShotDirection = ShootDir;
-	PointDmg.Damage = InstantConfig.HitDamage;
+	PointDmg.Damage = BaseDamage;
 
 	Impact.GetActor()->TakeDamage(PointDmg.Damage, PointDmg, mCharacterInteractionOwner->GetCharacterOwner()->Controller, this);
 }
@@ -302,7 +310,6 @@ void AHitscanRangedWeapon::SpawnTrailEffect(const FVector& EndPoint)
 		UParticleSystemComponent* TrailPSC = UGameplayStatics::SpawnEmitterAtLocation(this, TrailFX, Origin);
 		if (TrailPSC)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Spawning trail effect"));
 			TrailPSC->SetVectorParameter(TrailTargetParam, EndPoint);
 		}
 	}

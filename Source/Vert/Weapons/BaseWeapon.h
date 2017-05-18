@@ -18,14 +18,16 @@ UCLASS(BlueprintType, Abstract)
 class VERT_API ABaseWeapon : public AActor, public IInteractive
 {
 	GENERATED_UCLASS_BODY()
-	
-protected:
+
+	friend class AWeaponProjectile;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Damage")
 	float BaseDamage = 10.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Damage")
 	float KnockbackMagnitude = 1000.f;
 
+protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon|Damage")
 	TSubclassOf<UDamageType> DamageType;
 
@@ -100,7 +102,7 @@ protected:
 	UFUNCTION(BlueprintNativeEvent)
 	void AttackAnimationEnd();
 	//virtual void AttackAnimationEnd_Implementation();
-
+	
 private:
 	void DisableInteractionDetection();
 	void EnableInteractionDetection();

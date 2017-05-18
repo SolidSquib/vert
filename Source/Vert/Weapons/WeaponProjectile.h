@@ -12,15 +12,17 @@ class AWeaponProjectile : public AActor
 {
 	GENERATED_UCLASS_BODY()
 
-	/** initial setup */
-	virtual void PostInitializeComponents() override;
+protected:
+	/** did it explode? */
+	UPROPERTY(Transient, ReplicatedUsing = OnRep_Exploded)
+	bool bExploded;
 
-	/** setup velocity */
-	void InitVelocity(FVector& ShootDirection);
+	/** effects for explosion */
+	UPROPERTY(EditDefaultsOnly, Category = Effects)
+	TSubclassOf<class AVertExplosionEffect> ExplosionTemplate;
 
-	/** handle hit */
-	UFUNCTION()
-	void OnImpact(const FHitResult& HitResult);
+	UPROPERTY(EditDefaultsOnly, Category = Damage)
+	float BaseDamage = 10.f;
 
 private:
 	/** movement component */
@@ -34,30 +36,19 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
 	UParticleSystemComponent* ParticleComp;
 
+public:
+	/** setup velocity */
+	void InitVelocity(FVector& ShootDirection);
+
+	virtual void PostInitializeComponents() override;
+	
+	UFUNCTION(BlueprintNativeEvent) /** handle hit */
+	void OnImpact(const FHitResult& HitResult);
+
 protected:
-	/** effects for explosion */
-	UPROPERTY(EditDefaultsOnly, Category = Effects)
-	TSubclassOf<class AVertExplosionEffect> ExplosionTemplate;
-
-	UPROPERTY(EditDefaultsOnly, Category = Damage)
-	float BaseDamage = 10.f;
-
-	/** controller that fired me (cache for damage calculations) */
-	TWeakObjectPtr<AController> MyController;
-
-	/** projectile data */
-	struct FProjectileWeaponData WeaponConfig;
-
-	/** did it explode? */
-	UPROPERTY(Transient, ReplicatedUsing = OnRep_Exploded)
-	bool bExploded;
-
-	/** [client] explosion happened */
-	UFUNCTION()
-	void OnRep_Exploded();
-
 	/** trigger explosion */
 	void Explode(const FHitResult& Impact);
+	void ApplyPointDamage(const FHitResult& impact);
 
 	/** shutdown projectile and prepare for destruction */
 	void DisableAndDestroy();
@@ -65,11 +56,18 @@ protected:
 	/** update velocity on client */
 	virtual void PostNetReceiveVelocity(const FVector& NewVelocity) override;
 
-protected:
-	/** Returns MovementComp subobject **/
 	FORCEINLINE UProjectileMovementComponent* GetMovementComp() const { return MovementComp; }
-	/** Returns CollisionComp subobject **/
 	FORCEINLINE USphereComponent* GetCollisionComp() const { return CollisionComp; }
-	/** Returns ParticleComp subobject **/
 	FORCEINLINE UParticleSystemComponent* GetParticleComp() const { return ParticleComp; }
+
+	/** [client] explosion happened */
+	UFUNCTION()
+	void OnRep_Exploded();
+
+protected:
+	/** controller that fired me (cache for damage calculations) */
+	TWeakObjectPtr<AController> mController;
+
+	/** projectile data */
+	struct FProjectileWeaponData mWeaponConfig;
 };

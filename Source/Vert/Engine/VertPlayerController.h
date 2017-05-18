@@ -57,14 +57,26 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerManagement")
 	virtual void DropOut();
 
+	UFUNCTION(exec)
+	void SetGodMode(bool enable);
+
+	UFUNCTION(exec)
+	void SetInfiniteWeaponUsage(bool enable);
+
+	UFUNCTION(exec)
+	void SetInfiniteClip(bool enable);
+
 	UFUNCTION(BlueprintCallable, Category = "InputMethod")
 	bool UsingGamepad() const;
 
 	UFUNCTION(BlueprintCallable)
-	bool HasInfiniteAmmo() const;
+	bool HasInfiniteWeaponUsage() const;
 	
 	UFUNCTION(BlueprintCallable)
 	bool HasInfiniteClip() const;
+
+	UFUNCTION(BlueprintCallable)
+	bool HasGodMode() const;
 
 protected:
 	virtual void SetupInputComponent() override;
@@ -72,6 +84,9 @@ protected:
 
 private:
 	bool mTestFOV = false;
+	bool mGodMode = false;
+	bool mInfiniteClip = false;
+	bool mInfiniteWeaponUsage = false;
 #if PLATFORM_WINDOWS || PLATFORM_XBOXONE
 	EControllerType mControllerType = EControllerType::Gamepad_Xbox;
 #elif PLATFORM_PS4

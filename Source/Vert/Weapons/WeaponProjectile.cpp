@@ -48,11 +48,11 @@ void AWeaponProjectile::PostInitializeComponents()
 	AProjectileRangedWeapon* OwnerWeapon = Cast<AProjectileRangedWeapon>(GetOwner());
 	if (OwnerWeapon)
 	{
-		OwnerWeapon->ApplyWeaponConfig(WeaponConfig);
+		OwnerWeapon->ApplyWeaponConfig(mWeaponConfig);
 	}
 
-	SetLifeSpan(WeaponConfig.ProjectileLife);
-	MyController = GetInstigatorController();
+	SetLifeSpan(mWeaponConfig.ProjectileLife);
+	mController = GetInstigatorController();
 }
 
 void AWeaponProjectile::InitVelocity(FVector& ShootDirection)
@@ -63,13 +63,17 @@ void AWeaponProjectile::InitVelocity(FVector& ShootDirection)
 	}
 }
 
-void AWeaponProjectile::OnImpact(const FHitResult& HitResult)
+void AWeaponProjectile::OnImpact_Implementation(const FHitResult& HitResult)
 {
 	if (Role == ROLE_Authority && !bExploded)
 	{
-		Explode(HitResult);
+		if (mWeaponConfig.IsExplosive)
+			Explode(HitResult);
+		else
+			ApplyPointDamage(HitResult);
+
 		DisableAndDestroy();
-	}
+	}	
 }
 
 void AWeaponProjectile::Explode(const FHitResult& Impact)
@@ -82,9 +86,9 @@ void AWeaponProjectile::Explode(const FHitResult& Impact)
 	// effects and damage origin shouldn't be placed inside mesh at impact point
 	const FVector NudgedImpactLocation = Impact.ImpactPoint + Impact.ImpactNormal * 10.0f;
 
-	if (BaseDamage > 0 && WeaponConfig.ExplosionRadius > 0 && WeaponConfig.DamageType)
+	if (BaseDamage > 0 && mWeaponConfig.DamageType && mWeaponConfig.ExplosionRadius > 0)
 	{
-		UGameplayStatics::ApplyRadialDamage(this, BaseDamage, NudgedImpactLocation, WeaponConfig.ExplosionRadius, WeaponConfig.DamageType, TArray<AActor*>(), this, MyController.Get());
+		UGameplayStatics::ApplyRadialDamage(this, BaseDamage, NudgedImpactLocation, mWeaponConfig.ExplosionRadius, mWeaponConfig.DamageType, TArray<AActor*>(), this, mController.Get());
 	}
 
 	if (ExplosionTemplate)
@@ -99,6 +103,20 @@ void AWeaponProjectile::Explode(const FHitResult& Impact)
 	}
 
 	bExploded = true;
+}
+
+void AWeaponProjectile::ApplyPointDamage(const FHitResult& impact)
+{
+	ABaseWeapon* firedFrom = Cast<ABaseWeapon>(GetOwner());
+
+	FPointDamageEvent PointDmg;
+	PointDmg.DamageTypeClass = mWeaponConfig.DamageType;
+	PointDmg.HitInfo = impact;
+	PointDmg.ShotDirection = MovementComp->Velocity.GetSafeNormal();
+	PointDmg.Damage = firedFrom ? firedFrom->BaseDamage : 0;
+
+	ACharacter* instigatingCharacter = Cast<ACharacter>(Instigator);
+	impact.GetActor()->TakeDamage(PointDmg.Damage, PointDmg, instigatingCharacter ? instigatingCharacter->Controller : nullptr, this);
 }
 
 void AWeaponProjectile::DisableAndDestroy()

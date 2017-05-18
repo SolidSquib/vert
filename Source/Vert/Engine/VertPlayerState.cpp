@@ -10,19 +10,26 @@ static FColor sTeamColours[] = {
 	FColor::Yellow
 };
 
-void AVertPlayerState::SetDamageTaken(int32 newDamage)
+void AVertPlayerState::SetDamageTaken(int32 newDamage, int32 newShownDamage)
 {
-	DamageTaken = newDamage;
+	ActualDamageTaken = newDamage;
+	ShownDamageTaken = newShownDamage;
 }
 
-int32 AVertPlayerState::GetDamageTaken() const 
+int32 AVertPlayerState::GetActualDamageTaken() const 
 {
-	return DamageTaken;
+	return ActualDamageTaken;
+}
+
+int32 AVertPlayerState::GetShownDamageTaken() const 
+{
+	return ShownDamageTaken;
 }
 
 void AVertPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AVertPlayerState, DamageTaken);
+	DOREPLIFETIME(AVertPlayerState, ActualDamageTaken);
+	DOREPLIFETIME(AVertPlayerState, ShownDamageTaken);
 }

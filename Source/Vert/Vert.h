@@ -18,6 +18,7 @@
 #include "Engine/VertPlayerController.h"
 #include "Engine/VertGameState.h"
 #include "Engine/VertPlayerState.h"
+#include "Engine/VertGlobals.h"
 
 // Components
 #include "CableComponent.h"
@@ -31,6 +32,9 @@
 #include "UserInterface/VertHUD.h"
 #include "Weapons/BaseWeapon.h"
 #include "Weapons/WeaponProjectile.h"
+
+// UObjects
+#include "Weapons/VertDamageType.h"
 
 // Interfaces
 #include "Interactives/Interactive.h"

@@ -85,7 +85,7 @@ void AVertHUD::DrawHealth()
 
 			FString text;
 			if (AVertPlayerState* vertPlayerState = Cast<AVertPlayerState>(gameState->PlayerArray[i]))
-				text = FString::Printf(TEXT("%i%s"), vertPlayerState->GetDamageTaken(), "%");
+				text = FString::Printf(TEXT("%i%s"), vertPlayerState->GetShownDamageTaken(), "%");
 			else
 				text = "ERROR";
 
