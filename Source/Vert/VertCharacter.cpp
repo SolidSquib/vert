@@ -145,8 +145,6 @@ float AVertCharacter::TakeDamage(float Damage, const FDamageEvent& DamageEvent, 
 void AVertCharacter::ApplyDamageMomentum(float DamageTaken, FDamageEvent const& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser)
 {
 	Super::ApplyDamageMomentum(DamageTaken, DamageEvent, PawnInstigator, DamageCauser);
-
-	UE_LOG(LogTemp, Log, TEXT("Applyinmg damage momentum"));
 }
 
 void AVertCharacter::StopAttacking()
