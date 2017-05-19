@@ -72,28 +72,26 @@ void ABaseWeapon::EndPlay(const EEndPlayReason::Type endPlayReason)
 
 void ABaseWeapon::NotifyAttackCommand()
 {
-	switch (FiringMode)
+	if (!mIsAttacking)
 	{
-	case EWeaponFiremode::Automatic:
-		Sprite->SetLooping(true);
-		GetWorld()->GetTimerManager().SetTimer(mAttackTimer, this, &ABaseWeapon::ExecuteAttack, RateOfFire, true, 0.f);
-		break;
-
-	default:
-		if (!mIsAttacking)
+		switch (FiringMode)
 		{
+		case EWeaponFiremode::Automatic:
+			Sprite->SetLooping(true);
+			GetWorldTimerManager().SetTimer(mAttackTimer, this, &ABaseWeapon::ExecuteAttack, RateOfFire, true, 0.f);
+			mIsAttacking = true;
+			break;
+
+		default:
 			mIsAttacking = true;
 			Sprite->SetLooping(false);
-			
-			GetWorld()->GetTimerManager().SetTimer(mDelayTimer, 
-				[this]() -> void 
-				{ 
-					mIsAttacking = false;
-				}, 
-				RateOfFire, false);
+
+			GetWorldTimerManager().SetTimer(mDelayTimer, [this]() -> void {
+				mIsAttacking = false;
+			}, RateOfFire, false);
 			ExecuteAttack();
+			break;
 		}
-		break;
 	}
 }
 
@@ -101,8 +99,16 @@ void ABaseWeapon::NotifyStopAttacking()
 {
 	if (FiringMode == EWeaponFiremode::Automatic)
 	{
-		GetWorld()->GetTimerManager().ClearTimer(mAttackTimer);
-
+		FTimerManager& timerMan = GetWorldTimerManager();
+		float timeRemaining = timerMan.GetTimerRemaining(mAttackTimer);
+		if (timeRemaining > 0)
+		{
+			timerMan.ClearTimer(mAttackTimer);
+			timerMan.SetTimer(mDelayTimer, [this]() -> void {
+				mIsAttacking = false;
+			}, timeRemaining, false);
+		} else { mIsAttacking = false; }
+		
 		Sprite->SetFlipbook(DefaultAnimation);
 		Sprite->SetCollisionProfileName(scCollisionProfileName);
 	}
