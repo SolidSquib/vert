@@ -33,7 +33,7 @@ void AHitscanRangedWeapon::FireWeapon()
 	const FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
 	ProcessInstantHit(Impact, StartTrace, ShootDir2D, RandomSeed, CurrentSpread);
 
-	mCurrentFiringSpread = FMath::Min(InstantConfig.FiringSpreadMax, mCurrentFiringSpread + InstantConfig.FiringSpreadIncrement);
+	mCurrentFiringSpread = FMath::Min(WeaponConfig.FiringSpreadMax, mCurrentFiringSpread + WeaponConfig.FiringSpreadIncrement);
 }
 
 bool AHitscanRangedWeapon::ServerNotifyHit_Validate(const FHitResult& Impact, FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread)
@@ -229,22 +229,6 @@ void AHitscanRangedWeapon::OnBurstFinished()
 
 	mCurrentFiringSpread = 0.0f;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-// Weapon usage helpers
-
-float AHitscanRangedWeapon::GetCurrentSpread() const
-{
-	float FinalSpread = InstantConfig.WeaponSpread + mCurrentFiringSpread;
-	if (mCharacterInteractionOwner.IsValid() && mCharacterInteractionOwner->GetCharacterOwner()->IsMoving())
-	{
-		FinalSpread *= InstantConfig.MovingSpreadMod;
-	}
-
-	return FinalSpread;
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 // Replication & effects

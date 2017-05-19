@@ -29,22 +29,6 @@ struct FInstantWeaponData
 {
 	GENERATED_USTRUCT_BODY()
 
-	/** base weapon spread (degrees) */
-	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
-	float WeaponSpread;
-
-	/** targeting spread modifier */
-	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
-	float MovingSpreadMod;
-
-	/** continuous firing: spread increment */
-	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
-	float FiringSpreadIncrement;
-
-	/** continuous firing: max increment */
-	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
-	float FiringSpreadMax;
-
 	/** weapon range */
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	float WeaponRange;
@@ -64,10 +48,6 @@ struct FInstantWeaponData
 	/** defaults */
 	FInstantWeaponData()
 	{
-		WeaponSpread = 5.0f;
-		MovingSpreadMod = 0.25f;
-		FiringSpreadIncrement = 1.0f;
-		FiringSpreadMax = 10.0f;
 		WeaponRange = 10000.0f;
 		DamageType = UDamageType::StaticClass();
 		ClientSideHitLeeway = 200.0f;
@@ -97,9 +77,6 @@ protected:
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_HitNotify) /** instant hit notify for replication */
 	FInstantHitInfo HitNotify;
 
-public:
-	float GetCurrentSpread() const; /** get current spread */
-
 protected:	
 	void SimulateInstantHit(const FVector& Origin, int32 RandomSeed, float ReticleSpread); /** called in network play to do the cosmetic fx  */	
 	void SpawnImpactEffects(const FHitResult& Impact); /** spawn effects for impact */	
@@ -123,8 +100,5 @@ protected:
 	void ServerNotifyMiss(FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread);
 
 	UFUNCTION()
-	void OnRep_HitNotify();	
-
-protected:
-	float mCurrentFiringSpread; /** current spread from continuous firing */
+	void OnRep_HitNotify();
 };

@@ -13,10 +13,17 @@ AProjectileRangedWeapon::AProjectileRangedWeapon(const FObjectInitializer& Objec
 
 void AProjectileRangedWeapon::FireWeapon()
 {
-	FVector ShootDir = GetAdjustedAim();
-	FVector Origin = GetMuzzleLocation();
+	const int32 RandomSeed = FMath::Rand();
+	FRandomStream WeaponRandomStream(RandomSeed);
+	const float CurrentSpread = GetCurrentSpread();
+	const float ConeHalfAngle = FMath::DegreesToRadians(CurrentSpread * 0.5f);
 
-	ServerFireProjectile(Origin, ShootDir);
+	FVector AimDir = GetAdjustedAim();
+	FVector Origin = GetMuzzleLocation();
+	const FVector ShootDir = WeaponRandomStream.VRandCone(AimDir, ConeHalfAngle, ConeHalfAngle);
+	const FVector ShootDir2D = (FVector(ShootDir.X, 0.f, ShootDir.Z) * 100).GetSafeNormal();
+
+	ServerFireProjectile(Origin, ShootDir2D);
 }
 
 bool AProjectileRangedWeapon::ServerFireProjectile_Validate(FVector Origin, FVector_NetQuantizeNormal ShootDir)

@@ -53,6 +53,22 @@ struct FWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	float NoAnimReloadDuration;
 
+	/** base weapon spread (degrees) */
+	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
+	float WeaponSpread;
+
+	/** targeting spread modifier */
+	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
+	float MovingSpreadMod;
+
+	/** continuous firing: spread increment */
+	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
+	float FiringSpreadIncrement;
+
+	/** continuous firing: max increment */
+	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
+	float FiringSpreadMax;
+
 	/** defaults */
 	FWeaponData()
 	{
@@ -63,6 +79,10 @@ struct FWeaponData
 		InitialClips = 4;
 		TimeBetweenShots = 0.2f;
 		NoAnimReloadDuration = 1.0f;
+		WeaponSpread = 5.0f;
+		MovingSpreadMod = 0.25f;
+		FiringSpreadIncrement = 1.0f;
+		FiringSpreadMax = 10.0f;
 	}
 };
 
@@ -148,6 +168,9 @@ class ARangedWeapon : public ABaseWeapon
 	
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_BurstCounter) /** burst counter, used for replicating fire events to remote clients */
 	int32 BurstCounter;
+
+public:
+	float GetCurrentSpread() const; /** get current spread */
 
 protected:
 	virtual EAmmoType GetAmmoType() const
@@ -236,7 +259,8 @@ protected:
 	EWeaponState::Type CurrentState; /** current weapon state */	
 	float LastFireTime; /** time of last successful weapon fire */	
 	float EquipStartedTime; /** last time when this weapon was switched to */	
-	float EquipDuration; /** how much time weapon needs to be equipped */	
+	float EquipDuration; /** how much time weapon needs to be equipped */
+	float mCurrentFiringSpread; /** current spread from continuous firing */
 	FTimerHandle TimerHandle_OnEquipFinished; /** Handle for efficient management of OnEquipFinished timer */	
 	FTimerHandle TimerHandle_StopReload; /** Handle for efficient management of StopReload timer */	
 	FTimerHandle TimerHandle_ReloadWeapon; /** Handle for efficient management of ReloadWeapon timer */	

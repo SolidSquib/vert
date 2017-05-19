@@ -193,6 +193,19 @@ bool ARangedWeapon::CanReload() const
 	return ((bGotAmmo == true) && (bStateOKToReload == true));
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Weapon usage helpers
+
+float ARangedWeapon::GetCurrentSpread() const
+{
+	float FinalSpread = WeaponConfig.WeaponSpread + mCurrentFiringSpread;
+	if (mCharacterInteractionOwner.IsValid() && mCharacterInteractionOwner->GetCharacterOwner()->IsMoving())
+	{
+		FinalSpread *= WeaponConfig.MovingSpreadMod;
+	}
+
+	return FinalSpread;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Weapon usage
