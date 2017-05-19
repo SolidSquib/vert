@@ -30,10 +30,12 @@ void UHealthComponent::EndPlay(EEndPlayReason::Type endPlayReason)
 {
 	Super::EndPlay(endPlayReason);
 
-	if (endPlayReason == EEndPlayReason::Destroyed)
-	{
-		GetWorld()->GetTimerManager().ClearTimer(mUpdateShownDamageTakenTimer);
-	}
+	// #Timer manager plays funny in components? hmm...
+// 	FTimerManager& timerMan = GetWorld()->GetTimerManager();
+// 	if (timerMan.IsTimerActive(mUpdateShownDamageTakenTimer))
+// 	{
+// 		timerMan.ClearTimer(mUpdateShownDamageTakenTimer);
+// 	}
 }
 
 int32 UHealthComponent::DealDamage(float DamageTaken, const FDamageEvent& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser)
