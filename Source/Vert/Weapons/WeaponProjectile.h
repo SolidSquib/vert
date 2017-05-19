@@ -29,6 +29,9 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
 	UProjectileMovementComponent* MovementComp;
 
+	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
+	UStaticMeshComponent* MeshComponent;
+
 	/** collisions */
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
 	USphereComponent* CollisionComp;
