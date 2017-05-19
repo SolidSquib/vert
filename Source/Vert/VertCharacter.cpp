@@ -21,7 +21,7 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 {
 	// Use only Yaw from the controller and ignore the rest of the rotation.
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = true;
+	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
 	// Set the size of our collision capsule.
@@ -40,7 +40,7 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 
 	// Create an orthographic camera (no perspective) and attach it to the boom
 	SideViewCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("SideViewCamera"));
-	SideViewCameraComponent->ProjectionMode = ECameraProjectionMode::Orthographic;
+	SideViewCameraComponent->ProjectionMode = ECameraProjectionMode::Perspective;
 	SideViewCameraComponent->OrthoWidth = 2048.0f;
 	SideViewCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 
@@ -68,10 +68,7 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 	GetCharacterMovement()->bUseFlatBaseForFloorChecks = true;
 
 	// Enable replication on the Sprite component so animations show up when networked
-	GetSprite()->bGenerateOverlapEvents = true;
-	GetSprite()->CanCharacterStepUpOn = ECB_No;
-	GetSprite()->SetCollisionProfileName(TEXT("CharacterSprite"));
-	GetSprite()->SetIsReplicated(true);
+	GetMesh()->SetIsReplicated(true);
 	bReplicates = true;
 }
 

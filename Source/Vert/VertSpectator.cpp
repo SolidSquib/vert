@@ -3,25 +3,23 @@
 #include "Vert.h"
 #include "VertSpectator.h"
 
-FName AVertSpectator::SpriteComponentName(TEXT("Sprite0"));
-
 AVertSpectator::AVertSpectator()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
-	Sprite = CreateOptionalDefaultSubobject<UPaperFlipbookComponent>(APaperCharacter::SpriteComponentName);
-	if (Sprite)
+	Mesh = CreateOptionalDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComponent"));
+	if (Mesh)
 	{
-		Sprite->AlwaysLoadOnClient = true;
-		Sprite->AlwaysLoadOnServer = true;
-		Sprite->bOwnerNoSee = false;
-		Sprite->bAffectDynamicIndirectLighting = true;
-		Sprite->PrimaryComponentTick.TickGroup = TG_PrePhysics;
-		Sprite->SetupAttachment(GetCollisionComponent());
-		static FName CollisionProfileName(TEXT("CharacterMesh"));
-		Sprite->SetCollisionProfileName(CollisionProfileName);
-		Sprite->bGenerateOverlapEvents = false;
+		Mesh->AlwaysLoadOnClient = true;
+		Mesh->AlwaysLoadOnServer = true;
+		Mesh->bOwnerNoSee = false;
+		Mesh->bAffectDynamicIndirectLighting = true;
+		Mesh->PrimaryComponentTick.TickGroup = TG_PrePhysics;
+		Mesh->SetupAttachment(GetCollisionComponent());
+		static FName CollisionProfileName(TEXT("SpectatorMesh"));
+		Mesh->SetCollisionProfileName(CollisionProfileName);
+		Mesh->bGenerateOverlapEvents = false;
 	}
 
 	// Use only Yaw from the controller and ignore the rest of the rotation.
@@ -38,7 +36,7 @@ AVertSpectator::AVertSpectator()
 	GetMovementComponent()->SetPlaneConstraintNormal(FVector(0.0f, -1.0f, 0.0f));
 
 	// Enable replication on the Sprite component so animations show up when networked
-	GetSprite()->SetIsReplicated(true);
+	Mesh->SetIsReplicated(true);
 	bReplicates = true;
 }
 
@@ -55,12 +53,12 @@ void AVertSpectator::PostInitializeComponents()
 
 	if (!IsPendingKill())
 	{
-		if (Sprite)
+		if (Mesh)
 		{
 			// force animation tick after movement component updates
-			if (Sprite->PrimaryComponentTick.bCanEverTick && GetMovementComponent())
+			if (Mesh->PrimaryComponentTick.bCanEverTick && GetMovementComponent())
 			{
-				Sprite->PrimaryComponentTick.AddPrerequisite(GetMovementComponent(), GetMovementComponent()->PrimaryComponentTick);
+				Mesh->PrimaryComponentTick.AddPrerequisite(GetMovementComponent(), GetMovementComponent()->PrimaryComponentTick);
 			}
 		}
 	}
@@ -79,13 +77,6 @@ void AVertSpectator::UpdateAnimation()
 {
 	const FVector PlayerVelocity = GetVelocity();
 	const float PlayerSpeedSqr = PlayerVelocity.SizeSquared();
-
-	// Are we moving or standing still?
-	UPaperFlipbook* DesiredAnimation = SpookyAnimation;
-	if (GetSprite()->GetFlipbook() != DesiredAnimation)
-	{
-		GetSprite()->SetFlipbook(DesiredAnimation);
-	}
 }
 
 void AVertSpectator::UpdateCharacter()

@@ -41,7 +41,6 @@ void UBaseCharacterState::StateBegin()
 {
 	UE_LOG(LogCharacterState, Log, TEXT("State begin for state %s"), *GetName());
 
-	mCharacterOwner->GetSprite()->SetFlipbook(StateAnimation);
 	mStateChangeQueued = false;
 	OnStateBegin();
 }

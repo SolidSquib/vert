@@ -37,7 +37,7 @@ void UGrapplingComponent::BeginPlay()
 			if (spawnedGrapple)
 			{
 				//Attach it to the player's hand.
-				spawnedGrapple->AttachToComponent(mCharacterOwner->GetSprite(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::SnapToTarget, false), GrappleHandSocket);
+				spawnedGrapple->AttachToComponent(mCharacterOwner->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::SnapToTarget, false), GrappleHandSocket);
 				mGrappleLauncher = spawnedGrapple;
 			}
 		}

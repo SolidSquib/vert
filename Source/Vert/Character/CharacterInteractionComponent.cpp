@@ -96,7 +96,7 @@ bool UCharacterInteractionComponent::HoldInteractive(IInteractive* interactive, 
 		if (AActor* actor = Cast<AActor>(interactive))
 		{
 			actor->DisableComponentsSimulatePhysics();
-			actor->AttachToComponent(mCharacterOwner->GetSprite(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, mCharacterOwner->ItemHandSocket);
+			actor->AttachToComponent(mCharacterOwner->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, mCharacterOwner->ItemHandSocket);
 			actor->SetActorRelativeLocation(localOffset);
 		}
 		mInteractionState = EInteractionState::HoldingItem;

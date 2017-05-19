@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "PaperCharacter.h"
+#include "GameFramework/Character.h"
 #include "Engine/DebugGroup.h"
 #include "Character/VertCharacterMovementComponent.h"
 #include "Character/CharacterInteractionComponent.h"
@@ -52,7 +52,7 @@ struct FCharacterDebugSettings
 };
 
 UCLASS(config = Game, Abstract)
-class AVertCharacter : public APaperCharacter
+class AVertCharacter : public ACharacter
 {
 	GENERATED_BODY()
 

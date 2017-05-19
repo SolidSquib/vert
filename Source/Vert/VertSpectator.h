@@ -12,16 +12,10 @@ UCLASS()
 class VERT_API AVertSpectator : public ASpectatorPawn
 {
 	GENERATED_BODY()
-	
-	static FName SpriteComponentName;
-
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
-	class UPaperFlipbook* SpookyAnimation;	
-
+		
 private:
 	UPROPERTY(Category = Character, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UPaperFlipbookComponent* Sprite;
+	class USkeletalMeshComponent* Mesh;
 
 public:
 	AVertSpectator();
@@ -35,5 +29,5 @@ public:
 	void MoveRight(float Value);
 	void MoveUp(float Value);
 
-	FORCEINLINE class UPaperFlipbookComponent* GetSprite() const { return Sprite; }
+	FORCEINLINE class USkeletalMeshComponent* GetMesh() const { return Mesh; }
 };
