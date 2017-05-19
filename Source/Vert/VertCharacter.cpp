@@ -21,7 +21,7 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 {
 	// Use only Yaw from the controller and ignore the rest of the rotation.
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
 	// Set the size of our collision capsule.
