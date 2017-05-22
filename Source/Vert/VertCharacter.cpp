@@ -16,7 +16,6 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 	InteractionComponent(CreateDefaultSubobject<UCharacterInteractionComponent>(TEXT("InteractionComponent"))),
 	GrapplingComponent(CreateDefaultSubobject<UGrapplingComponent>(TEXT("GrapplingComponent"))),
 	DashingComponent(CreateDefaultSubobject<UDashingComponent>(TEXT("DashingComponent"))),
-	StateManager(CreateDefaultSubobject<UCharacterStateManager>(TEXT("StateManager"))),
 	DisableInputWhenDashingOrGrappling(false)
 {
 	// Use only Yaw from the controller and ignore the rest of the rotation.
@@ -174,18 +173,12 @@ void AVertCharacter::ActionMoveRight(float Value)
 {
 	mAxisPositions.LeftX = Value;
 
-	if (FMath::Abs(Value) > 0.0f)
-	{
-		StateManager->NotifyActionTaken(ECharacterActions::Move);
-	}
+	AddMovementInput(FVector(1.f, 0.f, 0.f), Value);
 }
 
 void AVertCharacter::ActionJump()
 {
-	if (StateManager->NotifyActionTaken(ECharacterActions::Jump))
-	{
-		Jump();
-	}
+	Jump();
 }
 
 void AVertCharacter::ActionGrappleShoot()
@@ -209,22 +202,44 @@ void AVertCharacter::ActionGrappleShoot()
 
 void AVertCharacter::ExecuteActionGrappleShoot()
 {
-	StateManager->NotifyActionTaken(ECharacterActions::Grapple);
+	if (!GrapplingComponent->GetHookedActor())
+	{
+		if (GrapplingComponent->ExecuteGrapple(UsingGamepad() ? GetAxisPostisions().GetPlayerRightThumbstickDirection() : GetAxisPostisions().GetPlayerMouseDirection()))
+		{
+			// do something
+		}
+	}
+	else
+	{
+		if (GrapplingComponent->StartPulling())
+		{
+			// do something
+		}
+	}
 }
 
 void AVertCharacter::ActionDash()
 {
-	StateManager->NotifyActionTaken(ECharacterActions::Dash);
+	if (DashingComponent->ExecuteGroundDash())
+	{
+		// do something
+	}
 }
 
 void AVertCharacter::ActionInteract()
 {
-	StateManager->NotifyActionTaken(ECharacterActions::Interact);
+	if (InteractionComponent->AttemptInteract())
+	{
+		// do something
+	}
 }
 
 void AVertCharacter::ActionAttack()
 {
-	StateManager->NotifyActionTaken(ECharacterActions::Attack);
+	if (InteractionComponent->AttemptAttack())
+	{
+		// do something
+	}
 }
 
 #if !UE_BUILD_SHIPPING
@@ -258,11 +273,6 @@ void AVertCharacter::PrintDebugInfo()
 		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Recharge at %f% (%s)"), GrapplingComponent->GetRechargePercent(), GrapplingComponent->IsRecharging() ? TEXT("active") : TEXT("inactive")));
 
 		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (mAxisPositions.GetPlayerRightThumbstickDirection() * 500), 50.f, ShowDebug.Grapple.MessageColour, false, -1.f, 1, 3.f);
-	}
-
-	if (ShowDebug.States.Enabled)
-	{
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.States.MessageColour, FString::Printf(TEXT("[Character-State] Current State: %s"), *UVertUtilities::GetEnumValueToString<ECharacterState>(TEXT("ECharacterState"), StateManager->GetCurrentState())));
 	}
 }
 #endif
