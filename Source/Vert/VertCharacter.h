@@ -7,7 +7,6 @@
 #include "Character/VertCharacterMovementComponent.h"
 #include "Character/CharacterInteractionComponent.h"
 #include "Character/HealthComponent.h"
-#include "Character/CharacterStateManager.h"
 #include "Character/GrapplingComponent.h"
 #include "Character/DashingComponent.h"
 #include "Engine/AxisPositions.h"
@@ -75,10 +74,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Dashing")
 	UDashingComponent* DashingComponent;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|States")
-	UCharacterStateManager* StateManager;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* SideViewCameraComponent;
 
@@ -107,7 +103,6 @@ public:
 	FORCEINLINE UCharacterInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
 	FORCEINLINE UGrapplingComponent* GetGrapplingComponent() const { return GrapplingComponent; }
 	FORCEINLINE UDashingComponent* GetDashingComponent() const { return DashingComponent; }
-	FORCEINLINE UCharacterStateManager* GetStateManager() const { return StateManager; }
 	FORCEINLINE const FAxisPositions& GetAxisPostisions() const { return mAxisPositions; }
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
