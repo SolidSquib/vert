@@ -116,7 +116,7 @@ void AWeaponProjectile::ApplyPointDamage(const FHitResult& impact)
 	PointDmg.DamageTypeClass = mWeaponConfig.DamageType;
 	PointDmg.HitInfo = impact;
 	PointDmg.ShotDirection = MovementComp->Velocity.GetSafeNormal();
-	PointDmg.Damage = firedFrom ? firedFrom->BaseDamage : 0;
+	PointDmg.Damage = firedFrom ? firedFrom->GetBaseDamage() : 0;
 
 	ACharacter* instigatingCharacter = Cast<ACharacter>(Instigator);
 	impact.GetActor()->TakeDamage(PointDmg.Damage, PointDmg, instigatingCharacter ? instigatingCharacter->Controller : nullptr, this);

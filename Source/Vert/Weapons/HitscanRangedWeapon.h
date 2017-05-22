@@ -1,10 +1,8 @@
-// Copyright Inside Out Games Ltd. 2017
+// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
-#include "GameFramework/Actor.h"
-#include "RangedWeapon.h"
-#include "Interactives/Interactive.h"
+#include "Vert.h"
 #include "HitscanRangedWeapon.generated.h"
 
 class AVertImpactEffect;
@@ -14,14 +12,14 @@ struct FInstantHitInfo
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	FVector Origin;
+		UPROPERTY()
+		FVector Origin;
 
 	UPROPERTY()
-	float ReticleSpread;
+		float ReticleSpread;
 
 	UPROPERTY()
-	int32 RandomSeed;
+		int32 RandomSeed;
 };
 
 USTRUCT()
@@ -31,24 +29,29 @@ struct FInstantWeaponData
 
 	/** weapon range */
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-	float WeaponRange;
+		float WeaponRange;
+
+	/** damage amount */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		int32 HitDamage;
 
 	/** type of damage */
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-	TSubclassOf<UDamageType> DamageType;
+		TSubclassOf<UDamageType> DamageType;
 
 	/** hit verification: scale for bounding box of hit actor */
 	UPROPERTY(EditDefaultsOnly, Category = HitVerification)
-	float ClientSideHitLeeway;
+		float ClientSideHitLeeway;
 
 	/** hit verification: threshold for dot product between view direction and hit direction */
 	UPROPERTY(EditDefaultsOnly, Category = HitVerification)
-	float AllowedViewDotHitDir;
+		float AllowedViewDotHitDir;
 
 	/** defaults */
 	FInstantWeaponData()
 	{
 		WeaponRange = 10000.0f;
+		HitDamage = 10;
 		DamageType = UDamageType::StaticClass();
 		ClientSideHitLeeway = 200.0f;
 		AllowedViewDotHitDir = 0.8f;
@@ -62,43 +65,72 @@ class AHitscanRangedWeapon : public ARangedWeapon
 	GENERATED_UCLASS_BODY()
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = Config) /** weapon config */
-	FInstantWeaponData InstantConfig;
 
-	UPROPERTY(EditDefaultsOnly, Category = Effects) /** impact effects */
-	TSubclassOf<AVertImpactEffect> ImpactTemplate;
-
-	UPROPERTY(EditDefaultsOnly, Category = Effects) /** smoke trail */
-	UParticleSystem* TrailFX;
-
-	UPROPERTY(EditDefaultsOnly, Category = Effects) /** param name for beam target in smoke trail */
-	FName TrailTargetParam;
-
-	UPROPERTY(Transient, ReplicatedUsing = OnRep_HitNotify) /** instant hit notify for replication */
-	FInstantHitInfo HitNotify;
-
-protected:	
-	void SimulateInstantHit(const FVector& Origin, int32 RandomSeed, float ReticleSpread); /** called in network play to do the cosmetic fx  */	
-	void SpawnImpactEffects(const FHitResult& Impact); /** spawn effects for impact */	
-	void SpawnTrailEffect(const FVector& EndPoint); /** spawn trail effect */	
-	void ProcessInstantHit(const FHitResult& Impact, const FVector& Origin, const FVector& ShootDir, int32 RandomSeed, float ReticleSpread); /** process the instant hit and notify the server if necessary */	
-	void ProcessInstantHit_Confirmed(const FHitResult& Impact, const FVector& Origin, const FVector& ShootDir, int32 RandomSeed, float ReticleSpread); /** continue processing the instant hit, as if it has been confirmed by the server */	
-	void DealDamage(const FHitResult& Impact, const FVector& ShootDir); /** handle damage */	
-	bool ShouldDealDamage(AActor* TestActor) const; /** check if weapon should deal damage to actor */
-
-	virtual void FireWeapon() override; /** [local] weapon specific fire implementation */	
-	virtual void OnBurstFinished() override; /** [local + server] update spread on firing */
 	virtual EAmmoType GetAmmoType() const override
 	{
 		return EAmmoType::EBullet;
 	}
-	
-	UFUNCTION(reliable, server, WithValidation) /** server notified of hit from client to verify */
-	void ServerNotifyHit(const FHitResult& Impact, FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread);
 
-	UFUNCTION(unreliable, server, WithValidation) /** server notified of miss to show trail FX */
-	void ServerNotifyMiss(FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread);
+	/** weapon config */
+	UPROPERTY(EditDefaultsOnly, Category = Config)
+		FInstantWeaponData InstantConfig;
+
+	/** impact effects */
+	UPROPERTY(EditDefaultsOnly, Category = Effects)
+		TSubclassOf<AVertImpactEffect> ImpactTemplate;
+
+	/** smoke trail */
+	UPROPERTY(EditDefaultsOnly, Category = Effects)
+		UParticleSystem* TrailFX;
+
+	/** param name for beam target in smoke trail */
+	UPROPERTY(EditDefaultsOnly, Category = Effects)
+		FName TrailTargetParam;
+
+	/** instant hit notify for replication */
+	UPROPERTY(Transient, ReplicatedUsing = OnRep_HitNotify)
+		FInstantHitInfo HitNotify;
+
+
+	//////////////////////////////////////////////////////////////////////////
+	// Weapon usage
+
+	/** server notified of hit from client to verify */
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerNotifyHit(const FHitResult& Impact, FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread);
+
+	/** server notified of miss to show trail FX */
+	UFUNCTION(unreliable, server, WithValidation)
+		void ServerNotifyMiss(FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread);
+
+	/** process the instant hit and notify the server if necessary */
+	void ProcessInstantHit(const FHitResult& Impact, const FVector& Origin, const FVector& ShootDir, int32 RandomSeed, float ReticleSpread);
+
+	/** continue processing the instant hit, as if it has been confirmed by the server */
+	void ProcessInstantHit_Confirmed(const FHitResult& Impact, const FVector& Origin, const FVector& ShootDir, int32 RandomSeed, float ReticleSpread);
+
+	/** check if weapon should deal damage to actor */
+	bool ShouldDealDamage(AActor* TestActor) const;
+
+	/** handle damage */
+	void DealDamage(const FHitResult& Impact, const FVector& ShootDir);
+
+	/** [local] weapon specific fire implementation */
+	virtual void FireWeapon() override;
+
+
+	//////////////////////////////////////////////////////////////////////////
+	// Effects replication
 
 	UFUNCTION()
-	void OnRep_HitNotify();
+		void OnRep_HitNotify();
+
+	/** called in network play to do the cosmetic fx  */
+	void SimulateInstantHit(const FVector& Origin, int32 RandomSeed, float ReticleSpread);
+
+	/** spawn effects for impact */
+	void SpawnImpactEffects(const FHitResult& Impact);
+
+	/** spawn trail effect */
+	void SpawnTrailEffect(const FVector& EndPoint);
 };

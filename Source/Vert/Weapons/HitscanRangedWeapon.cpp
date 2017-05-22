@@ -1,13 +1,15 @@
-// Copyright Inside Out Games Ltd. 2017
+// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
 #include "Vert.h"
-#include "HitscanRangedWeapon.h"
+#include "Weapons/HitscanRangedWeapon.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Effects/VertImpactEffect.h"
 
+DECLARE_LOG_CATEGORY_CLASS(LogHitscanRangedWeapon, Log, All);
+
 AHitscanRangedWeapon::AHitscanRangedWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	mCurrentFiringSpread = 0.0f;
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,25 +17,18 @@ AHitscanRangedWeapon::AHitscanRangedWeapon(const FObjectInitializer& ObjectIniti
 
 void AHitscanRangedWeapon::FireWeapon()
 {
-	UE_LOG(LogRangedWeapon, Log, TEXT("Bang!"));
+	int32 randomSeed;
+	float currentSpread;
 
-	const int32 RandomSeed = FMath::Rand();
-	FRandomStream WeaponRandomStream(RandomSeed);
-	const float CurrentSpread = GetCurrentSpread();
-	const float ConeHalfAngle = FMath::DegreesToRadians(CurrentSpread * 0.5f);
-
-	const FVector AimDir = GetAdjustedAim();
+	FVector AimDir = GetAdjustedAim();
 	const FVector StartTrace = GetMuzzleLocation();
-	const FVector ShootDir = WeaponRandomStream.VRandCone(AimDir, ConeHalfAngle, ConeHalfAngle);
-	const FVector ShootDir2D = (FVector(ShootDir.X, 0.f, ShootDir.Z) * 100).GetSafeNormal();
-	const FVector EndTrace = StartTrace + ShootDir2D * InstantConfig.WeaponRange;
-
-	DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Emerald, true);
+	const FVector ShootDir = GetShootDirectionAfterSpread(AimDir, randomSeed, currentSpread);
+	const FVector EndTrace = StartTrace + ShootDir * InstantConfig.WeaponRange;
 
 	const FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
-	ProcessInstantHit(Impact, StartTrace, ShootDir2D, RandomSeed, CurrentSpread);
+	ProcessInstantHit(Impact, StartTrace, ShootDir, randomSeed, currentSpread);
 
-	mCurrentFiringSpread = FMath::Min(WeaponConfig.FiringSpreadMax, mCurrentFiringSpread + WeaponConfig.FiringSpreadIncrement);
+	mCurrentFiringSpread = FMath::Min(SpreadConfig.FiringSpreadMax, mCurrentFiringSpread + SpreadConfig.FiringSpreadIncrement);
 }
 
 bool AHitscanRangedWeapon::ServerNotifyHit_Validate(const FHitResult& Impact, FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread)
@@ -44,8 +39,6 @@ bool AHitscanRangedWeapon::ServerNotifyHit_Validate(const FHitResult& Impact, FV
 void AHitscanRangedWeapon::ServerNotifyHit_Implementation(const FHitResult& Impact, FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread)
 {
 	const float WeaponAngleDot = FMath::Abs(FMath::Sin(ReticleSpread * PI / 180.f));
-
-	UE_LOG(LogTemp, Log, TEXT("Oh baby, a triple"));
 
 	// if we have an instigator, calculate dot between the view and the shot
 	if (Instigator && (Impact.GetActor() || Impact.bBlockingHit))
@@ -98,18 +91,18 @@ void AHitscanRangedWeapon::ServerNotifyHit_Implementation(const FHitResult& Impa
 					}
 					else
 					{
-						UE_LOG(LogRangedWeapon, Log, TEXT("%s Rejected client side hit of %s (outside bounding box tolerance)"), *GetNameSafe(this), *GetNameSafe(Impact.GetActor()));
+						UE_LOG(LogHitscanRangedWeapon, Log, TEXT("%s Rejected client side hit of %s (outside bounding box tolerance)"), *GetNameSafe(this), *GetNameSafe(Impact.GetActor()));
 					}
 				}
 			}
 		}
 		else if (ViewDotHitDir <= InstantConfig.AllowedViewDotHitDir)
 		{
-			UE_LOG(LogRangedWeapon, Log, TEXT("%s Rejected client side hit of %s (facing too far from the hit direction)"), *GetNameSafe(this), *GetNameSafe(Impact.GetActor()));
+			UE_LOG(LogHitscanRangedWeapon, Log, TEXT("%s Rejected client side hit of %s (facing too far from the hit direction)"), *GetNameSafe(this), *GetNameSafe(Impact.GetActor()));
 		}
 		else
 		{
-			UE_LOG(LogRangedWeapon, Log, TEXT("%s Rejected client side hit of %s"), *GetNameSafe(this), *GetNameSafe(Impact.GetActor()));
+			UE_LOG(LogHitscanRangedWeapon, Log, TEXT("%s Rejected client side hit of %s"), *GetNameSafe(this), *GetNameSafe(Impact.GetActor()));
 		}
 	}
 }
@@ -122,8 +115,6 @@ bool AHitscanRangedWeapon::ServerNotifyMiss_Validate(FVector_NetQuantizeNormal S
 void AHitscanRangedWeapon::ServerNotifyMiss_Implementation(FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread)
 {
 	const FVector Origin = GetMuzzleLocation();
-
-	UE_LOG(LogTemp, Log, TEXT("Shit baby, a miss."));
 
 	// play FX on remote clients
 	HitNotify.Origin = Origin;
@@ -140,7 +131,7 @@ void AHitscanRangedWeapon::ServerNotifyMiss_Implementation(FVector_NetQuantizeNo
 
 void AHitscanRangedWeapon::ProcessInstantHit(const FHitResult& Impact, const FVector& Origin, const FVector& ShootDir, int32 RandomSeed, float ReticleSpread)
 {
-	if (mCharacterInteractionOwner.IsValid() && mCharacterInteractionOwner->GetCharacterOwner()->IsLocallyControlled() && GetNetMode() == NM_Client)
+	if (MyPawn && MyPawn->IsLocallyControlled() && GetNetMode() == NM_Client)
 	{
 		// if we're a client and we've hit something that is being controlled by the server
 		if (Impact.GetActor() && Impact.GetActor()->GetRemoteRole() == ROLE_Authority)
@@ -150,8 +141,6 @@ void AHitscanRangedWeapon::ProcessInstantHit(const FHitResult& Impact, const FVe
 		}
 		else if (Impact.GetActor() == NULL)
 		{
-			UE_LOG(LogRangedWeapon, Log, TEXT("[%s] hit [%s] with [%s]"), *Instigator->GetName(), *Impact.GetActor()->GetName(), *GetName());
-
 			if (Impact.bBlockingHit)
 			{
 				// notify the server of the hit
@@ -163,6 +152,10 @@ void AHitscanRangedWeapon::ProcessInstantHit(const FHitResult& Impact, const FVe
 				ServerNotifyMiss(ShootDir, RandomSeed, ReticleSpread);
 			}
 		}
+	}
+	else if (GetNetMode() != NM_Client)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HOW THE FUCK IS THIS WORKING"));
 	}
 
 	// process a confirmed hit
@@ -218,16 +211,9 @@ void AHitscanRangedWeapon::DealDamage(const FHitResult& Impact, const FVector& S
 	PointDmg.DamageTypeClass = InstantConfig.DamageType;
 	PointDmg.HitInfo = Impact;
 	PointDmg.ShotDirection = ShootDir;
-	PointDmg.Damage = BaseDamage;
+	PointDmg.Damage = InstantConfig.HitDamage;
 
-	Impact.GetActor()->TakeDamage(PointDmg.Damage, PointDmg, mCharacterInteractionOwner->GetCharacterOwner()->Controller, this);
-}
-
-void AHitscanRangedWeapon::OnBurstFinished()
-{
-	Super::OnBurstFinished();
-
-	mCurrentFiringSpread = 0.0f;
+	Impact.GetActor()->TakeDamage(PointDmg.Damage, PointDmg, MyPawn->Controller, this);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -244,7 +230,7 @@ void AHitscanRangedWeapon::SimulateInstantHit(const FVector& ShotOrigin, int32 R
 	const float ConeHalfAngle = FMath::DegreesToRadians(ReticleSpread * 0.5f);
 
 	const FVector StartTrace = ShotOrigin;
-	const FVector AimDir = GetAdjustedAim();
+	const FVector AimDir = GetMuzzleDirection();
 	const FVector ShootDir = WeaponRandomStream.VRandCone(AimDir, ConeHalfAngle, ConeHalfAngle);
 	const FVector EndTrace = StartTrace + ShootDir * InstantConfig.WeaponRange;
 

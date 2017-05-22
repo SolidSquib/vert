@@ -104,7 +104,7 @@ public:
 	FORCEINLINE UGrapplingComponent* GetGrapplingComponent() const { return GrapplingComponent; }
 	FORCEINLINE UDashingComponent* GetDashingComponent() const { return DashingComponent; }
 	FORCEINLINE const FAxisPositions& GetAxisPostisions() const { return mAxisPositions; }
-
+	
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
 
@@ -116,6 +116,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
 	FORCEINLINE bool IsGrounded() const { return !GetCharacterMovement()->IsFlying() && !GetCharacterMovement()->IsFalling(); }
+
+	UFUNCTION(BlueprintCallable, Category = "Weapons")
+	FORCEINLINE class ABaseWeapon* GetWeapon() const { return InteractionComponent->GetHeldWeapon(); }
+
+	UFUNCTION(BlueprintCallable, Category = "Weapons")
+	bool CanFire() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapons")
+	bool CanReload() const;
 
 protected:
 	void ActionMoveRight(float Value);

@@ -65,6 +65,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	FORCEINLINE ACharacter* GetCharacterOwner() const { if (mCharacterOwner.IsValid()) { return mCharacterOwner.Get(); } return nullptr; }
 
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	FORCEINLINE bool IsAlive() const { return !mIsDead; }
+
 protected:
 	void ReplicateHit(float Damage, struct FDamageEvent const& DamageEvent, class APawn* InstigatingPawn, class AActor* DamageCauser, bool bKilled);
 
@@ -80,6 +83,7 @@ private:
 	void LaunchCharacter(const FDamageEvent& damageEvent, const ABaseWeapon* damageCauser);
 
 private:
+	bool mIsDead = false;
 	int32 mDamageTaken = 0;
 	int32 mShownDamageTaken = 0;
 	float mShownDamageTakenFloat = 0;

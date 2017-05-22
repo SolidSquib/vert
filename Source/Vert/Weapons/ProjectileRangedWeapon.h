@@ -10,24 +10,24 @@ struct FProjectileWeaponData
 {
 	GENERATED_USTRUCT_BODY()
 
-	/** projectile class */
-	UPROPERTY(EditDefaultsOnly, Category = Projectile)
-	TSubclassOf<class AWeaponProjectile> ProjectileClass;
+		/** projectile class */
+		UPROPERTY(EditDefaultsOnly, Category = Projectile)
+		TSubclassOf<class AWeaponProjectile> ProjectileClass;
 
 	/** life time */
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
-	float ProjectileLife;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
-	bool IsExplosive;
+		float ProjectileLife;
+	
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		bool IsExplosive;
 
 	/** radius of damage */
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat, meta = (EditCondition = "IsExplosive"))
-	float ExplosionRadius;
+		float ExplosionRadius;
 
 	/** type of damage */
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-	TSubclassOf<UDamageType> DamageType;
+		TSubclassOf<UDamageType> DamageType;
 
 	/** defaults */
 	FProjectileWeaponData()
@@ -46,22 +46,27 @@ class AProjectileRangedWeapon : public ARangedWeapon
 {
 	GENERATED_UCLASS_BODY()
 
-protected:
-	/** weapon config */
-	UPROPERTY(EditDefaultsOnly, Category = Config)
-	FProjectileWeaponData ProjectileConfig;
-
-public:
-	void ApplyWeaponConfig(FProjectileWeaponData& Data); /** apply config on projectile */
+		/** apply config on projectile */
+		void ApplyWeaponConfig(FProjectileWeaponData& Data);
 
 protected:
+
 	virtual EAmmoType GetAmmoType() const override
 	{
 		return EAmmoType::ERocket;
 	}
 
-	virtual void FireWeapon() override; /** [local] weapon specific fire implementation */
+	/** weapon config */
+	UPROPERTY(EditDefaultsOnly, Category = Config)
+		FProjectileWeaponData ProjectileConfig;
 
-	UFUNCTION(reliable, server, WithValidation) /** spawn projectile on server */
-	void ServerFireProjectile(FVector Origin, FVector_NetQuantizeNormal ShootDir);
+	//////////////////////////////////////////////////////////////////////////
+	// Weapon usage
+
+	/** [local] weapon specific fire implementation */
+	virtual void FireWeapon() override;
+
+	/** spawn projectile on server */
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerFireProjectile(FVector Origin, FVector_NetQuantizeNormal ShootDir);
 };

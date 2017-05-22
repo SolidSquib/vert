@@ -148,6 +148,16 @@ void AVertCharacter::StopAttacking()
 	InteractionComponent->StopAttacking();
 }
 
+bool AVertCharacter::CanFire() const
+{
+	return HealthComponent->IsAlive();
+}
+
+bool AVertCharacter::CanReload() const
+{
+	return true;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 

@@ -113,7 +113,7 @@ void UHealthComponent::PlayHit(float DamageTaken, const FDamageEvent& DamageEven
 		if (const ABaseWeapon* weapon = Cast<ABaseWeapon>(DamageCauser))
 		{
 			//LaunchCharacter(DamageEvent, weapon);
-			mCharacterOwner->ApplyDamageMomentum(weapon->KnockbackMagnitude*GetCurrentDamageModifier(), DamageEvent, PawnInstigator, DamageCauser);
+			mCharacterOwner->ApplyDamageMomentum(weapon->GetKnockbackMagnitude()*GetCurrentDamageModifier(), DamageEvent, PawnInstigator, DamageCauser);
 		}
 	}
 }
@@ -149,6 +149,7 @@ void UHealthComponent::ReplicateHit(float Damage, const FDamageEvent& DamageEven
 void UHealthComponent::Kill(const FHitResult& hit)
 {
 	AVertGameMode* gameMode = Cast<AVertGameMode>(GetWorld()->GetAuthGameMode());
+	mIsDead = true;
 	OnDeath.Broadcast(LastTakeHitInfo);
 }
 

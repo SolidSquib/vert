@@ -129,22 +129,30 @@ void UCharacterInteractionComponent::ForceDropInteractive(FVector force, float r
 
 bool UCharacterInteractionComponent::AttemptAttack()
 {
-	if (mHeldWeapon)
+	if (!mWantsToAttack)
 	{
-		mHeldWeapon->NotifyAttackCommand();
+		mWantsToAttack = true;
+		if (mHeldWeapon)
+		{
+			mHeldWeapon->StartFire();
 
-		return true;
-	}
+			return true;
+		}
+	}	
 
 	return false;
 }
 
 void UCharacterInteractionComponent::StopAttacking()
 {
-	if (mHeldWeapon)
+	if (mWantsToAttack)
 	{
-		mHeldWeapon->NotifyStopAttacking();
-	}
+		mWantsToAttack = false;
+		if (mHeldWeapon)
+		{
+			mHeldWeapon->StopFire();
+		}
+	}	
 }
 
 IInteractive* UCharacterInteractionComponent::TraceForSingleInteractive()

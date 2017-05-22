@@ -69,4 +69,5 @@ private:
 	IInteractive* mHeldInteractive = nullptr;
 	ABaseWeapon* mHeldWeapon = nullptr;
 	EInteractionState mInteractionState = EInteractionState::Free;
+	bool mWantsToAttack = false;
 };

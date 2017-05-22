@@ -1,8 +1,8 @@
-// Copyright Inside Out Games Ltd. 2017
+// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
 #include "Vert.h"
-#include "RangedWeapon.h"
-#include "ProjectileRangedWeapon.h"
+#include "Weapons/ProjectileRangedWeapon.h"
+#include "Weapons/WeaponProjectile.h"
 
 AProjectileRangedWeapon::AProjectileRangedWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -13,17 +13,15 @@ AProjectileRangedWeapon::AProjectileRangedWeapon(const FObjectInitializer& Objec
 
 void AProjectileRangedWeapon::FireWeapon()
 {
-	const int32 RandomSeed = FMath::Rand();
-	FRandomStream WeaponRandomStream(RandomSeed);
-	const float CurrentSpread = GetCurrentSpread();
-	const float ConeHalfAngle = FMath::DegreesToRadians(CurrentSpread * 0.5f);
+	int32 randomSeed;
+	float currentSpread;
 
 	FVector AimDir = GetAdjustedAim();
-	FVector Origin = GetMuzzleLocation();
-	const FVector ShootDir = WeaponRandomStream.VRandCone(AimDir, ConeHalfAngle, ConeHalfAngle);
-	const FVector ShootDir2D = (FVector(ShootDir.X, 0.f, ShootDir.Z) * 100).GetSafeNormal();
+	const FVector ShootDir = GetShootDirectionAfterSpread(AimDir, randomSeed, currentSpread);
 
-	ServerFireProjectile(Origin, ShootDir2D);
+	ServerFireProjectile(GetMuzzleLocation(), ShootDir);
+
+	mCurrentFiringSpread = FMath::Min(SpreadConfig.FiringSpreadMax, mCurrentFiringSpread + SpreadConfig.FiringSpreadIncrement);
 }
 
 bool AProjectileRangedWeapon::ServerFireProjectile_Validate(FVector Origin, FVector_NetQuantizeNormal ShootDir)

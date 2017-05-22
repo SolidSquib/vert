@@ -9,50 +9,11 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRangedWeapon, Log, All);
 
-namespace EWeaponState
-{
-	enum Type
-	{
-		Idle,
-		Firing,
-		Reloading,
-		Equipping,
-	};
-}
-
 USTRUCT()
-struct FWeaponData
+struct FRangedWeaponSpreadConfig
 {
-	GENERATED_BODY()
-
-	/** inifite ammo for reloads */
-	UPROPERTY(EditDefaultsOnly, Category = Ammo)
-	bool bInfiniteAmmo;
-
-	/** infinite ammo in clip, no reload required */
-	UPROPERTY(EditDefaultsOnly, Category = Ammo)
-	bool bInfiniteClip;
-
-	/** max ammo */
-	UPROPERTY(EditDefaultsOnly, Category = Ammo)
-	int32 MaxAmmo;
-
-	/** clip size */
-	UPROPERTY(EditDefaultsOnly, Category = Ammo)
-	int32 AmmoPerClip;
-
-	/** initial clips */
-	UPROPERTY(EditDefaultsOnly, Category = Ammo)
-	int32 InitialClips;
-
-	/** time between two consecutive shots */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-	float TimeBetweenShots;
-
-	/** failsafe reload duration if weapon doesn't have any animation for it */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-	float NoAnimReloadDuration;
-
+	GENERATED_USTRUCT_BODY()
+		
 	/** base weapon spread (degrees) */
 	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
 	float WeaponSpread;
@@ -70,17 +31,10 @@ struct FWeaponData
 	float FiringSpreadMax;
 
 	/** defaults */
-	FWeaponData()
+	FRangedWeaponSpreadConfig()
 	{
-		bInfiniteAmmo = false;
-		bInfiniteClip = false;
-		MaxAmmo = 100;
-		AmmoPerClip = 20;
-		InitialClips = 4;
-		TimeBetweenShots = 0.2f;
-		NoAnimReloadDuration = 1.0f;
-		WeaponSpread = 5.0f;
-		MovingSpreadMod = 0.25f;
+		WeaponSpread = 0.25f;
+		MovingSpreadMod = 5.f;
 		FiringSpreadIncrement = 1.0f;
 		FiringSpreadMax = 10.0f;
 	}
@@ -91,179 +45,18 @@ class ARangedWeapon : public ABaseWeapon
 {
 	GENERATED_UCLASS_BODY()
 
-	enum class EAmmoType
-	{
-		EBullet,
-		ERocket,
-		EMax,
-	};
-
-	UPROPERTY(EditDefaultsOnly, Category = Config)
-	FWeaponData WeaponConfig;
-
-	/** firing audio (bLoopedFireSound set) */
-	UPROPERTY(Transient)
-	UAudioComponent* FireAC;
-
-	UPROPERTY(EditDefaultsOnly, Category = Effects)
-	FName MuzzleAttachPoint;
-
-	UPROPERTY(EditDefaultsOnly, Category = Effects)
-	UParticleSystem* MuzzleFX;
-
-	UPROPERTY(Transient)
-	UParticleSystemComponent* MuzzlePSC;
-
-	UPROPERTY(Transient)
-	UParticleSystemComponent* MuzzlePSCSecondary;
-
-	UPROPERTY(EditDefaultsOnly, Category = Effects)
-	UForceFeedbackEffect *FireForceFeedback;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Sprite")
-	UPaperFlipbook* ReloadAnim;
-
-	/** single fire sound (bLoopedFireSound not set) */
-	UPROPERTY(EditDefaultsOnly, Category = Sound)
-	USoundCue* FireSound;
-
-	/** looped fire sound (bLoopedFireSound set) */
-	UPROPERTY(EditDefaultsOnly, Category = Sound)
-	USoundCue* FireLoopSound;
-
-	/** finished burst sound (bLoopedFireSound set) */
-	UPROPERTY(EditDefaultsOnly, Category = Sound)
-	USoundCue* FireFinishSound;
-
-	UPROPERTY(EditDefaultsOnly, Category = Sound)
-	USoundCue* OutOfAmmoSound;
-
-	UPROPERTY(EditDefaultsOnly, Category = Sound)
-	USoundCue* ReloadSound;
-
-	UPROPERTY(EditDefaultsOnly, Category = Sound)
-	USoundCue* EquipSound;
-
-	UPROPERTY(EditDefaultsOnly, Category = Effects)
-	uint32 LoopedMuzzleFX : 1;
-
-	uint32 mLoopedFireAnim : 1;
-
-	uint32 mPlayingFireAnim : 1;
-
-	uint32 mIsEquipped : 1;
-
-	uint32 mWantsToFire : 1;
-
-	UPROPERTY(Transient, ReplicatedUsing = OnRep_Reload)
-	uint32 PendingReload : 1;
-
-	uint32 PendingEquip : 1;
-
-	UPROPERTY(Transient, Replicated) /** current total ammo */
-	int32 CurrentAmmo;
-
-	UPROPERTY(Transient, Replicated) /** current ammo - inside clip */
-	int32 CurrentAmmoInClip;
-	
-	UPROPERTY(Transient, ReplicatedUsing = OnRep_BurstCounter) /** burst counter, used for replicating fire events to remote clients */
-	int32 BurstCounter;
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Config)
+	FRangedWeaponSpreadConfig SpreadConfig;
 
 public:
-	float GetCurrentSpread() const; /** get current spread */
+	float GetCurrentSpread() const;
+
+protected:	
+	virtual FVector GetShootDirectionAfterSpread(const FVector& aimDirection, int32& outRandomSeed, float& outCurrentSpread);
+	virtual void OnBurstFinished() override; /** [local + server] update spread on firing */
 
 protected:
-	virtual EAmmoType GetAmmoType() const
-	{
-		return EAmmoType::EBullet;
-	}
-
-	void GiveAmmo(int AddAmount); // [server]
-	void UseAmmo();
-	bool IsEquipped() const;
-	bool IsAttachedToPawn() const;
-	bool CanFire() const;
-	bool CanReload() const;
-	EWeaponState::Type GetCurrentState() const;
-	int32 GetCurrentAmmo() const;
-	int32 GetCurrentAmmoInClip() const;
-	int32 GetAmmoPerClip() const;
-	int32 GetMaxAmmo() const;
-	bool HasInfiniteAmmo() const;
-	bool HasInfiniteClip() const;
-	void SetOwningPawn(AVertCharacter* AVertCharacter);
-	float GetEquipStartedTime() const;
-	float GetEquipDuration() const;
-	float PlayWeaponAnimation(UPaperFlipbook* newAnim);
-	void SetWeaponState(EWeaponState::Type NewState); /** update weapon state */
-	void DetermineWeaponState(); /** determine current weapon state */
-	void HandleFiring(); /** [local + server] handle weapon fire */
-	UAudioComponent* PlayWeaponSound(USoundCue* Sound); /** play weapon sounds */
-	FVector GetCameraAim() const; /** Get the aim of the camera */
-	FVector GetMuzzleLocation() const; /** get the muzzle location of the weapon */
-	FVector GetMuzzleDirection() const; /** get direction of weapon's muzzle */
-	FHitResult WeaponTrace(const FVector& TraceFrom, const FVector& TraceTo) const; /** find hit */
-
-	virtual void PostInitializeComponents() override;
-	virtual void Destroyed() override;
-	virtual void OnEnterInventory(AVertCharacter* NewOwner); // [server]
-	virtual void OnLeaveInventory(); // [server]
-	virtual void StartFire(); // [local + server]
-	virtual void StopFire(); // [local + server]
-	virtual void StartReload(bool bFromReplication = false); // [all]
-	virtual void StopReload(); // [local + server]
-	virtual void ReloadWeapon(); // [server]
-	virtual void SimulateWeaponFire(); /** Called in network play to do the cosmetic fx for firing */
-	virtual void StopSimulatingWeaponFire(); /** Called in network play to stop cosmetic fx (e.g. for a looping shot). */
-	virtual void FireWeapon() PURE_VIRTUAL(ARangedWeapon::FireWeapon, ); /** [local] weapon specific fire implementation */
-	virtual void OnBurstStarted(); /** [local + server] firing started */
-	virtual void OnBurstFinished(); /** [local + server] firing finished */
-	virtual FVector GetAdjustedAim() const; /** Get the aim of the weapon, allowing for adjustments to be made by the weapon */
-	virtual void ExecuteAttack_Implementation() final;
-
-	UFUNCTION(reliable, client)
-	void ClientStartReload();
-	
-	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
-	class AVertCharacter* GetPawnOwner() const;
-
-	//////////////////////////////////////////////////////////////////////////
-	// Input - server side
-
-	UFUNCTION(reliable, server, WithValidation)
-	void ServerStartFire();
-
-	UFUNCTION(reliable, server, WithValidation)
-	void ServerStopFire();
-
-	UFUNCTION(reliable, server, WithValidation)
-	void ServerStartReload();
-
-	UFUNCTION(reliable, server, WithValidation)
-	void ServerStopReload();
-
-	//////////////////////////////////////////////////////////////////////////
-	// Replication & effects
-
-	UFUNCTION()
-	void OnRep_BurstCounter();
-
-	UFUNCTION()
-	void OnRep_Reload();
-
-	UFUNCTION(reliable, server, WithValidation) /** [server] fire & update ammo */
-	void ServerHandleFiring();
-
-protected:
-	uint32 bRefiring; /** weapon is refiring */	
-	EWeaponState::Type CurrentState; /** current weapon state */	
-	float LastFireTime; /** time of last successful weapon fire */	
-	float EquipStartedTime; /** last time when this weapon was switched to */	
-	float EquipDuration; /** how much time weapon needs to be equipped */
-	float mCurrentFiringSpread; /** current spread from continuous firing */
-	FTimerHandle TimerHandle_OnEquipFinished; /** Handle for efficient management of OnEquipFinished timer */	
-	FTimerHandle TimerHandle_StopReload; /** Handle for efficient management of StopReload timer */	
-	FTimerHandle TimerHandle_ReloadWeapon; /** Handle for efficient management of ReloadWeapon timer */	
-	FTimerHandle TimerHandle_HandleFiring; /** Handle for efficient management of HandleFiring timer */
+	float mCurrentFiringSpread;
 };
 
