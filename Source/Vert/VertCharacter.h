@@ -126,6 +126,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapons")
 	bool CanReload() const;
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
+	void NotifyJumped();
+
 protected:
 	void ActionMoveRight(float Value);
 	void ActionGrappleShoot();

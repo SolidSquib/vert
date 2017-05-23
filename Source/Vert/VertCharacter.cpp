@@ -189,6 +189,7 @@ void AVertCharacter::ActionMoveRight(float Value)
 void AVertCharacter::ActionJump()
 {
 	Jump();
+	NotifyJumped();
 }
 
 void AVertCharacter::ActionGrappleShoot()

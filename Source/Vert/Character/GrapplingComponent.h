@@ -78,8 +78,6 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	FORCEINLINE const int32 GetRemainingGrapples() const { return mRemainingGrapples; }
-	FORCEINLINE const EGrappleState GetGrappleState() const { return mGrappleHook.IsValid() ? mGrappleHook->GetGrappleState() : EGrappleState::None; }
 	FORCEINLINE const TWeakObjectPtr<class AVertCharacter>& GetCharacterOwner() const { return mCharacterOwner; }
 	FORCEINLINE const TWeakObjectPtr<AGrappleLauncher>& GetGrappleLauncher() const { return mGrappleLauncher; }
 	FORCEINLINE const TWeakObjectPtr<AGrappleHook>& GetGrappleHook() const { return mGrappleHook; }
@@ -101,6 +99,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Grappling")
 	FORCEINLINE FVector GetLineDirection() const { return (mGrappleHook->GetActorLocation() - mGrappleLauncher->GetActorLocation()).GetSafeNormal(); }
+
+	UFUNCTION(BlueprintCallable, Category = "Usage")
+	FORCEINLINE int32 GetRemainingGrapples() const { return mRemainingGrapples; }
+
+	UFUNCTION(BlueprintCallable, Category = "States")
+	FORCEINLINE EGrappleState GetGrappleState() const { return mGrappleHook.IsValid() ? mGrappleHook->GetGrappleState() : EGrappleState::None; }
 
 	UFUNCTION(BlueprintCallable, Category = "Grappling", meta = (DisplayName = "Get Grapple Hook"))
 	AGrappleHook* GetGrappleHookBP() const;
