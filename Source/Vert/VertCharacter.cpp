@@ -189,7 +189,7 @@ void AVertCharacter::ActionMoveRight(float Value)
 void AVertCharacter::ActionJump()
 {
 	Jump();
-	NotifyJumped();
+	OnJumpExecuted.Broadcast();
 }
 
 void AVertCharacter::ActionGrappleShoot()
