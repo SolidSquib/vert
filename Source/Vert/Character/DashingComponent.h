@@ -86,9 +86,11 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	FORCEINLINE const int32 GetRemainingDashes() const { return mRemainingDashes; }
 	FORCEINLINE const bool IsCurrentlyDashing() const { return mIsDashing; }
 	FORCEINLINE const TWeakObjectPtr<class AVertCharacter>& GetCharacterOwner() const { return mCharacterOwner; }
+
+	UFUNCTION(BlueprintCallable, Category = "Usage")
+	FORCEINLINE int32 GetRemainingDashes() const { return mRemainingDashes; }
 
 	UFUNCTION(BlueprintCallable, Category = "Dash")
 	bool ExecuteGroundDash();
