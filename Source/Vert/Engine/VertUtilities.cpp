@@ -128,3 +128,17 @@ bool UVertUtilities::SphereTraceMultiByObjectTypes(const FVector& start, const F
 
 	return false;
 }
+
+void UVertUtilities::DrawDebugSweptSphere(const UWorld* InWorld, FVector const& Start, FVector const& End, float Radius, FColor const& Color, bool bPersistentLines /*= false*/, float LifeTime /*= -1.f*/, uint8 DepthPriority /*= 0*/)
+{
+#if ENABLE_DRAW_DEBUG
+	FVector const TraceVec = End - Start;
+	float const Dist = TraceVec.Size();
+
+	FVector const Center = Start + TraceVec * 0.5f;
+	float const HalfHeight = (Dist * 0.5f) + Radius;
+
+	FQuat const CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
+	::DrawDebugCapsule(InWorld, Center, HalfHeight, Radius, CapsuleRot, Color, bPersistentLines, LifeTime, DepthPriority);
+#endif
+}

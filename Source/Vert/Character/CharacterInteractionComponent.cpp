@@ -40,7 +40,7 @@ void UCharacterInteractionComponent::TickComponent(float DeltaTime, ELevelTick T
 		DrawDebug();
 }
 
-IInteractive* UCharacterInteractionComponent::AttemptInteract()
+AInteractive* UCharacterInteractionComponent::AttemptInteract()
 {
 	switch (mInteractionState)
 	{
@@ -48,7 +48,7 @@ IInteractive* UCharacterInteractionComponent::AttemptInteract()
 	{
 		if (FindFirstInteractive)
 		{
-			IInteractive* interactive = TraceForSingleInteractive();
+			AInteractive* interactive = TraceForSingleInteractive();
 			if (interactive)
 			{
 				interactive->Interact(this);
@@ -57,7 +57,7 @@ IInteractive* UCharacterInteractionComponent::AttemptInteract()
 		}
 		else
 		{
-			TArray<IInteractive*> interactives = TraceForMultipleInteractives();
+			TArray<AInteractive*> interactives = TraceForMultipleInteractives();
 			// #MI_TODO: select the best one.
 
 			if (interactives.Num() > 0)
@@ -70,7 +70,7 @@ IInteractive* UCharacterInteractionComponent::AttemptInteract()
 
 	case EInteractionState::HoldingItem:
 	{
-		IInteractive* interactive = mHeldInteractive;
+		AInteractive* interactive = mHeldInteractive;
 		interactive->Interact(this);
 		return interactive;
 	}
@@ -80,7 +80,7 @@ IInteractive* UCharacterInteractionComponent::AttemptInteract()
 	return nullptr;
 }
 
-bool UCharacterInteractionComponent::HoldInteractive(IInteractive* interactive, const FVector& localOffset /*=FVector::ZeroVector*/, bool forceDrop /*= false*/)
+bool UCharacterInteractionComponent::HoldInteractive(AInteractive* interactive, const FVector& localOffset /*=FVector::ZeroVector*/, bool forceDrop /*= false*/)
 {
 	if (forceDrop)
 		DropInteractive();
@@ -91,14 +91,15 @@ bool UCharacterInteractionComponent::HoldInteractive(IInteractive* interactive, 
 		if (ABaseWeapon* weapon = Cast<ABaseWeapon>(interactive))
 		{
 			mHeldWeapon = weapon;
+			mHeldWeapon->OnPickup(mCharacterOwner.Get());
 		}
 
-		if (AActor* actor = Cast<AActor>(interactive))
-		{
-			actor->DisableComponentsSimulatePhysics();
-			actor->AttachToComponent(mCharacterOwner->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, mCharacterOwner->ItemHandSocket);
-			actor->SetActorRelativeLocation(localOffset);
-		}
+// 		if (AActor* actor = Cast<AActor>(interactive))
+// 		{
+// 			actor->DisableComponentsSimulatePhysics();
+// 			actor->AttachToComponent(mCharacterOwner->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, mCharacterOwner->ItemHandSocket);
+// 			actor->SetActorRelativeLocation(localOffset);
+// 		}
 		mInteractionState = EInteractionState::HoldingItem;
 
 		return true;
@@ -111,11 +112,12 @@ void UCharacterInteractionComponent::DropInteractive()
 {
 	if (mHeldInteractive)
 	{
-		if (AActor* actor = Cast<AActor>(mHeldInteractive))
+		if (mHeldWeapon)
 		{
-			actor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			mHeldWeapon->OnDrop();
 		}
-
+		//mHeldInteractive->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	
 		mHeldInteractive = nullptr;
 		mHeldWeapon = nullptr;
 		mInteractionState = EInteractionState::Free;
@@ -155,49 +157,66 @@ void UCharacterInteractionComponent::StopAttacking()
 	}	
 }
 
-IInteractive* UCharacterInteractionComponent::TraceForSingleInteractive()
+AInteractive* UCharacterInteractionComponent::TraceForSingleInteractive()
 {
-	UE_LOG(LogTemp, Warning, TEXT("INTERACT"));
+	UWorld* world = GetWorld();
+	FHitResult hit;
 
-	if (UWorld* world = GetWorld())
+	static const FName sInteractionTraceSingle(TEXT("InteractionTraceSingle"));
+
+	FCollisionQueryParams params(sInteractionTraceSingle, false);
+	params.bReturnPhysicalMaterial = false;
+	params.bTraceAsyncScene = false;
+	params.bFindInitialOverlaps = false;
+	params.AddIgnoredActor(GetOwner());
+
+	const FVector characterLocation = mCharacterOwner->GetActorLocation();
+	const float capsuleHalfHeight = mCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() - TraceRadius;
+
+	const FVector start(characterLocation.X, characterLocation.Y, characterLocation.Z + capsuleHalfHeight);
+	const FVector end(characterLocation.X, characterLocation.Y, characterLocation.Z - capsuleHalfHeight);	
+
+	const bool foundHit = world->SweepSingleByChannel(hit, start, end, FQuat::Identity, ECC_InteractionTrace, FCollisionShape::MakeSphere(TraceRadius), params);
+	
+#if ENABLE_DRAW_DEBUG
+	if (ShowDebug)
 	{
-		FCollisionQueryParams params;
-		params.AddIgnoredActor(GetOwner());
-		params.bFindInitialOverlaps = false;
+		float lifetime = 5.f;
 
-		FCollisionObjectQueryParams objectParams;
-		objectParams.AddObjectTypesToQuery(ECC_Interactive);
-
-		FHitResult hit;
-		AController* controller = mCharacterOwner.IsValid() ? mCharacterOwner->GetController() : nullptr;
-		if (mCharacterOwner.IsValid() && controller)
+		if (foundHit && hit.bBlockingHit)
 		{
-			FVector start = mCharacterOwner->GetActorLocation() + controller->GetControlRotation().RotateVector(LocalSphereTraceOffset);
-			FVector end = start;
-			end.Z += mCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-			start.Z -= mCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+			// Red up to the blocking hit, green thereafter
+			UVertUtilities::DrawDebugSweptSphere(world, start, hit.Location, TraceRadius, FColor::Red, false, lifetime);
+			UVertUtilities::DrawDebugSweptSphere(world, hit.Location, end, TraceRadius, FColor::Green, false, lifetime);
+			DrawDebugPoint(world, hit.ImpactPoint, 16.f, FColor::Red, false, lifetime);
+		}
+		else
+		{
+			// no hit means all red
+			UVertUtilities::DrawDebugSweptSphere(world, start, end, TraceRadius, FColor::Red, false, lifetime);
+		}
+	}
+#endif
 
-			bool hasHit = UVertUtilities::SphereTraceSingleByObjectTypes(start, end, TraceRange, hit, params, objectParams);
+	if (foundHit && hit.Actor.IsValid())
+	{
+		UE_LOG(LogCharacterInteractionComponent, Log, TEXT("Sphere trace hit actor with name [%s]"), *hit.Actor->GetName());
 
-			if (hit.Actor.IsValid())
-			{
-				UE_LOG(LogCharacterInteractionComponent, Log, TEXT("Sphere trace hit actor with name [%s]"), *hit.Actor->GetName());
-
-				if (IInteractive* interactive = Cast<IInteractive>(hit.Actor.Get()))
-				{
-					return interactive;
-				}
-			}
-		}		
+		if (AInteractive* interactive = Cast<AInteractive>(hit.Actor.Get()))
+		{
+			return interactive;
+		}
 	}
 
 	return nullptr;
 }
 
 
-TArray<IInteractive*> UCharacterInteractionComponent::TraceForMultipleInteractives()
+TArray<AInteractive*> UCharacterInteractionComponent::TraceForMultipleInteractives()
 {
-	TArray<IInteractive*> interactives;
+	check(false); // out of date, see single interactive trace
+
+	TArray<AInteractive*> interactives;
 
 	if (UWorld* world = GetWorld())
 	{
@@ -214,13 +233,13 @@ TArray<IInteractive*> UCharacterInteractionComponent::TraceForMultipleInteractiv
 		{
 			FVector start = mCharacterOwner->GetActorLocation() + controller->GetControlRotation().RotateVector(LocalSphereTraceOffset);
 
-			bool hasHit = UVertUtilities::SphereTraceMultiByObjectTypes(start, start, TraceRange, hits, params, objectParams);
+			bool hasHit = UVertUtilities::SphereTraceMultiByObjectTypes(start, start, TraceRadius, hits, params, objectParams);
 
 			for (int32 i = 0; i < hits.Num(); ++i)
 			{
 				if (hits[i].Actor.IsValid())
 				{
-					if (IInteractive* interactive = Cast<IInteractive>(hits[i].Actor.Get()))
+					if (AInteractive* interactive = Cast<AInteractive>(hits[i].Actor.Get()))
 					{
 						interactives.Add(interactive);
 					}
@@ -238,7 +257,7 @@ void UCharacterInteractionComponent::DrawDebug()
 	{
 		if (AController* controller = mCharacterOwner->GetController())
 		{
-			DrawDebugSphere(GetWorld(), mCharacterOwner->GetActorLocation() + controller->GetControlRotation().RotateVector(LocalSphereTraceOffset), TraceRange, 16, FColor::Yellow);
+			DrawDebugSphere(GetWorld(), mCharacterOwner->GetActorLocation() + controller->GetControlRotation().RotateVector(LocalSphereTraceOffset), TraceRadius, 16, FColor::Yellow);
 		}
 	}
 }
