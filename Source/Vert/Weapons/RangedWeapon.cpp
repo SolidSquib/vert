@@ -34,5 +34,12 @@ FVector ARangedWeapon::GetShootDirectionAfterSpread(const FVector& aimDirection,
 	outCurrentSpread = GetCurrentSpread();
 	const float ConeHalfAngle = FMath::DegreesToRadians(outCurrentSpread * 0.5f);
 
+#if 1
+	FVector newDirection = WeaponRandomStream.VRandCone(aimDirection, ConeHalfAngle, ConeHalfAngle);
+	newDirection.Y = 0.f;
+
+	return newDirection;
+#else
 	return WeaponRandomStream.VRandCone(aimDirection, ConeHalfAngle, ConeHalfAngle);
+#endif
 }

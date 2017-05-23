@@ -4,21 +4,19 @@
 
 #include "Interactive.generated.h"
 
-// This class does not need to be modified.
-UINTERFACE(MinimalAPI)
-class UInteractive : public UInterface
+UCLASS(ABSTRACT)
+class VERT_API AInteractive : public AActor
 {
-	GENERATED_UINTERFACE_BODY()
-};
+	GENERATED_UCLASS_BODY()
 
-/**
- * 
- */
-class VERT_API IInteractive
-{
-	GENERATED_IINTERFACE_BODY()
-
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Interaction")
+	class USphereComponent* InteractionSphere;
+	
 public:
-	virtual void Interact(TWeakObjectPtr<class UCharacterInteractionComponent> instigator) = 0;
+	virtual void Interact(const TWeakObjectPtr<class UCharacterInteractionComponent>& instigator) PURE_VIRTUAL(AInteractive::Interact, );
+
+protected:
+	void DisableInteractionDetection();
+	void EnableInteractionDetection();
 };

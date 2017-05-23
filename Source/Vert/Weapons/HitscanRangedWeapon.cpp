@@ -23,10 +23,12 @@ void AHitscanRangedWeapon::FireWeapon()
 	FVector AimDir = GetAdjustedAim();
 	const FVector StartTrace = GetMuzzleLocation();
 	const FVector ShootDir = GetShootDirectionAfterSpread(AimDir, randomSeed, currentSpread);
-	const FVector EndTrace = StartTrace + ShootDir * InstantConfig.WeaponRange;
+	const FVector EndTrace = StartTrace + (ShootDir * InstantConfig.WeaponRange);
 
 	const FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
 	ProcessInstantHit(Impact, StartTrace, ShootDir, randomSeed, currentSpread);
+
+	DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Green, false, 2.f);
 
 	mCurrentFiringSpread = FMath::Min(SpreadConfig.FiringSpreadMax, mCurrentFiringSpread + SpreadConfig.FiringSpreadIncrement);
 }
@@ -152,10 +154,6 @@ void AHitscanRangedWeapon::ProcessInstantHit(const FHitResult& Impact, const FVe
 				ServerNotifyMiss(ShootDir, RandomSeed, ReticleSpread);
 			}
 		}
-	}
-	else if (GetNetMode() != NM_Client)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("HOW THE FUCK IS THIS WORKING"));
 	}
 
 	// process a confirmed hit

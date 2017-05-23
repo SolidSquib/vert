@@ -24,7 +24,7 @@ public:
 	FVector LocalSphereTraceOffset = FVector::ZeroVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact|Trace")
-	float TraceRange = 50.f;
+	float TraceRadius = 50.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact|Trace")
 	bool FindFirstInteractive = true;
@@ -39,8 +39,8 @@ public:
 	// Sets default values for this component's properties
 	UCharacterInteractionComponent();
 
-	class IInteractive* AttemptInteract();
-	bool HoldInteractive(IInteractive* interactive, const FVector& localOffset = FVector::ZeroVector, bool forceDrop = false);
+	class AInteractive* AttemptInteract();
+	bool HoldInteractive(AInteractive* interactive, const FVector& localOffset = FVector::ZeroVector, bool forceDrop = false);
 	void DropInteractive();
 	void ForceDropInteractive(FVector force, float radialForce);
 	bool AttemptAttack();
@@ -49,7 +49,7 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	FORCEINLINE IInteractive* GetHeldInteractive() const { return mHeldInteractive; }
+	FORCEINLINE AInteractive* GetHeldInteractive() const { return mHeldInteractive; }
 	FORCEINLINE ABaseWeapon* GetHeldWeapon() const { return mHeldWeapon; }
 
 	UFUNCTION(BlueprintCallable, Category = "Interact|Character")
@@ -60,13 +60,13 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	class IInteractive* TraceForSingleInteractive();
-	class TArray<IInteractive*> TraceForMultipleInteractives();
+	class AInteractive* TraceForSingleInteractive();
+	class TArray<AInteractive*> TraceForMultipleInteractives();
 	void DrawDebug();
 
 private:
 	TWeakObjectPtr<AVertCharacter> mCharacterOwner = nullptr;
-	IInteractive* mHeldInteractive = nullptr;
+	AInteractive* mHeldInteractive = nullptr;
 	ABaseWeapon* mHeldWeapon = nullptr;
 	EInteractionState mInteractionState = EInteractionState::Free;
 	bool mWantsToAttack = false;

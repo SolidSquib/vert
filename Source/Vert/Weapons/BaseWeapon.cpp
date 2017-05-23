@@ -7,6 +7,8 @@
 #include "Engine/VertPlayerState.h"
 #include "UserInterface/VertHUD.h"
 
+DEFINE_LOG_CATEGORY(LogVertBaseWeapon);
+
 ABaseWeapon::ABaseWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	WeaponMesh = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("WeaponMesh1P"));
@@ -17,6 +19,8 @@ ABaseWeapon::ABaseWeapon(const FObjectInitializer& ObjectInitializer) : Super(Ob
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
 	RootComponent = WeaponMesh;
+
+	InteractionSphere->SetupAttachment(RootComponent);
 
 	bLoopedMuzzleFX = false;
 	bLoopedFireAnim = false;
@@ -62,40 +66,13 @@ void ABaseWeapon::Destroyed()
 //////////////////////////////////////////////////////////////////////////
 // Inventory
 
-void ABaseWeapon::OnEquip(const ABaseWeapon* LastWeapon)
+void ABaseWeapon::OnEquip()
 {
 	AttachMeshToPawn();
 
 	bPendingEquip = true;
 	DetermineWeaponState();
 
-	// Only play animation if last weapon is valid
-	if (LastWeapon)
-	{
-		float Duration = PlayWeaponAnimation(EquipAnim);
-		if (Duration <= 0.0f)
-		{
-			// failsafe
-			Duration = 0.5f;
-		}
-		EquipStartedTime = GetWorld()->GetTimeSeconds();
-		EquipDuration = Duration;
-
-		GetWorldTimerManager().SetTimer(TimerHandle_OnEquipFinished, this, &ABaseWeapon::OnEquipFinished, Duration, false);
-	}
-	else
-	{
-		OnEquipFinished();
-	}
-
-	if (MyPawn && MyPawn->IsLocallyControlled())
-	{
-		PlayWeaponSound(EquipSound);
-	}
-}
-
-void ABaseWeapon::OnEquipFinished()
-{
 	AttachMeshToPawn();
 
 	bIsEquipped = true;
@@ -114,8 +91,11 @@ void ABaseWeapon::OnEquipFinished()
 			StartReload();
 		}
 	}
-
-
+	
+	if (MyPawn && MyPawn->IsLocallyControlled())
+	{
+		PlayWeaponSound(EquipSound);
+	}
 }
 
 void ABaseWeapon::OnUnEquip()
@@ -144,12 +124,14 @@ void ABaseWeapon::OnUnEquip()
 	DetermineWeaponState();
 }
 
-void ABaseWeapon::OnEnterInventory(AVertCharacter* NewOwner)
+void ABaseWeapon::OnPickup(AVertCharacter* NewOwner)
 {
 	SetOwningPawn(NewOwner);
+
+	OnEquip();
 }
 
-void ABaseWeapon::OnLeaveInventory()
+void ABaseWeapon::OnDrop()
 {
 	if (Role == ROLE_Authority)
 	{
@@ -174,18 +156,58 @@ void ABaseWeapon::AttachMeshToPawn()
 		if (MyPawn->IsLocallyControlled() == true)
 		{
 			USkeletalMeshComponent* PawnMesh = MyPawn->GetMesh();
-			WeaponMesh->SetHiddenInGame(false);
-			WeaponMesh->AttachToComponent(PawnMesh, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+			AttachToComponent(PawnMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, AttachPoint);
 		}
 	}
 }
 
 void ABaseWeapon::DetachMeshFromPawn()
 {
-	WeaponMesh->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
-	WeaponMesh->SetHiddenInGame(false);
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 }
 
+void ABaseWeapon::Interact(const TWeakObjectPtr<class UCharacterInteractionComponent>& instigator)
+{
+	WeaponInteract(instigator.Get(), instigator->GetCharacterOwner());
+}
+
+void ABaseWeapon::WeaponInteract_Implementation(UCharacterInteractionComponent* interactionComponent, AVertCharacter* character)
+{
+	if (interactionComponent != nullptr)
+	{
+		if (interactionComponent->GetHeldInteractive() != this)
+		{
+			FVector localOffset = FVector::ZeroVector;
+
+			if (interactionComponent->HoldInteractive(this, localOffset, false))
+			{
+				DisableInteractionDetection();
+				Instigator = character;
+
+				UE_LOG(LogVertBaseWeapon, Log, TEXT("Weapon %s picked up by player %s"), *GetName(), *Instigator->GetName());
+			}
+		}
+		else
+			ThrowWeapon();
+	}
+}
+
+void ABaseWeapon::ThrowWeapon_Implementation()
+{
+	if (AVertCharacter* character = Cast<AVertCharacter>(Instigator))
+	{
+		character->GetInteractionComponent()->DropInteractive();
+
+		EnableInteractionDetection();
+
+		FVector launchDirection = UVertUtilities::SnapVectorToAngle(character->GetAxisPostisions().GetPlayerLeftThumbstickDirection(), 45.f);
+		WeaponMesh->SetSimulatePhysics(true);
+		WeaponMesh->AddImpulse(launchDirection * 100000.f);
+		WeaponMesh->AddAngularImpulse(FVector(1.f, 0, 0) * 5000.f);
+
+		UE_LOG(LogVertBaseWeapon, Log, TEXT("Weapon %s thrown by player %s"), *GetName(), *character->GetName());
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -538,7 +560,7 @@ void ABaseWeapon::DetermineWeaponState()
 	{
 		NewState = EWeaponState::Equipping;
 	}
-
+	
 	SetWeaponState(NewState);
 }
 
@@ -634,7 +656,21 @@ FVector ABaseWeapon::GetCameraAim() const
 
 FVector ABaseWeapon::GetAdjustedAim() const
 {
-	return GetMuzzleDirection();
+	if (UseControllerAim)
+	{
+		if (AVertCharacter* character = Cast<AVertCharacter>(Instigator))
+		{
+			return character->GetActorForwardVector().GetSafeNormal();
+		}
+
+		UE_LOG(LogVertBaseWeapon, Warning, TEXT("Unable to get owning character of weapon %s"), *GetName());
+
+		return GetMuzzleDirection();
+	}
+	else
+	{
+		return GetMuzzleDirection();
+	}
 }
 
 FVector ABaseWeapon::GetCameraDamageStartLocation(const FVector& AimDir) const
@@ -686,7 +722,7 @@ FHitResult ABaseWeapon::WeaponTrace(const FVector& StartTrace, const FVector& En
 	TraceParams.bReturnPhysicalMaterial = true;
 
 	FHitResult Hit(ForceInit);
-	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, ECC_HeldWeapon, TraceParams);
+	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, ECC_WeaponTrace, TraceParams);
 
 	return Hit;
 }
@@ -709,11 +745,11 @@ void ABaseWeapon::OnRep_MyPawn()
 {
 	if (MyPawn)
 	{
-		OnEnterInventory(MyPawn);
+		OnPickup(MyPawn);
 	}
 	else
 	{
-		OnLeaveInventory();
+		OnDrop();
 	}
 }
 
@@ -753,20 +789,7 @@ void ABaseWeapon::SimulateWeaponFire()
 		USkeletalMeshComponent* UseWeaponMesh = GetWeaponMesh();
 		if (!bLoopedMuzzleFX || MuzzlePSC == NULL)
 		{
-			// Split screen requires we create 2 effects. One that we see and one that the other player sees.
-			if ((MyPawn != NULL) && (MyPawn->IsLocallyControlled() == true))
-			{
-				AController* PlayerCon = MyPawn->GetController();
-				if (PlayerCon != NULL)
-				{
-					WeaponMesh->GetSocketLocation(MuzzleAttachPoint);
-					MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFX, WeaponMesh, MuzzleAttachPoint);
-				}
-			}
-			else
-			{
-				MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFX, UseWeaponMesh, MuzzleAttachPoint);
-			}
+			MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFX, UseWeaponMesh, MuzzleAttachPoint);
 		}
 	}
 

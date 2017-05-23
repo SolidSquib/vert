@@ -3,11 +3,22 @@
 #include "Vert.h"
 #include "Interactive.h"
 
-
-// This function does not need to be modified.
-UInteractive::UInteractive(const class FObjectInitializer& ObjectInitializer)
+AInteractive::AInteractive(const class FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
+	InteractionSphere = CreateOptionalDefaultSubobject<USphereComponent>(TEXT("InteractionSphere"));
+	InteractionSphere->SetCollisionObjectType(ECC_Interactive);
+	InteractionSphere->SetCollisionProfileName(TEXT("InteractiveItem"));
+	InteractionSphere->InitSphereRadius(20.f);
+	InteractionSphere->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 }
 
-// Add default functionality here for any IInteractive functions that are not pure virtual.
+void AInteractive::DisableInteractionDetection()
+{
+	InteractionSphere->SetCollisionResponseToChannel(ECC_InteractionTrace, ECR_Ignore);
+}
+
+void AInteractive::EnableInteractionDetection()
+{
+	InteractionSphere->SetCollisionResponseToChannel(ECC_InteractionTrace, ECR_Block);
+}
