@@ -16,15 +16,10 @@ UCLASS(minimalapi)
 class AVertGameMode : public AGameMode
 {
 	GENERATED_BODY()
-
-protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCamera")
-	TSubclassOf<AVertPlayerCameraActor> PlayerCameraClass;
-
+		
 public:
 	AVertGameMode();
 
-	virtual void PreInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual APlayerController* SpawnPlayerController(ENetRole InRemoteRole, FVector const& SpawnLocation, FRotator const& SpawnRotation) override;
 

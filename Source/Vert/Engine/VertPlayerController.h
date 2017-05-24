@@ -66,6 +66,12 @@ public:
 	UFUNCTION(exec)
 	void SetInfiniteClip(bool enable);
 
+	UFUNCTION(exec)
+	void OverridePawnFollow(int32 pawnIndex);
+
+	UFUNCTION(exec)
+	void OverrideCameraZoom(int32 cameraZoomAmount);
+
 	UFUNCTION(BlueprintCallable, Category = "InputMethod")
 	bool UsingGamepad() const;
 

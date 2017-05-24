@@ -11,34 +11,22 @@ AVertGameMode::AVertGameMode()
 	// set default pawn class to our character
 	HUDClass = AVertHUD::StaticClass();
 	DefaultPawnClass = AVertCharacter::StaticClass();
-	PlayerCameraClass = AVertPlayerCameraActor::StaticClass();
-}
-
-void AVertGameMode::PreInitializeComponents()
-{
-	Super::PreInitializeComponents();
-
-	if (UWorld* world = GetWorld())
-	{
-		//Create scannable manager.
-		FActorSpawnParameters spawnParameters;
-		spawnParameters.Name = TEXT("PlayerCamera");
-		spawnParameters.Owner = this;
-		spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-		//Spawn the actor.
-		mPlayerCamera = world->SpawnActor<AVertPlayerCameraActor>(PlayerCameraClass, FVector::ZeroVector, FRotator::ZeroRotator, spawnParameters);
-		if (!mPlayerCamera.IsValid())
-		{
-			UE_LOG(LogVertGameMode, Fatal, TEXT("Failed to create player camera"));
-		}
-	}
 }
 
 void AVertGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	mOnControllerChangedHandle = FCoreDelegates::OnControllerConnectionChange.AddUFunction(this, TEXT("OnControllerConnectionChange"));
+
+	for (TActorIterator<AVertPlayerCameraActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	{
+		// Same as with the Object Iterator, access the subclass instance with the * or -> operators.
+		if (mPlayerCamera.IsValid())
+		{
+			UE_LOG(LogVertGameMode, Warning, TEXT("More than one AVertPlayerCameraActor found in scene, check that the correct camera is being used and the rest are removed."));
+		}
+		mPlayerCamera = *ActorItr;
+	}
 
 	if (mPlayerCamera.IsValid())
 	{
@@ -47,7 +35,7 @@ void AVertGameMode::BeginPlay()
 			APlayerController* controller = iter->Get();
 			controller->SetViewTarget(mPlayerCamera.Get());
 		}
-	}
+	} else { UE_LOG(LogVertGameMode, Warning, TEXT("No AVertPlayerCaneraActor found, game will default to FPS view.")); }
 }
 
 APlayerController* AVertGameMode::SpawnPlayerController(ENetRole InRemoteRole, FVector const& SpawnLocation, FRotator const& SpawnRotation)
