@@ -8,7 +8,6 @@ DEFINE_LOG_CATEGORY(LogVertPlayerController);
 AVertPlayerController::AVertPlayerController()
 {
 	PlayerCameraManagerClass = AVertCameraManager::StaticClass();
-	bAutoManageActiveCameraTarget = false;
 }
 
 void AVertPlayerController::DropIn()
@@ -166,4 +165,28 @@ void AVertPlayerController::DisplayVector2D(FString label, FVector2D theVector)
 	label += " ";
 	label += FString::SanitizeFloat(theVector.X) + ", " + FString::SanitizeFloat(theVector.Y);
 	ClientMessage(label);
+}
+
+void AVertPlayerController::OverridePawnFollow(int32 pawnIndex)
+{
+	if (AVertGameMode* mode = Cast<AVertGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		AVertPlayerCameraActor* cam = mode->GetActivePlayerCamera();
+		if (cam)
+		{
+			cam->OverridePawnFollow(pawnIndex);
+		}
+	}
+}
+
+void AVertPlayerController::OverrideCameraZoom(int32 cameraZoomAmount)
+{
+	if (AVertGameMode* mode = Cast<AVertGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		AVertPlayerCameraActor* cam = mode->GetActivePlayerCamera();
+		if (cam)
+		{
+			cam->OverrideCameraZoom(cameraZoomAmount);
+		}
+	}
 }
