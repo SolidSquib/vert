@@ -4,6 +4,8 @@
 
 #include "BaseWeapon.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogVertBaseWeapon, Log, All);
+
 namespace EWeaponState
 {
 	enum Type
@@ -70,10 +72,25 @@ struct FWeaponData
 };
 
 UCLASS(Abstract, Blueprintable)
-class ABaseWeapon : public AActor
+class ABaseWeapon : public AInteractive
 {
 	GENERATED_UCLASS_BODY()
 
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aim")
+	bool UseControllerAim = true;
+
+public:
+	virtual void Interact(const TWeakObjectPtr<class UCharacterInteractionComponent>& instigator) final;
+
+protected:
+	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
+	void WeaponInteract(UCharacterInteractionComponent* interactionComponent, AVertCharacter* character);
+	
+	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
+	void ThrowWeapon();
+
+public:
 		/** perform initial setup */
 		virtual void PostInitializeComponents() override;
 
@@ -105,19 +122,16 @@ class ABaseWeapon : public AActor
 	// Inventory
 
 	/** weapon is being equipped by owner pawn */
-	virtual void OnEquip(const ABaseWeapon* LastWeapon);
-
-	/** weapon is now equipped by owner pawn */
-	virtual void OnEquipFinished();
-
+	virtual void OnEquip();
+	
 	/** weapon is holstered by owner pawn */
 	virtual void OnUnEquip();
 
 	/** [server] weapon was added to pawn's inventory */
-	virtual void OnEnterInventory(AVertCharacter* NewOwner);
+	virtual void OnPickup(AVertCharacter* NewOwner);
 
 	/** [server] weapon was removed from pawn's inventory */
-	virtual void OnLeaveInventory();
+	virtual void OnDrop();
 
 	/** check if it's currently equipped */
 	bool IsEquipped() const;
@@ -257,14 +271,13 @@ class ABaseWeapon : public AActor
 	FORCEINLINE int32 GetBaseDamage() const { return WeaponConfig.BaseDamage; }
 
 protected:
-
 	/** pawn owner */
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_MyPawn)
-		class AVertCharacter* MyPawn;
+	class AVertCharacter* MyPawn;
 
 	/** weapon data */
 	UPROPERTY(EditDefaultsOnly, Category = Config)
-		FWeaponData WeaponConfig;
+	FWeaponData WeaponConfig;
 
 private:
 	/** weapon mesh: 3rd person view */

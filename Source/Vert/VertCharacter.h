@@ -21,6 +21,8 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVertCharacter, Log, All);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnJumpDelegate);
+
 USTRUCT()
 struct FCharacterDebugSettings
 {
@@ -56,6 +58,9 @@ class AVertCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnJumpDelegate OnJumpExecuted;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Debug)
 	FCharacterDebugSettings ShowDebug;
 

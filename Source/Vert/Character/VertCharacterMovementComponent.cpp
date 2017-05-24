@@ -21,7 +21,7 @@ void UVertCharacterMovementComponent::AddGrappleLineForce(const FVector& desired
 bool UVertCharacterMovementComponent::DoJump(bool replayingMoves)
 {
 	bool result =  Super::DoJump(replayingMoves);
-
+	
 	// if false because of charactermovement limitations, allow it when we are latched (wall jump)
 	if (!result && mIsGrappleLatched && CharacterOwner && !CharacterOwner->CanJump())
 		result = true;
