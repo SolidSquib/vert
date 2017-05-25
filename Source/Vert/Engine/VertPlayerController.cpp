@@ -190,3 +190,14 @@ void AVertPlayerController::OverrideCameraZoom(int32 cameraZoomAmount)
 		}
 	}
 }
+
+void AVertPlayerController::EnableDebugInfo(bool enable)
+{
+	for (UActorComponent* component : GetComponents())
+	{
+		if (IDebuggable* debuggable = Cast<IDebuggable>(component))
+		{
+			debuggable->EnableDebug(enable);
+		}
+	}
+}

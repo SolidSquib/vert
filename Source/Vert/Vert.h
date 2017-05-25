@@ -19,6 +19,7 @@
 #include "Engine/VertGameState.h"
 #include "Engine/VertPlayerState.h"
 #include "Engine/VertGlobals.h"
+#include "Engine/VertLevelScriptActor.h"
 
 // Components
 #include "CableComponent.h"
@@ -32,6 +33,7 @@
 #include "UserInterface/VertHUD.h"
 #include "Weapons/BaseWeapon.h"
 #include "Weapons/WeaponProjectile.h"
+#include "Components/SplineComponent.h"
 
 // UObjects
 #include "Weapons/VertDamageType.h"

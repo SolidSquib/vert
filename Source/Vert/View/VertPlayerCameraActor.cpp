@@ -2,6 +2,7 @@
 
 #include "Vert.h"
 #include "VertPlayerCameraActor.h"
+#include "Kismet\KismetTextLibrary.h"
 
 DEFINE_LOG_CATEGORY(LogVertPlayerCamera);
 
@@ -10,7 +11,7 @@ AVertPlayerCameraActor::AVertPlayerCameraActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.bStartWithTickEnabled = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(SceneRoot);
@@ -61,7 +62,7 @@ void AVertPlayerCameraActor::Tick(float DeltaTime)
 	}
 }
 
-void AVertPlayerCameraActor::UpdateCameraPositionAndZoom(FVector& meanLocation, FVector& largestDistance, float& hLength, float& vLength)
+void AVertPlayerCameraActor::UpdateCameraPositionAndZoom(FVector& meanLocation, FVector& largestDistance, float& hLengthSqr, float& vLengthSqr)
 {
 	if (mPawnOverride > -1)
 	{
@@ -97,25 +98,32 @@ void AVertPlayerCameraActor::UpdateCameraPositionAndZoom(FVector& meanLocation, 
 		meanLocation /= mPawnsToFollow.Num();
 		SetActorLocation(meanLocation);
 
-		if (mZoomOverride < 0)
-		{
-			// Determine the final length of the largest two distances, used for camera zoom
-			hLength = FMath::Sqrt(largestSquareH);
-			vLength = FMath::Sqrt(largestSquareV);
-
-			float targetH = hLength * 2;
-			float targetV = vLength * 3.5f;
-
-			targetH = FMath::Clamp(targetH, MinArmLength, MaxArmLength);
-			targetV = FMath::Clamp(targetV, MinArmLength, MaxArmLength);
-
-			CameraBoom->TargetArmLength = FMath::Max(targetH, targetV);
-		}
-		else
-		{
-			CameraBoom->TargetArmLength = mZoomOverride;
-		}
+		
 	}	
+}
+
+void AVertPlayerCameraActor::UpdateCameraZoom(float hLengthSqr, float vLengthSqr)
+{
+	float hLength, vLength;
+
+	if (mZoomOverride < 0)
+	{
+		// Determine the final length of the largest two distances, used for camera zoom
+		hLength = FMath::Sqrt(hLengthSqr);
+		vLength = FMath::Sqrt(vLengthSqr);
+
+		float targetH = hLength * 2;
+		float targetV = vLength * 3.5f;
+
+		targetH = FMath::Clamp(targetH, MinArmLength, MaxArmLength);
+		targetV = FMath::Clamp(targetV, MinArmLength, MaxArmLength);
+
+		CameraBoom->TargetArmLength = FMath::Max(targetH, targetV);
+	}
+	else
+	{
+		CameraBoom->TargetArmLength = mZoomOverride;
+	}
 }
 
 void AVertPlayerCameraActor::CorrectPawnPositions(const FVector& largestDistance)
@@ -167,4 +175,145 @@ void AVertPlayerCameraActor::OverridePawnFollow(int32 pawnIndex)
 void AVertPlayerCameraActor::OverrideCameraZoom(int32 cameraZoomAmount)
 {
 	mZoomOverride = cameraZoomAmount;
+}
+
+void AVertPlayerCameraActor::ScrubCameraTime()
+{
+	FVector cameraLocation = CameraSpline->GetLocationAtTime(CameraDebugTime, ESplineCoordinateSpace::World, ConstantVelocity);
+	FVector playerLocation = PlayerSpline->GetLocationAtTime(CameraDebugTime, ESplineCoordinateSpace::World, ConstantVelocity);
+
+	FRotator targetLookAt = UKismetMathLibrary::FindLookAtRotation(cameraLocation, playerLocation);
+
+	CameraComponent->SetWorldLocationAndRotation(cameraLocation, FRotator(targetLookAt.Pitch, targetLookAt.Yaw, 0.f));
+}
+
+void AVertPlayerCameraActor::SetupDebugNumbers()
+{
+	if (ShowDebugInfo)
+	{
+		AddSplineNumbers(PlayerSpline);
+		AddSplineNumbers(CameraSpline);
+	}
+}
+
+void AVertPlayerCameraActor::AddSplineNumbers(USplineComponent* spline)
+{
+	for (int i = 0; i < spline->GetNumberOfSplinePoints(); i++)
+	{
+		FVector location;
+		FVector tangent;
+
+		spline->GetLocationAndTangentAtSplinePoint(i, location, tangent, ESplineCoordinateSpace::Local);
+		location += FVector(0.f, 0.f, 20.f);
+
+		FRotator rotator = UKismetMathLibrary::MakeRotFromX(tangent);
+		FRotator newRotator = UKismetMathLibrary::ComposeRotators(rotator, FRotator(0.f, 0.f, 180.f));
+
+		if (UTextRenderComponent* renderText = Cast<UTextRenderComponent>(AddComponent(FName("UTextRenderComponent"), false, UKismetMathLibrary::MakeTransform(location, newRotator, FVector(1.f, 1.f, 1.f)), nullptr)))
+		{
+			renderText->SetText(UKismetTextLibrary::Conv_IntToText(i));
+		}
+	}
+}
+
+void AVertPlayerCameraActor::DebugSplineMovement()
+{
+	if (ShowDebugInfo)
+	{
+		FVector playerCurrentLocation = PlayerSpline->GetLocationAtTime(mSplineCurrentTime, ESplineCoordinateSpace::World, ConstantVelocity);
+		FVector playerDesiredLocation = PlayerSpline->GetLocationAtTime(mSplineDesiredTime, ESplineCoordinateSpace::World, ConstantVelocity);
+		FVector cameraCurrentLocation = CameraSpline->GetLocationAtTime(mSplineCurrentTime, ESplineCoordinateSpace::World, ConstantVelocity);
+		FVector cameraDesiredLocation = CameraSpline->GetLocationAtTime(mSplineDesiredTime, ESplineCoordinateSpace::World, ConstantVelocity);
+
+		FVector playerSplineRight = PlayerSpline->GetRightVectorAtTime(mSplineCurrentTime, ESplineCoordinateSpace::World, ConstantVelocity);
+		FVector playerSplineForward = PlayerSpline->GetDirectionAtTime(mSplineCurrentTime, ESplineCoordinateSpace::World, ConstantVelocity);
+
+		if (UObject* world = GetWorld())
+		{
+			UKismetSystemLibrary::DrawDebugSphere(world, playerCurrentLocation, 50.f, 12, FLinearColor::Red);
+			UKismetSystemLibrary::DrawDebugSphere(world, playerDesiredLocation, 50.f, 12, FLinearColor::Red);
+			UKismetSystemLibrary::DrawDebugSphere(world, cameraCurrentLocation, 50.f, 12, FLinearColor::Blue);
+			UKismetSystemLibrary::DrawDebugSphere(world, cameraDesiredLocation, 50.f, 12, FLinearColor::Blue);
+
+			UKismetSystemLibrary::DrawDebugArrow(world, playerDesiredLocation, playerDesiredLocation + (playerSplineForward*50.f), 12.f, FLinearColor::Green, 0.f, 3.f);
+			UKismetSystemLibrary::DrawDebugArrow(world, playerDesiredLocation, playerDesiredLocation + (playerSplineRight*50.f), 12.f, FLinearColor::Yellow, 0.f, 3.f);
+		}
+	}
+}
+
+float AVertPlayerCameraActor::RecursiveDistanceCheck(int iterations, float startTime, float endTime)
+{
+	float startDistance = (PlayerSpline->GetLocationAtTime(startTime, ESplineCoordinateSpace::World, ConstantVelocity) - mTarget->GetActorLocation()).Size();
+	float endDistance = (PlayerSpline->GetLocationAtTime(endTime, ESplineCoordinateSpace::World, ConstantVelocity) - mTarget->GetActorLocation()).Size();
+	float best;
+
+	if (startDistance < endDistance)
+	{
+		if (iterations <= 1)
+		{
+			best = startTime;
+		}
+		else
+		{
+			iterations -= 1;
+
+			if (startDistance <= DistanceThreshold)
+			{
+				best = startTime;
+			}
+			else
+			{
+				best = RecursiveDistanceCheck(iterations, startTime, UKismetMathLibrary::Lerp(startTime, endTime, 0.5f));
+			}
+		}
+	}
+	else
+	{
+		if (iterations <= 0)
+		{
+			best = endTime;
+		}
+		else
+		{
+			iterations -= 1;
+
+			if (endDistance <= DistanceThreshold)
+			{
+				best = endTime;
+			}
+			else
+			{
+				best = RecursiveDistanceCheck(iterations, UKismetMathLibrary::Lerp(startTime, endTime, 0.5f), endTime);
+			}
+		}
+	}
+
+	return best;
+}
+
+FVector AVertPlayerCameraActor::UpdateDesiredTime(float DeltaTime)
+{
+	float timeDifference = mSplineDesiredTime - mSplineCurrentTime;
+
+	if (UKismetMathLibrary::Abs(timeDifference) >= TimeDifferenceThreshold)
+	{
+		mSplineCurrentTime = mSplineDesiredTime;
+	}
+	else
+	{
+		mSplineCurrentTime = (timeDifference * DeltaTime) + mSplineCurrentTime;
+	}
+
+	return CameraSpline->GetLocationAtTime(mSplineDesiredTime, ESplineCoordinateSpace::World, ConstantVelocity);
+}
+
+void AVertPlayerCameraActor::UpdateCamera(float DeltaTime, const FVector& cameraDesiredLocation)
+{
+	if (mTarget.IsValid())
+	{
+		FVector newLocation = UKismetMathLibrary::VInterpTo(SplineTrackingCamera->GetComponentLocation(), cameraDesiredLocation, DeltaTime, CameraInterpSpeed);
+		FRotator newRotator = UKismetMathLibrary::FindLookAtRotation(SplineTrackingCamera->GetComponentLocation(), mTarget->GetActorLocation());
+
+		SplineTrackingCamera->SetWorldLocationAndRotation(newLocation, newRotator);
+	}
 }

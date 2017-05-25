@@ -72,6 +72,9 @@ public:
 	UFUNCTION(exec)
 	void OverrideCameraZoom(int32 cameraZoomAmount);
 
+	UFUNCTION(exec)
+	void EnableDebugInfo(bool enable);
+
 	UFUNCTION(BlueprintCallable, Category = "InputMethod")
 	bool UsingGamepad() const;
 

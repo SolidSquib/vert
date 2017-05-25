@@ -18,24 +18,11 @@ void AVertGameMode::BeginPlay()
 	Super::BeginPlay();
 	mOnControllerChangedHandle = FCoreDelegates::OnControllerConnectionChange.AddUFunction(this, TEXT("OnControllerConnectionChange"));
 
-	for (TActorIterator<AVertPlayerCameraActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	AVertLevelScriptActor* level = Cast<AVertLevelScriptActor>(GetWorld()->GetLevelScriptActor());
+	if (level)
 	{
-		// Same as with the Object Iterator, access the subclass instance with the * or -> operators.
-		if (mPlayerCamera.IsValid())
-		{
-			UE_LOG(LogVertGameMode, Warning, TEXT("More than one AVertPlayerCameraActor found in scene, check that the correct camera is being used and the rest are removed."));
-		}
-		mPlayerCamera = *ActorItr;
+		mPlayerCamera = level->GetStartingCamera();
 	}
-
-	if (mPlayerCamera.IsValid())
-	{
-		for (auto iter = GetWorld()->GetPlayerControllerIterator(); iter; ++iter)
-		{
-			APlayerController* controller = iter->Get();
-			controller->SetViewTarget(mPlayerCamera.Get());
-		}
-	} else { UE_LOG(LogVertGameMode, Warning, TEXT("No AVertPlayerCaneraActor found, game will default to FPS view.")); }
 }
 
 APlayerController* AVertGameMode::SpawnPlayerController(ENetRole InRemoteRole, FVector const& SpawnLocation, FRotator const& SpawnRotation)

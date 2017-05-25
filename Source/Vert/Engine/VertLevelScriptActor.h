@@ -12,8 +12,20 @@ UCLASS()
 class VERT_API AVertLevelScriptActor : public ALevelScriptActor
 {
 	GENERATED_BODY()
-	
-	
-	
-	
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	class AVertPlayerCameraActor* StartCamera = nullptr;
+
+public:
+	TWeakObjectPtr<AVertPlayerCameraActor> GetStartingCamera();
+	void RegisterPlayerPawn(class APawn* pawn);
+	void UnregisterPlayerPawn(class APawn* pawn);
+
+	UFUNCTION(BlueprintCallable, Category = "ActiveCamera")
+	void SetActiveCamera(AVertPlayerCameraActor* newCamera, float transitionTime);
+
+protected:
+	TWeakObjectPtr<AVertPlayerCameraActor> mActiveCamera = nullptr;
+	TArray<APawn*> mRegisteredPawns;
 };
