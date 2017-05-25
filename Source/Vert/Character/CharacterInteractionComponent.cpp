@@ -94,12 +94,11 @@ bool UCharacterInteractionComponent::HoldInteractive(AInteractive* interactive, 
 			mHeldWeapon->OnPickup(mCharacterOwner.Get());
 		}
 
-// 		if (AActor* actor = Cast<AActor>(interactive))
-// 		{
-// 			actor->DisableComponentsSimulatePhysics();
-// 			actor->AttachToComponent(mCharacterOwner->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, mCharacterOwner->ItemHandSocket);
-// 			actor->SetActorRelativeLocation(localOffset);
-// 		}
+		if (mHeldInteractive->Instigator != nullptr)
+			OnCatchInteractive.Broadcast(mHeldInteractive);
+		else
+			OnPickupInteractive.Broadcast(mHeldInteractive);
+
 		mInteractionState = EInteractionState::HoldingItem;
 
 		return true;
@@ -116,7 +115,8 @@ void UCharacterInteractionComponent::DropInteractive()
 		{
 			mHeldWeapon->OnDrop();
 		}
-		//mHeldInteractive->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		
+		OnDropInteractive.Broadcast(mHeldInteractive);
 	
 		mHeldInteractive = nullptr;
 		mHeldWeapon = nullptr;
@@ -137,7 +137,8 @@ bool UCharacterInteractionComponent::AttemptAttack()
 		if (mHeldWeapon)
 		{
 			mHeldWeapon->StartFire();
-
+			OnStartAttacking.Broadcast(mHeldWeapon);
+		
 			return true;
 		}
 	}	
@@ -153,6 +154,7 @@ void UCharacterInteractionComponent::StopAttacking()
 		if (mHeldWeapon)
 		{
 			mHeldWeapon->StopFire();
+			OnStopAttacking.Broadcast(mHeldWeapon);
 		}
 	}	
 }

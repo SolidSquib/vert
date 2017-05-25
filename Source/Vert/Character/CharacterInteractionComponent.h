@@ -14,10 +14,31 @@ enum class EInteractionState : uint8
 	HoldingItem
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartAttackingDelegate, ABaseWeapon*, weapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStopAttackingDelegate, ABaseWeapon*, weapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPickupInteractiveDelegate, AInteractive*, interactive);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDropInteractiveDelegate, AInteractive*, interactive);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VERT_API UCharacterInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnStartAttackingDelegate OnStartAttacking;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnStopAttackingDelegate OnStopAttacking;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnPickupInteractiveDelegate OnPickupInteractive;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnPickupInteractiveDelegate OnCatchInteractive;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnDropInteractiveDelegate OnDropInteractive;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact|Trace")
