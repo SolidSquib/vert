@@ -17,13 +17,16 @@ public:
 	float InterpSpeed = 100.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Zoom)
-	float MaxArmLength = 1000.f;
+	float MaxArmLength = 3000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Zoom)
-	float MinArmLength = 30.f;
+	float MinArmLength = 1000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Config)
-	bool ConstantVelocity;
+	bool ConstantVelocity = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Config)
+	bool LookAtTarget = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Bounds)
 	bool LockPawnsToBounds = false;
@@ -31,11 +34,27 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Bounds, meta = (EditCondition = "LockPawnToBounds"))
 	float MaximumDistance = 100.f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Spline)
-	class USplineComponent* CameraSpline = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spline)
+	class ASplineActor* CameraSpline = nullptr;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Spline)
-	USplineComponent* PlayerSpline = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spline)
+	ASplineActor* PlayerSpline = nullptr;
+
+	// Set whether this camera should lock it's position to the spline's desired X-axis
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock")
+	bool LockX = true;
+
+	// Set whether this camera should lock it's position to the spline's desired Y-axis
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock")
+	bool LockY = true;
+
+	// Set whether this camera should lock it's position to the spline's desired Z-axis
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock")
+	bool LockZ = true;
+
+	// Set the freedom granted to the camera in any one direction
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock", Meta = (EditCondition = "!LockX || !LockY || !LockZ"))
+	float SplineFreedom = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spline)
 	int SplineIterationMax = 10;
@@ -48,9 +67,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Debug)
 	bool ShowDebugInfo = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug", meta = (UIMin = 0.0, UIMax = 1.0, EditCondition = "ShowDebugInfo"))
-	float CameraDebugTime = 0.f;
 
 protected:
 	UPROPERTY()
@@ -82,8 +98,8 @@ public:
 	void OverrideCameraZoom(int32 cameraZoomAmount);
 
 protected:
-	void UpdateCameraPositionAndZoom(FVector& meanLocation, FVector& largestDistance, float& hLengthSqr, float& vLengthSqr);
-	void UpdateCameraZoom(float hLengthSqr, float vLengthSqr);
+	void UpdateTargetCameraPosition();
+	void UpdateCameraZoom(float deltaTime, const FVector& zoomTarget);
 	void CorrectPawnPositions(const FVector& largestDistance);
 
 	// Called when the game starts or when spawned
@@ -91,21 +107,23 @@ protected:
 
 private:
 	// Debug functions
-	void ScrubCameraTime();
 	void SetupDebugNumbers();
-	void AddSplineNumbers(USplineComponent* spline);
+	void AddSplineNumbers(ASplineActor* spline);
 	void DebugSplineMovement();
 
 	// Spline functions
 	float RecursiveDistanceCheck(int iteration, float startTime, float endTime);
+	FVector MakePositionVectorForSpline(const FVector& desiredSplineLocation);
 
 	// Update functions
 	FVector UpdateDesiredTime(float DeltaTime);
+	void UpdateCamera();
 	void UpdateCamera(float DeltaTime, const FVector& cameraDesiredLocation);
 
 private:
 	int32 mPawnOverride = -1;
 	int32 mZoomOverride = -1;
+	FVector mTargetLocation = FVector::ZeroVector;
 	TArray<class APawn*> mPawnsToFollow;
 	TArray<AVertPlayerController*> mPlayerControllers;
 	float mSplineDesiredTime;

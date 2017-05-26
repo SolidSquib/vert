@@ -91,13 +91,14 @@ bool UCharacterInteractionComponent::HoldInteractive(AInteractive* interactive, 
 		if (ABaseWeapon* weapon = Cast<ABaseWeapon>(interactive))
 		{
 			mHeldWeapon = weapon;
+
+			if (mHeldInteractive->Instigator != nullptr)
+				OnCatchInteractive.Broadcast(mHeldInteractive);
+			else
+				OnPickupInteractive.Broadcast(mHeldInteractive);
+
 			mHeldWeapon->OnPickup(mCharacterOwner.Get());
 		}
-
-		if (mHeldInteractive->Instigator != nullptr)
-			OnCatchInteractive.Broadcast(mHeldInteractive);
-		else
-			OnPickupInteractive.Broadcast(mHeldInteractive);
 
 		mInteractionState = EInteractionState::HoldingItem;
 
