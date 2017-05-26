@@ -9,6 +9,7 @@ TWeakObjectPtr<AVertPlayerCameraActor> AVertLevelScriptActor::GetStartingCamera(
 {
 	if (StartCamera)
 	{
+		UE_LOG(LogVertLevelScript, Log, TEXT("Setting start camera [%s] as the active player camera"), *StartCamera->GetName());
 		mActiveCamera = StartCamera;
 	}
 	else

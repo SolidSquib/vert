@@ -17,5 +17,12 @@ class VERT_API ASplineActor : public AActor
 	class USplineComponent* Spline;
 
 public:
+	FVector GetLocationAtTime(float time, ESplineCoordinateSpace::Type coords, bool constantVelocity);
+	void GetLocationAndTangentAtSplinePoint(int32 point, FVector& location, FVector& tangent, ESplineCoordinateSpace::Type coords);
+	FVector GetRightVectorAtTime(float time, ESplineCoordinateSpace::Type coords, bool constantVelocity);
+	FVector GetDirectionAtTime(float time, ESplineCoordinateSpace::Type coords, bool constantVelocity);
+	int32 GetNumberOfSplinePoints() const;
+
+public:
 	ASplineActor();
 };

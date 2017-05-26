@@ -54,4 +54,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "CharacterAim")
 	static FVector2D SnapVector2DToAngle(const FVector2D& vector, float angle);
+
+	UFUNCTION(BlueprintCallable, Category = "Camera Frustum")
+	static bool IsActorInFrustum(const UWorld* world, AActor* actor);
 };
