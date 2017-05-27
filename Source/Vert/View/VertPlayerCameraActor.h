@@ -7,11 +7,23 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVertPlayerCamera, Log, All);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCameraPointReachedDelegate, const TArray<APawn*>&, pawns);
+
 UCLASS(BlueprintType, Blueprintable)
 class VERT_API AVertPlayerCameraActor : public AActor
 {
 	GENERATED_BODY()
 	
+public:
+	UPROPERTY(BlueprintAssignable, Category = "Spline|Events")
+	FOnCameraPointReachedDelegate OnCameraReachEndOfTrack;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnCameraPointReachedDelegate OnCameraBecomeActive;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnCameraPointReachedDelegate OnCameraBecomeInactive;
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera)
 	float InterpSpeed = 100.f;
@@ -65,6 +77,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spline, meta = (UIMin = 0.0, UIMax = 1.0))
 	float TimeDifferenceThreshold = 0.75f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spline)
+	bool StopAtEnd = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Debug)
 	bool ShowDebugInfo = false;
 
@@ -81,6 +96,9 @@ protected:
 public:	
 	// Sets default values for this actor's properties
 	AVertPlayerCameraActor();
+
+	void ActivateCamera();
+	void DeactivateCamera();
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -117,7 +135,7 @@ private:
 
 	// Update functions
 	FVector UpdateDesiredTime(float DeltaTime);
-	void UpdateCamera();
+	void UpdateCamera(float DeltaTime);
 	void UpdateCamera(float DeltaTime, const FVector& cameraDesiredLocation);
 
 private:
@@ -128,4 +146,5 @@ private:
 	TArray<AVertPlayerController*> mPlayerControllers;
 	float mSplineDesiredTime;
 	float mSplineCurrentTime;
+	bool mHasReachedEnd = false;
 };

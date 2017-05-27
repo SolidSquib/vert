@@ -31,6 +31,7 @@ AWeaponProjectile::AWeaponProjectile(const FObjectInitializer& ObjectInitializer
 	MovementComp->MaxSpeed = 2000.0f;
 	MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->ProjectileGravityScale = 0.f;
+	MovementComp->bInitialVelocityInLocalSpace = false;
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(RootComponent);
@@ -61,7 +62,7 @@ void AWeaponProjectile::PostInitializeComponents()
 void AWeaponProjectile::InitVelocity(FVector& ShootDirection)
 {
 	if (MovementComp)
-	{
+	{		
 		MovementComp->Velocity = ShootDirection * MovementComp->InitialSpeed;
 	}
 }

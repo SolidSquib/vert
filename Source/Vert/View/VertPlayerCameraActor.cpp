@@ -35,6 +35,18 @@ AVertPlayerCameraActor::AVertPlayerCameraActor()
 	CameraBoom->bAbsoluteRotation = true;
 }
 
+void AVertPlayerCameraActor::ActivateCamera()
+{
+	SetActorTickEnabled(true);
+	OnCameraBecomeActive.Broadcast(mPawnsToFollow);
+}
+
+void AVertPlayerCameraActor::DeactivateCamera()
+{
+	SetActorTickEnabled(false);
+	OnCameraBecomeInactive.Broadcast(mPawnsToFollow);
+}
+
 // Called when the game starts or when spawned
 void AVertPlayerCameraActor::BeginPlay()
 {
@@ -62,15 +74,25 @@ void AVertPlayerCameraActor::Tick(float DeltaTime)
 	// If we have any splines attached to this camera, figure out the new desired location from them.
 	if (CameraSpline != nullptr || PlayerSpline != nullptr)
 	{
-		mSplineDesiredTime = RecursiveDistanceCheck(SplineIterationMax, 0.f, 1.f);
-		FVector zoomTarget = MakePositionVectorForSpline(UpdateDesiredTime(DeltaTime));
+		FVector zoomTarget;
+
+		if (mHasReachedEnd&&StopAtEnd)
+		{
+			zoomTarget = MakePositionVectorForSpline(CameraSpline->GetLocationAtTime(1.f, ESplineCoordinateSpace::World, ConstantVelocity));
+		}
+		else
+		{
+			mSplineDesiredTime = RecursiveDistanceCheck(SplineIterationMax, 0.f, 1.f);
+			zoomTarget = MakePositionVectorForSpline(UpdateDesiredTime(DeltaTime));
+		}
+		
 		UpdateCamera(DeltaTime, zoomTarget);
 		UpdateCameraZoom(DeltaTime, zoomTarget);
 		DebugSplineMovement();
 	}
 	else 
 	{
-		UpdateCamera();
+		UpdateCamera(DeltaTime);
 		UpdateCameraZoom(DeltaTime, mTargetLocation);
 	}
 
@@ -402,10 +424,6 @@ FVector AVertPlayerCameraActor::MakePositionVectorForSpline(const FVector& desir
 	if (LockY) targetVector.Y = desiredSplineLocation.Y;
 	if (LockZ) targetVector.Z = desiredSplineLocation.Z;
 
-	DrawDebugPoint(GetWorld(), mTargetLocation, 50.f, FColor::Red);
-	DrawDebugPoint(GetWorld(), desiredSplineLocation, 50.f, FColor::Green);
-	DrawDebugPoint(GetWorld(), targetVector, 50.f, FColor::Blue);
-
 	return targetVector;
 }
 
@@ -430,6 +448,12 @@ FVector AVertPlayerCameraActor::UpdateDesiredTime(float DeltaTime)
 		mSplineCurrentTime = FMath::FInterpTo(mSplineCurrentTime, mSplineDesiredTime, DeltaTime, InterpSpeed);
 	}
 
+	if (mSplineCurrentTime >= 1.f)
+	{
+		OnCameraReachEndOfTrack.Broadcast(mPawnsToFollow);
+		mHasReachedEnd = true;
+	}		
+
 	return CameraSpline->GetLocationAtTime(mSplineCurrentTime, ESplineCoordinateSpace::World, ConstantVelocity);
 }
 
@@ -440,9 +464,9 @@ FVector AVertPlayerCameraActor::UpdateDesiredTime(float DeltaTime)
 // Returns:   void
 // Qualifier:
 //************************************
-void AVertPlayerCameraActor::UpdateCamera()
+void AVertPlayerCameraActor::UpdateCamera(float DeltaTime)
 {
-	SetActorLocation(mTargetLocation);
+	SetActorLocation(FMath::VInterpTo(GetActorLocation(), mTargetLocation, DeltaTime, InterpSpeed));
 }
 
 //************************************
