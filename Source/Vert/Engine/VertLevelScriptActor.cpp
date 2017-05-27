@@ -33,7 +33,7 @@ TWeakObjectPtr<AVertPlayerCameraActor> AVertLevelScriptActor::GetStartingCamera(
 			controller->SetViewTarget(mActiveCamera.Get());
 		}
 
-		mActiveCamera->SetActorTickEnabled(true);
+		mActiveCamera->ActivateCamera();
 	}
 	else { UE_LOG(LogVertLevelScript, Warning, TEXT("No AVertPlayerCameraActor found, game will default to FPS view.")); }
 
@@ -50,14 +50,13 @@ void AVertLevelScriptActor::SetActiveCamera(AVertPlayerCameraActor* newCamera, f
 
 	if (mActiveCamera.IsValid())
 	{
-		mActiveCamera->SetActorTickEnabled(false);
+		mActiveCamera->DeactivateCamera();
 	}
 
 	mActiveCamera = newCamera;
 
 	if (mActiveCamera.IsValid())
 	{
-		mActiveCamera->SetActorTickEnabled(true);
 		for (APawn* pawn : mRegisteredPawns)
 		{
 			mActiveCamera->RegisterPlayerPawn(pawn);
@@ -66,6 +65,7 @@ void AVertLevelScriptActor::SetActiveCamera(AVertPlayerCameraActor* newCamera, f
 				controller->SetViewTargetWithBlend(mActiveCamera.Get(), transitionTime);
 			}
 		}
+		mActiveCamera->ActivateCamera();
 	}
 }
 

@@ -664,13 +664,9 @@ FVector ABaseWeapon::GetAdjustedAim() const
 		}
 
 		UE_LOG(LogVertBaseWeapon, Warning, TEXT("Unable to get owning character of weapon %s"), *GetName());
+	}
 
-		return GetMuzzleDirection();
-	}
-	else
-	{
-		return GetMuzzleDirection();
-	}
+	return GetMuzzleDirection();
 }
 
 FVector ABaseWeapon::GetCameraDamageStartLocation(const FVector& AimDir) const
