@@ -46,8 +46,7 @@
 #define ECC_Interactive ECC_GameTraceChannel2
 #define ECC_SphereTracer ECC_GameTraceChannel3
 #define ECC_LedgeTracer ECC_GameTraceChannel4
-#define ECC_CharacterHitBox ECC_GameTraceChannel5
-#define ECC_HeldWeapon ECC_GameTraceChannel6
 #define ECC_WeaponTrace ECC_GameTraceChannel7
 #define ECC_WeaponProjectile ECC_GameTraceChannel8
 #define ECC_InteractionTrace ECC_GameTraceChannel9
+#define ECC_WeaponMelee ECC_GameTraceChannel10

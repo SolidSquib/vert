@@ -15,7 +15,7 @@ AHitscanRangedWeapon::AHitscanRangedWeapon(const FObjectInitializer& ObjectIniti
 //////////////////////////////////////////////////////////////////////////
 // Weapon usage
 
-void AHitscanRangedWeapon::FireWeapon()
+void AHitscanRangedWeapon::FireWeapon_Implementation()
 {
 	int32 randomSeed;
 	float currentSpread;
@@ -52,7 +52,7 @@ void AHitscanRangedWeapon::ServerNotifyHit_Implementation(const FHitResult& Impa
 		const float ViewDotHitDir = FVector::DotProduct(Instigator->GetViewRotation().Vector(), ViewDir);
 		if (ViewDotHitDir > InstantConfig.AllowedViewDotHitDir - WeaponAngleDot)
 		{
-			if (CurrentState != EWeaponState::Idle)
+			if (mCurrentState != EWeaponState::Idle)
 			{
 				if (Impact.GetActor() == NULL)
 				{
