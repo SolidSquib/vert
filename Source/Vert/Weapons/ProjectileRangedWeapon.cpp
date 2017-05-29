@@ -11,7 +11,7 @@ AProjectileRangedWeapon::AProjectileRangedWeapon(const FObjectInitializer& Objec
 //////////////////////////////////////////////////////////////////////////
 // Weapon usage
 
-void AProjectileRangedWeapon::FireWeapon()
+void AProjectileRangedWeapon::FireWeapon_Implementation()
 {
 	int32 randomSeed;
 	float currentSpread;

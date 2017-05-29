@@ -49,12 +49,46 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Config)
 	FRangedWeaponSpreadConfig SpreadConfig;
 
+	/** name of bone/socket for muzzle in weapon mesh */
+	UPROPERTY(EditDefaultsOnly, Category = Effects)
+	FName MuzzleAttachPoint;
+
+	/** FX for muzzle flash */
+	UPROPERTY(EditDefaultsOnly, Category = Effects)
+	UParticleSystem* MuzzleFX;
+
+	/** spawned component for muzzle FX */
+	UPROPERTY(Transient)
+	UParticleSystemComponent* MuzzlePSC;
+
+	/** spawned component for second muzzle FX (Needed for split screen) */
+	UPROPERTY(Transient)
+	UParticleSystemComponent* MuzzlePSCSecondary;
+
+	/** is muzzle FX looped? */
+	UPROPERTY(EditDefaultsOnly, Category = Effects)
+	bool LoopedMuzzleFX;
+
 public:
 	float GetCurrentSpread() const;
+
+	/** get the muzzle location of the weapon */
+	UFUNCTION(BlueprintCallable, Category = "Aim")
+	FVector GetMuzzleLocation() const;
+
+	/** get direction of weapon's muzzle */
+	UFUNCTION(BlueprintCallable, Category = "Aim")
+	FVector GetMuzzleDirection() const;
+
+	/** Get the aim of the weapon, allowing for adjustments to be made by the weapon */
+	UFUNCTION(BlueprintCallable, Category = "Aim")
+	virtual FVector GetAdjustedAim() const;
 
 protected:	
 	virtual FVector GetShootDirectionAfterSpread(const FVector& aimDirection, int32& outRandomSeed, float& outCurrentSpread);
 	virtual void OnBurstFinished() override; /** [local + server] update spread on firing */
+	virtual void SimulateWeaponFire() override;
+	virtual void StopSimulatingWeaponFire() override;
 
 protected:
 	float mCurrentFiringSpread;

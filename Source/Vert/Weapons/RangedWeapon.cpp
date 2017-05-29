@@ -4,6 +4,7 @@
 ARangedWeapon::ARangedWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	mCurrentFiringSpread = 0.0f;
+	LoopedMuzzleFX = false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -25,6 +26,63 @@ void ARangedWeapon::OnBurstFinished()
 	Super::OnBurstFinished();
 
 	mCurrentFiringSpread = 0.0f;
+}
+
+void ARangedWeapon::SimulateWeaponFire()
+{
+	Super::SimulateWeaponFire();
+
+	if (MuzzleFX)
+	{
+		if (!LoopedMuzzleFX || MuzzlePSC == NULL)
+		{
+			MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFX, WeaponMesh, MuzzleAttachPoint);
+		}
+	}
+}
+
+void ARangedWeapon::StopSimulatingWeaponFire()
+{
+	if (LoopedMuzzleFX)
+	{
+		if (MuzzlePSC != NULL)
+		{
+			MuzzlePSC->DeactivateSystem();
+			MuzzlePSC = NULL;
+		}
+		if (MuzzlePSCSecondary != NULL)
+		{
+			MuzzlePSCSecondary->DeactivateSystem();
+			MuzzlePSCSecondary = NULL;
+		}
+	}
+
+	Super::StopSimulatingWeaponFire();
+}
+
+FVector ARangedWeapon::GetMuzzleLocation() const
+{
+	return WeaponMesh->GetSocketLocation(MuzzleAttachPoint);
+}
+
+FVector ARangedWeapon::GetMuzzleDirection() const
+{
+	return WeaponMesh->GetSocketRotation(MuzzleAttachPoint).Vector();
+}
+
+FVector ARangedWeapon::GetAdjustedAim() const
+{
+	if (UseControllerAim)
+	{
+		if (AVertCharacter* character = Cast<AVertCharacter>(Instigator))
+		{
+			return character->GetActorForwardVector().GetSafeNormal();
+		}
+
+		UE_LOG(LogVertBaseWeapon, Warning, TEXT("Unable to get owning character of weapon %s"), *GetName());
+	}
+
+	return GetMuzzleDirection();
 }
 
 FVector ARangedWeapon::GetShootDirectionAfterSpread(const FVector& aimDirection, int32& outRandomSeed, float& outCurrentSpread)
