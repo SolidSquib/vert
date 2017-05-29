@@ -21,7 +21,6 @@ ABaseWeapon::ABaseWeapon(const FObjectInitializer& ObjectInitializer) : Super(Ob
 
 	InteractionSphere->SetupAttachment(RootComponent);
 
-	bLoopedFireAnim = false;
 	bPlayingFireAnim = false;
 	bIsEquipped = false;
 	bWantsToFire = false;
@@ -169,9 +168,10 @@ void ABaseWeapon::Interact(const TWeakObjectPtr<class UCharacterInteractionCompo
 	WeaponInteract(instigator.Get(), instigator->GetCharacterOwner());
 }
 
-void ABaseWeapon::FireWeapon_Implementation()
+bool ABaseWeapon::FireWeapon_Implementation()
 {
 	UE_LOG(LogVertBaseWeapon, Fatal, TEXT("Call to pure virtual function ABaseWeapon::FireWeapon_Implementation not allowed"));
+	return false;
 }
 
 void ABaseWeapon::WeaponInteract_Implementation(UCharacterInteractionComponent* interactionComponent, AVertCharacter* character)
@@ -389,12 +389,16 @@ void ABaseWeapon::HandleFiring()
 
 		if (MyPawn && MyPawn->IsLocallyControlled())
 		{
-			FireWeapon();
+			if (FireWeapon())
+			{
+				PlayWeaponAnimation(FireAnim);
+				PlayWeaponSound(FireSound);
 
-			UseAmmo();
+				UseAmmo();
 
-			// update firing FX on remote clients if function was called on server
-			BurstCounter++;
+				// update firing FX on remote clients if function was called on server
+				BurstCounter++;
+			}			
 
 			if (WeaponConfig.FiringMode == EFiringMode::SemiAutomatic || (WeaponConfig.FiringMode == EFiringMode::Burst && BurstCounter >= WeaponConfig.BurstNumberOfShots))
 			{
@@ -491,16 +495,37 @@ void ABaseWeapon::ReloadWeapon()
 	}
 }
 
-void ABaseWeapon::SetWeaponState(EWeaponState::Type NewState)
+UAnimMontage* ABaseWeapon::GetPlayerAnimForState(EWeaponState state)
 {
-	const EWeaponState::Type PrevState = mCurrentState;
+	switch (state)
+	{
+	case EWeaponState::Equipping:
+		return EquipAnim.PlayerAnim;
+	case EWeaponState::Firing:
+		return FireAnim.PlayerAnim;
+	case EWeaponState::Reloading:
+		return ReloadAnim.PlayerAnim;
+	case EWeaponState::Idle:
+	default:
+		return IdleAnim.PlayerAnim;
+	}
+}
+
+void ABaseWeapon::SetWeaponState(EWeaponState NewState)
+{
+	const EWeaponState PrevState = mCurrentState;
 
 	if (PrevState == EWeaponState::Firing && NewState != EWeaponState::Firing)
 	{
 		OnBurstFinished();
 	}
-
+	
 	mCurrentState = NewState;
+
+	if (PrevState != NewState && MyPawn)
+	{
+		MyPawn->OnWeaponStateChanged.Broadcast(this, NewState, GetPlayerAnimForState(NewState));
+	}
 
 	if (PrevState != EWeaponState::Firing && NewState == EWeaponState::Firing)
 	{
@@ -510,7 +535,7 @@ void ABaseWeapon::SetWeaponState(EWeaponState::Type NewState)
 
 void ABaseWeapon::DetermineWeaponState()
 {
-	EWeaponState::Type NewState = EWeaponState::Idle;
+	EWeaponState NewState = EWeaponState::Idle;
 
 	if (bIsEquipped)
 	{
@@ -583,28 +608,22 @@ UAudioComponent* ABaseWeapon::PlayWeaponSound(USoundCue* Sound)
 	return AC;
 }
 
-float ABaseWeapon::PlayWeaponAnimation(UAnimMontage* Animation)
+float ABaseWeapon::PlayWeaponAnimation(const FWeaponAnim& Animation)
 {
 	float Duration = 0.0f;
-	if (MyPawn)
+	if (Animation.WeaponAnim)
 	{
-		if (Animation)
-		{
-			Duration = MyPawn->PlayAnimMontage(Animation);
-		}
+		WeaponMesh->PlayAnimation(Animation.WeaponAnim, false);
 	}
 
 	return Duration;
 }
 
-void ABaseWeapon::StopWeaponAnimation(UAnimMontage* Animation)
+void ABaseWeapon::StopWeaponAnimation(const FWeaponAnim& Animation)
 {
-	if (MyPawn)
+	if (Animation.WeaponAnim)
 	{
-		if (Animation)
-		{
-			MyPawn->StopAnimMontage(Animation);
-		}
+		WeaponMesh->Stop();
 	}
 }
 
@@ -680,24 +699,6 @@ void ABaseWeapon::SimulateWeaponFire()
 		return;
 	}
 
-	if (!bLoopedFireAnim || !bPlayingFireAnim)
-	{
-		PlayWeaponAnimation(FireAnim);
-		bPlayingFireAnim = true;
-	}
-
-	if (bLoopedFireSound)
-	{
-		if (FireAC == NULL)
-		{
-			FireAC = PlayWeaponSound(FireLoopSound);
-		}
-	}
-	else
-	{
-		PlayWeaponSound(FireSound);
-	}
-
 	AVertPlayerController* PC = (MyPawn != NULL) ? Cast<AVertPlayerController>(MyPawn->Controller) : NULL;
 	if (PC != NULL && PC->IsLocalController())
 	{
@@ -714,19 +715,7 @@ void ABaseWeapon::SimulateWeaponFire()
 
 void ABaseWeapon::StopSimulatingWeaponFire()
 {
-	if (bLoopedFireAnim && bPlayingFireAnim)
-	{
-		StopWeaponAnimation(FireAnim);
-		bPlayingFireAnim = false;
-	}
-
-	if (FireAC)
-	{
-		FireAC->FadeOut(0.1f, 0.0f);
-		FireAC = NULL;
-
-		PlayWeaponSound(FireFinishSound);
-	}
+	
 }
 
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
@@ -757,7 +746,7 @@ bool ABaseWeapon::IsAttachedToPawn() const
 	return bIsEquipped || bPendingEquip;
 }
 
-EWeaponState::Type ABaseWeapon::GetCurrentState() const
+EWeaponState ABaseWeapon::GetCurrentState() const
 {
 	return mCurrentState;
 }

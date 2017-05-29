@@ -6,16 +6,14 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVertBaseWeapon, Log, All);
 
-namespace EWeaponState
+UENUM(BlueprintType)
+enum class EWeaponState : uint8
 {
-	enum Type
-	{
-		Idle,
-		Firing,
-		Reloading,
-		Equipping,
-	};
-}
+	Idle,
+	Firing,
+	Reloading,
+	Equipping,
+};
 
 UENUM(BlueprintType)
 enum class EFiringMode : uint8
@@ -28,6 +26,8 @@ enum class EFiringMode : uint8
 USTRUCT()
 struct FWeaponAnim
 {
+	GENERATED_BODY()
+
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	UAnimMontage* PlayerAnim = nullptr;
 
@@ -66,6 +66,10 @@ struct FWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	int32 BaseDamage;
 
+	/** type of damage */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+	TSubclassOf<UDamageType> DamageType;
+
 	/** time between two consecutive shots */
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	float TimeBetweenShots;
@@ -90,6 +94,7 @@ struct FWeaponData
 		InitialClips = 4;
 		KnockbackMagnitude = 1000.f;
 		BaseDamage = 5;
+		DamageType = UDamageType::StaticClass();
 		TimeBetweenShots = 0.2f;
 		NoAnimReloadDuration = 1.0f;
 		FiringMode = EFiringMode::Automatic;
@@ -150,11 +155,7 @@ protected:
 	/** weapon data */
 	UPROPERTY(EditDefaultsOnly, Category = Config)
 	FWeaponData WeaponConfig;
-
-	/** firing audio (bLoopedFireSound set) */
-	UPROPERTY(Transient)
-	UAudioComponent* FireAC;
-
+	
 	/** camera shake on firing */
 	UPROPERTY(EditDefaultsOnly, Category = Effects)
 	TSubclassOf<UCameraShake> FireCameraShake;
@@ -167,14 +168,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Sound)
 	USoundCue* FireSound;
 	
-	/** looped fire sound (bLoopedFireSound set) */
-	UPROPERTY(EditDefaultsOnly, Category = Sound)
-	USoundCue* FireLoopSound;
-
-	/** finished burst sound (bLoopedFireSound set) */
-	UPROPERTY(EditDefaultsOnly, Category = Sound)
-	USoundCue* FireFinishSound;
-
 	/** out of ammo sound */
 	UPROPERTY(EditDefaultsOnly, Category = Sound)
 	USoundCue* OutOfAmmoSound;
@@ -185,7 +178,7 @@ protected:
 
 	/** reload animations */
 	UPROPERTY(EditDefaultsOnly, Category = Animation)
-	UAnimMontage* ReloadAnim;
+	FWeaponAnim ReloadAnim;
 
 	/** equip sound */
 	UPROPERTY(EditDefaultsOnly, Category = Sound)
@@ -193,20 +186,19 @@ protected:
 
 	/** equip animations */
 	UPROPERTY(EditDefaultsOnly, Category = Animation)
-	UAnimMontage* EquipAnim;
+	FWeaponAnim EquipAnim;
 
 	/** fire animations */
 	UPROPERTY(EditDefaultsOnly, Category = Animation)
-	UAnimMontage* FireAnim;
+	FWeaponAnim FireAnim;
+
+	UPROPERTY(EditDefaultsOnly, Category = Animation)
+	FWeaponAnim IdleAnim;
 
 	/** is fire sound looped? */
 	UPROPERTY(EditDefaultsOnly, Category = Sound)
 	uint32 bLoopedFireSound : 1;
-
-	/** is fire animation looped? */
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
-	uint32 bLoopedFireAnim : 1;
-
+	
 	/** is fire animation playing? */
 	uint32 bPlayingFireAnim : 1;
 
@@ -253,7 +245,7 @@ public:
 	bool IsAttachedToPawn() const; /** check if mesh is already attached */
 	bool CanFire() const; /** check if weapon can fire */
 	bool CanReload() const; /** check if weapon can be reloaded */
-	EWeaponState::Type GetCurrentState() const; /** get current weapon state */
+	EWeaponState GetCurrentState() const; /** get current weapon state */
 	int32 GetCurrentAmmo() const; /** get current ammo amount (total) */
 	int32 GetCurrentAmmoInClip() const; /** get current ammo amount (clip) */
 	int32 GetAmmoPerClip() const; /** get clip size */
@@ -286,15 +278,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "WeaponStats")
 	FORCEINLINE int32 GetBaseDamage() const { return WeaponConfig.BaseDamage; }
 
-protected:	
+protected:
+	UAnimMontage* GetPlayerAnimForState(EWeaponState state);
 	void HandleFiring(); /** [local + server] handle weapon fire */
-	void SetWeaponState(EWeaponState::Type NewState); /** update weapon state */
+	void SetWeaponState(EWeaponState NewState); /** update weapon state */
 	void DetermineWeaponState(); /** determine current weapon state */
 	void AttachMeshToPawn(); /** attaches weapon mesh to pawn's mesh */
 	void DetachMeshFromPawn(); /** detaches weapon mesh from pawn */
 	UAudioComponent* PlayWeaponSound(USoundCue* Sound); /** play weapon sounds */
-	float PlayWeaponAnimation(UAnimMontage* Animation); /** play weapon animations */
-	void StopWeaponAnimation(UAnimMontage* Animation); /** stop playing weapon animations */
+	float PlayWeaponAnimation(const FWeaponAnim& Animation); /** play weapon animations */
+	void StopWeaponAnimation(const FWeaponAnim& Animation); /** stop playing weapon animations */
 	FHitResult WeaponTrace(const FVector& TraceFrom, const FVector& TraceTo) const; /** find hit */
 	
 	virtual void SimulateWeaponFire(); /** Called in network play to do the cosmetic fx for firing */
@@ -306,7 +299,7 @@ protected:
 	void WeaponInteract(UCharacterInteractionComponent* interactionComponent, AVertCharacter* character);
 	
 	UFUNCTION(BlueprintNativeEvent, Category = "Attack")
-	void FireWeapon(); /** [local] weapon specific fire implementation */
+	bool FireWeapon(); /** [local] weapon specific fire implementation */
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
 	void ThrowWeapon();
@@ -340,7 +333,7 @@ protected:
 	float mLastFireTime; /** time of last successful weapon fire */
 	float mEquipStartedTime; /** last time when this weapon was switched to */
 	float mEquipDuration; /** how much time weapon needs to be equipped */
-	EWeaponState::Type mCurrentState; /** current weapon state */
+	EWeaponState mCurrentState; /** current weapon state */
 	FTimerHandle mTimerHandle_OnEquipFinished;
 	FTimerHandle mTimerHandle_StopReload;
 	FTimerHandle mTimerHandle_ReloadWeapon;

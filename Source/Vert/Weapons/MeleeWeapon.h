@@ -43,7 +43,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SimulateWeaponFire() override;
 	virtual void StopSimulatingWeaponFire() override;
-	virtual void FireWeapon_Implementation() override;
+	virtual bool FireWeapon_Implementation() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Attack|Notify")
 	void NotifyAttackBegin();
