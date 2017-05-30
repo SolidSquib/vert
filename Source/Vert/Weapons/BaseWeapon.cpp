@@ -3,7 +3,6 @@
 #include "Vert.h"
 #include "BaseWeapon.h"
 #include "Particles/ParticleSystemComponent.h"
-//#include "Bots/ShooterAIController.h"
 #include "Engine/VertPlayerState.h"
 #include "UserInterface/VertHUD.h"
 
@@ -22,19 +21,17 @@ ABaseWeapon::ABaseWeapon(const FObjectInitializer& ObjectInitializer) : Super(Ob
 
 	InteractionSphere->SetupAttachment(RootComponent);
 
-	bLoopedMuzzleFX = false;
-	bLoopedFireAnim = false;
 	bPlayingFireAnim = false;
 	bIsEquipped = false;
 	bWantsToFire = false;
 	bPendingReload = false;
 	bPendingEquip = false;
-	CurrentState = EWeaponState::Idle;
+	mCurrentState = EWeaponState::Idle;
 
 	CurrentAmmo = 0;
 	CurrentAmmoInClip = 0;
 	BurstCounter = 0;
-	LastFireTime = 0.0f;
+	mLastFireTime = 0.0f;
 
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup = TG_PrePhysics;
@@ -109,8 +106,8 @@ void ABaseWeapon::OnUnEquip()
 		StopWeaponAnimation(ReloadAnim);
 		bPendingReload = false;
 
-		GetWorldTimerManager().ClearTimer(TimerHandle_StopReload);
-		GetWorldTimerManager().ClearTimer(TimerHandle_ReloadWeapon);
+		GetWorldTimerManager().ClearTimer(mTimerHandle_StopReload);
+		GetWorldTimerManager().ClearTimer(mTimerHandle_ReloadWeapon);
 	}
 
 	if (bPendingEquip)
@@ -118,7 +115,7 @@ void ABaseWeapon::OnUnEquip()
 		StopWeaponAnimation(EquipAnim);
 		bPendingEquip = false;
 
-		GetWorldTimerManager().ClearTimer(TimerHandle_OnEquipFinished);
+		GetWorldTimerManager().ClearTimer(mTimerHandle_OnEquipFinished);
 	}
 
 	DetermineWeaponState();
@@ -169,6 +166,12 @@ void ABaseWeapon::DetachMeshFromPawn()
 void ABaseWeapon::Interact(const TWeakObjectPtr<class UCharacterInteractionComponent>& instigator)
 {
 	WeaponInteract(instigator.Get(), instigator->GetCharacterOwner());
+}
+
+bool ABaseWeapon::FireWeapon_Implementation()
+{
+	UE_LOG(LogVertBaseWeapon, Fatal, TEXT("Call to pure virtual function ABaseWeapon::FireWeapon_Implementation not allowed"));
+	return false;
 }
 
 void ABaseWeapon::WeaponInteract_Implementation(UCharacterInteractionComponent* interactionComponent, AVertCharacter* character)
@@ -233,7 +236,7 @@ void ABaseWeapon::StopFire()
 		ServerStopFire();
 	}
 
-	if (bWantsToFire)
+	if (bWantsToFire && (WeaponConfig.FiringMode != EFiringMode::Burst || BurstCounter >= WeaponConfig.BurstNumberOfShots || GetCurrentAmmoInClip() <= 0))
 	{
 		bWantsToFire = false;
 		DetermineWeaponState();
@@ -258,10 +261,10 @@ void ABaseWeapon::StartReload(bool bFromReplication)
 			AnimDuration = WeaponConfig.NoAnimReloadDuration;
 		}
 
-		GetWorldTimerManager().SetTimer(TimerHandle_StopReload, this, &ABaseWeapon::StopReload, AnimDuration, false);
+		GetWorldTimerManager().SetTimer(mTimerHandle_StopReload, this, &ABaseWeapon::StopReload, AnimDuration, false);
 		if (Role == ROLE_Authority)
 		{
-			GetWorldTimerManager().SetTimer(TimerHandle_ReloadWeapon, this, &ABaseWeapon::ReloadWeapon, FMath::Max(0.1f, AnimDuration - 0.1f), false);
+			GetWorldTimerManager().SetTimer(mTimerHandle_ReloadWeapon, this, &ABaseWeapon::ReloadWeapon, FMath::Max(0.1f, AnimDuration - 0.1f), false);
 		}
 
 		if (MyPawn && MyPawn->IsLocallyControlled())
@@ -273,7 +276,7 @@ void ABaseWeapon::StartReload(bool bFromReplication)
 
 void ABaseWeapon::StopReload()
 {
-	if (CurrentState == EWeaponState::Reloading)
+	if (mCurrentState == EWeaponState::Reloading)
 	{
 		bPendingReload = false;
 		DetermineWeaponState();
@@ -332,7 +335,7 @@ void ABaseWeapon::ClientStartReload_Implementation()
 bool ABaseWeapon::CanFire() const
 {
 	bool bCanFire = MyPawn && MyPawn->CanFire();
-	bool bStateOKToFire = ((CurrentState == EWeaponState::Idle) || (CurrentState == EWeaponState::Firing));
+	bool bStateOKToFire = ((mCurrentState == EWeaponState::Idle) || (mCurrentState == EWeaponState::Firing));
 	return ((bCanFire == true) && (bStateOKToFire == true) && (bPendingReload == false));
 }
 
@@ -340,7 +343,8 @@ bool ABaseWeapon::CanReload() const
 {
 	bool bCanReload = (!MyPawn || MyPawn->CanReload());
 	bool bGotAmmo = (CurrentAmmoInClip < WeaponConfig.AmmoPerClip) && (CurrentAmmo - CurrentAmmoInClip > 0 || HasInfiniteClip());
-	bool bStateOKToReload = ((CurrentState == EWeaponState::Idle) || (CurrentState == EWeaponState::Firing));
+	bool bStateOKToReload = ((mCurrentState == EWeaponState::Idle) || (mCurrentState == EWeaponState::Firing));
+	
 	return ((bCanReload == true) && (bGotAmmo == true) && (bStateOKToReload == true));
 }
 
@@ -353,14 +357,6 @@ void ABaseWeapon::GiveAmmo(int AddAmount)
 	const int32 MissingAmmo = FMath::Max(0, WeaponConfig.MaxAmmo - CurrentAmmo);
 	AddAmount = FMath::Min(AddAmount, MissingAmmo);
 	CurrentAmmo += AddAmount;
-
-#ifdef USE_SHOOTERGAME_AI
-	AVertAIController* BotAI = MyPawn ? Cast<AVertAIController>(MyPawn->GetController()) : NULL;
-	if (BotAI)
-	{
-		BotAI->CheckAmmo(this);
-	}
-#endif
 
 	// start reload if clip was empty
 	if (GetCurrentAmmoInClip() <= 0 && CanReload() && MyPawn->GetWeapon() == this)
@@ -380,30 +376,6 @@ void ABaseWeapon::UseAmmo()
 	{
 		CurrentAmmo--;
 	}
-
-#ifdef USE_SHOOTERGAME_AI
-	if (AVertAIController* BotAI = MyPawn ? Cast<AVertAIController>(MyPawn->GetController()) : NULL;)
-	{
-		BotAI->CheckAmmo(this);
-	}
-	else 
-#endif
-#ifdef USE_SHOOTERGAME_PLAYERSTATE
-	if (AVertPlayerController* PlayerController = MyPawn ? Cast<AVertPlayerController>(MyPawn->GetController()) : NULL;)
-	{
-		AVertPlayerState* PlayerState = Cast<AVertPlayerState>(PlayerController->PlayerState);
-		switch (GetAmmoType())
-		{
-		case EAmmoType::ERocket:
-			PlayerState->AddRocketsFired(1);
-			break;
-		case EAmmoType::EBullet:
-		default:
-			PlayerState->AddBulletsFired(1);
-			break;
-		}
-	}
-#endif
 }
 
 void ABaseWeapon::HandleFiring()
@@ -417,12 +389,21 @@ void ABaseWeapon::HandleFiring()
 
 		if (MyPawn && MyPawn->IsLocallyControlled())
 		{
-			FireWeapon();
+			if (FireWeapon())
+			{
+				PlayWeaponAnimation(FireAnim);
+				PlayWeaponSound(FireSound);
 
-			UseAmmo();
+				UseAmmo();
 
-			// update firing FX on remote clients if function was called on server
-			BurstCounter++;
+				// update firing FX on remote clients if function was called on server
+				BurstCounter++;
+			}			
+
+			if (WeaponConfig.FiringMode == EFiringMode::SemiAutomatic || (WeaponConfig.FiringMode == EFiringMode::Burst && BurstCounter >= WeaponConfig.BurstNumberOfShots))
+			{
+				StopFire();
+			}
 		}
 	}
 	else if (CanReload())
@@ -434,14 +415,6 @@ void ABaseWeapon::HandleFiring()
 		if (GetCurrentAmmo() == 0 && !bRefiring)
 		{
 			PlayWeaponSound(OutOfAmmoSound);
-#ifdef USE_SHOOTERGAME_HUD
-			AVertPlayerController* MyPC = Cast<AVertPlayerController>(MyPawn->Controller);
-			AVertHUD* MyHUD = MyPC ? Cast<AVertHUD>(MyPC->GetHUD()) : NULL;
-			if (MyHUD)
-			{
-				MyHUD->NotifyOutOfAmmo();
-			}
-#endif
 		}
 
 		// stop weapon fire FX, but stay in Firing state
@@ -466,14 +439,14 @@ void ABaseWeapon::HandleFiring()
 		}
 
 		// setup refire timer
-		bRefiring = (CurrentState == EWeaponState::Firing && WeaponConfig.TimeBetweenShots > 0.0f);
+		bRefiring = (mCurrentState == EWeaponState::Firing && WeaponConfig.TimeBetweenShots > 0.0f);
 		if (bRefiring)
 		{
-			GetWorldTimerManager().SetTimer(TimerHandle_HandleFiring, this, &ABaseWeapon::HandleFiring, WeaponConfig.TimeBetweenShots, false);
+			GetWorldTimerManager().SetTimer(mTimerHandle_HandleFiring, this, &ABaseWeapon::HandleFiring, WeaponConfig.TimeBetweenShots, false);
 		}
 	}
 
-	LastFireTime = GetWorld()->GetTimeSeconds();
+	mLastFireTime = GetWorld()->GetTimeSeconds();
 }
 
 bool ABaseWeapon::ServerHandleFiring_Validate()
@@ -494,6 +467,11 @@ void ABaseWeapon::ServerHandleFiring_Implementation()
 
 		// update firing FX on remote clients
 		BurstCounter++;
+
+		if (WeaponConfig.FiringMode == EFiringMode::SemiAutomatic || (WeaponConfig.FiringMode == EFiringMode::Burst && BurstCounter >= WeaponConfig.BurstNumberOfShots))
+		{
+			StopFire();
+		}
 	}
 }
 
@@ -517,16 +495,37 @@ void ABaseWeapon::ReloadWeapon()
 	}
 }
 
-void ABaseWeapon::SetWeaponState(EWeaponState::Type NewState)
+UAnimMontage* ABaseWeapon::GetPlayerAnimForState(EWeaponState state)
 {
-	const EWeaponState::Type PrevState = CurrentState;
+	switch (state)
+	{
+	case EWeaponState::Equipping:
+		return EquipAnim.PlayerAnim;
+	case EWeaponState::Firing:
+		return FireAnim.PlayerAnim;
+	case EWeaponState::Reloading:
+		return ReloadAnim.PlayerAnim;
+	case EWeaponState::Idle:
+	default:
+		return IdleAnim.PlayerAnim;
+	}
+}
+
+void ABaseWeapon::SetWeaponState(EWeaponState NewState)
+{
+	const EWeaponState PrevState = mCurrentState;
 
 	if (PrevState == EWeaponState::Firing && NewState != EWeaponState::Firing)
 	{
 		OnBurstFinished();
 	}
+	
+	mCurrentState = NewState;
 
-	CurrentState = NewState;
+	if (PrevState != NewState && MyPawn)
+	{
+		MyPawn->OnWeaponStateChanged.Broadcast(this, NewState, GetPlayerAnimForState(NewState));
+	}
 
 	if (PrevState != EWeaponState::Firing && NewState == EWeaponState::Firing)
 	{
@@ -536,7 +535,7 @@ void ABaseWeapon::SetWeaponState(EWeaponState::Type NewState)
 
 void ABaseWeapon::DetermineWeaponState()
 {
-	EWeaponState::Type NewState = EWeaponState::Idle;
+	EWeaponState NewState = EWeaponState::Idle;
 
 	if (bIsEquipped)
 	{
@@ -544,7 +543,7 @@ void ABaseWeapon::DetermineWeaponState()
 		{
 			if (CanReload() == false)
 			{
-				NewState = CurrentState;
+				NewState = mCurrentState;
 			}
 			else
 			{
@@ -568,10 +567,10 @@ void ABaseWeapon::OnBurstStarted()
 {
 	// start firing, can be delayed to satisfy TimeBetweenShots
 	const float GameTime = GetWorld()->GetTimeSeconds();
-	if (LastFireTime > 0 && WeaponConfig.TimeBetweenShots > 0.0f &&
-		LastFireTime + WeaponConfig.TimeBetweenShots > GameTime)
+	if (mLastFireTime > 0 && WeaponConfig.TimeBetweenShots > 0.0f &&
+		mLastFireTime + WeaponConfig.TimeBetweenShots > GameTime)
 	{
-		GetWorldTimerManager().SetTimer(TimerHandle_HandleFiring, this, &ABaseWeapon::HandleFiring, LastFireTime + WeaponConfig.TimeBetweenShots - GameTime, false);
+		GetWorldTimerManager().SetTimer(mTimerHandle_HandleFiring, this, &ABaseWeapon::HandleFiring, mLastFireTime + WeaponConfig.TimeBetweenShots - GameTime, false);
 	}
 	else
 	{
@@ -583,14 +582,14 @@ void ABaseWeapon::OnBurstFinished()
 {
 	// stop firing FX on remote clients
 	BurstCounter = 0;
-
+	
 	// stop firing FX locally, unless it's a dedicated server
 	if (GetNetMode() != NM_DedicatedServer)
 	{
 		StopSimulatingWeaponFire();
 	}
 
-	GetWorldTimerManager().ClearTimer(TimerHandle_HandleFiring);
+	GetWorldTimerManager().ClearTimer(mTimerHandle_HandleFiring);
 	bRefiring = false;
 }
 
@@ -609,103 +608,23 @@ UAudioComponent* ABaseWeapon::PlayWeaponSound(USoundCue* Sound)
 	return AC;
 }
 
-float ABaseWeapon::PlayWeaponAnimation(UAnimMontage* Animation)
+float ABaseWeapon::PlayWeaponAnimation(const FWeaponAnim& Animation)
 {
 	float Duration = 0.0f;
-	if (MyPawn)
+	if (Animation.WeaponAnim)
 	{
-		if (Animation)
-		{
-			Duration = MyPawn->PlayAnimMontage(Animation);
-		}
+		WeaponMesh->PlayAnimation(Animation.WeaponAnim, false);
 	}
 
 	return Duration;
 }
 
-void ABaseWeapon::StopWeaponAnimation(UAnimMontage* Animation)
+void ABaseWeapon::StopWeaponAnimation(const FWeaponAnim& Animation)
 {
-	if (MyPawn)
+	if (Animation.WeaponAnim)
 	{
-		if (Animation)
-		{
-			MyPawn->StopAnimMontage(Animation);
-		}
+		WeaponMesh->Stop();
 	}
-}
-
-FVector ABaseWeapon::GetCameraAim() const
-{
-	AVertPlayerController* const PlayerController = Instigator ? Cast<AVertPlayerController>(Instigator->Controller) : NULL;
-	FVector FinalAim = FVector::ZeroVector;
-
-	if (PlayerController)
-	{
-		FVector CamLoc;
-		FRotator CamRot;
-		PlayerController->GetPlayerViewPoint(CamLoc, CamRot);
-		FinalAim = CamRot.Vector();
-	}
-	else if (Instigator)
-	{
-		FinalAim = Instigator->GetBaseAimRotation().Vector();
-	}
-
-	return FinalAim;
-}
-
-FVector ABaseWeapon::GetAdjustedAim() const
-{
-	if (UseControllerAim)
-	{
-		if (AVertCharacter* character = Cast<AVertCharacter>(Instigator))
-		{
-			return character->GetActorForwardVector().GetSafeNormal();
-		}
-
-		UE_LOG(LogVertBaseWeapon, Warning, TEXT("Unable to get owning character of weapon %s"), *GetName());
-	}
-
-	return GetMuzzleDirection();
-}
-
-FVector ABaseWeapon::GetCameraDamageStartLocation(const FVector& AimDir) const
-{
-	AVertPlayerController* PC = MyPawn ? Cast<AVertPlayerController>(MyPawn->Controller) : NULL;
-#ifdef USE_SHOOTERGAME_AI
-	AVertAIController* AIPC = MyPawn ? Cast<AVertAIController>(MyPawn->Controller) : NULL;
-#endif
-	FVector OutStartTrace = FVector::ZeroVector;
-
-	if (PC)
-	{
-		// use player's camera
-		FRotator UnusedRot;
-		PC->GetPlayerViewPoint(OutStartTrace, UnusedRot);
-
-		// Adjust trace so there is nothing blocking the ray between the camera and the pawn, and calculate distance from adjusted start
-		OutStartTrace = OutStartTrace + AimDir * ((Instigator->GetActorLocation() - OutStartTrace) | AimDir);
-	}
-#ifdef USE_SHOOTERGAME_AI
-	else if (AIPC)
-	{
-		OutStartTrace = GetMuzzleLocation();
-	}
-#endif
-
-	return OutStartTrace;
-}
-
-FVector ABaseWeapon::GetMuzzleLocation() const
-{
-	USkeletalMeshComponent* UseMesh = GetWeaponMesh();
-	return UseMesh->GetSocketLocation(MuzzleAttachPoint);
-}
-
-FVector ABaseWeapon::GetMuzzleDirection() const
-{
-	USkeletalMeshComponent* UseMesh = GetWeaponMesh();
-	return UseMesh->GetSocketRotation(MuzzleAttachPoint).Vector();
 }
 
 FHitResult ABaseWeapon::WeaponTrace(const FVector& StartTrace, const FVector& EndTrace) const
@@ -775,36 +694,9 @@ void ABaseWeapon::OnRep_Reload()
 
 void ABaseWeapon::SimulateWeaponFire()
 {
-	if (Role == ROLE_Authority && CurrentState != EWeaponState::Firing)
+	if (Role == ROLE_Authority && mCurrentState != EWeaponState::Firing)
 	{
 		return;
-	}
-
-	if (MuzzleFX)
-	{
-		USkeletalMeshComponent* UseWeaponMesh = GetWeaponMesh();
-		if (!bLoopedMuzzleFX || MuzzlePSC == NULL)
-		{
-			MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFX, UseWeaponMesh, MuzzleAttachPoint);
-		}
-	}
-
-	if (!bLoopedFireAnim || !bPlayingFireAnim)
-	{
-		PlayWeaponAnimation(FireAnim);
-		bPlayingFireAnim = true;
-	}
-
-	if (bLoopedFireSound)
-	{
-		if (FireAC == NULL)
-		{
-			FireAC = PlayWeaponSound(FireLoopSound);
-		}
-	}
-	else
-	{
-		PlayWeaponSound(FireSound);
 	}
 
 	AVertPlayerController* PC = (MyPawn != NULL) ? Cast<AVertPlayerController>(MyPawn->Controller) : NULL;
@@ -823,33 +715,7 @@ void ABaseWeapon::SimulateWeaponFire()
 
 void ABaseWeapon::StopSimulatingWeaponFire()
 {
-	if (bLoopedMuzzleFX)
-	{
-		if (MuzzlePSC != NULL)
-		{
-			MuzzlePSC->DeactivateSystem();
-			MuzzlePSC = NULL;
-		}
-		if (MuzzlePSCSecondary != NULL)
-		{
-			MuzzlePSCSecondary->DeactivateSystem();
-			MuzzlePSCSecondary = NULL;
-		}
-	}
-
-	if (bLoopedFireAnim && bPlayingFireAnim)
-	{
-		StopWeaponAnimation(FireAnim);
-		bPlayingFireAnim = false;
-	}
-
-	if (FireAC)
-	{
-		FireAC->FadeOut(0.1f, 0.0f);
-		FireAC = NULL;
-
-		PlayWeaponSound(FireFinishSound);
-	}
+	
 }
 
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
@@ -863,11 +729,6 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLi
 
 	DOREPLIFETIME_CONDITION(ABaseWeapon, BurstCounter, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(ABaseWeapon, bPendingReload, COND_SkipOwner);
-}
-
-USkeletalMeshComponent* ABaseWeapon::GetWeaponMesh() const
-{
-	return WeaponMesh;
 }
 
 class AVertCharacter* ABaseWeapon::GetPawnOwner() const
@@ -885,9 +746,9 @@ bool ABaseWeapon::IsAttachedToPawn() const
 	return bIsEquipped || bPendingEquip;
 }
 
-EWeaponState::Type ABaseWeapon::GetCurrentState() const
+EWeaponState ABaseWeapon::GetCurrentState() const
 {
-	return CurrentState;
+	return mCurrentState;
 }
 
 int32 ABaseWeapon::GetCurrentAmmo() const
@@ -924,10 +785,10 @@ bool ABaseWeapon::HasInfiniteClip() const
 
 float ABaseWeapon::GetEquipStartedTime() const
 {
-	return EquipStartedTime;
+	return mEquipStartedTime;
 }
 
 float ABaseWeapon::GetEquipDuration() const
 {
-	return EquipDuration;
+	return mEquipDuration;
 }

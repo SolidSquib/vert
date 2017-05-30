@@ -15,7 +15,7 @@ AHitscanRangedWeapon::AHitscanRangedWeapon(const FObjectInitializer& ObjectIniti
 //////////////////////////////////////////////////////////////////////////
 // Weapon usage
 
-void AHitscanRangedWeapon::FireWeapon()
+bool AHitscanRangedWeapon::FireWeapon_Implementation()
 {
 	int32 randomSeed;
 	float currentSpread;
@@ -28,9 +28,16 @@ void AHitscanRangedWeapon::FireWeapon()
 	const FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
 	ProcessInstantHit(Impact, StartTrace, ShootDir, randomSeed, currentSpread);
 
-	DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Green, false, 2.f);
+	//DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Green, false, 2.f);
 
 	mCurrentFiringSpread = FMath::Min(SpreadConfig.FiringSpreadMax, mCurrentFiringSpread + SpreadConfig.FiringSpreadIncrement);
+
+	if (MyPawn)
+	{
+		MyPawn->OnWeaponFiredWithRecoil.Broadcast(SpreadConfig.RecoilAmount);
+	}
+
+	return true;
 }
 
 bool AHitscanRangedWeapon::ServerNotifyHit_Validate(const FHitResult& Impact, FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread)
@@ -52,7 +59,7 @@ void AHitscanRangedWeapon::ServerNotifyHit_Implementation(const FHitResult& Impa
 		const float ViewDotHitDir = FVector::DotProduct(Instigator->GetViewRotation().Vector(), ViewDir);
 		if (ViewDotHitDir > InstantConfig.AllowedViewDotHitDir - WeaponAngleDot)
 		{
-			if (CurrentState != EWeaponState::Idle)
+			if (mCurrentState != EWeaponState::Idle)
 			{
 				if (Impact.GetActor() == NULL)
 				{
@@ -206,10 +213,10 @@ bool AHitscanRangedWeapon::ShouldDealDamage(AActor* TestActor) const
 void AHitscanRangedWeapon::DealDamage(const FHitResult& Impact, const FVector& ShootDir)
 {
 	FPointDamageEvent PointDmg;
-	PointDmg.DamageTypeClass = InstantConfig.DamageType;
+	PointDmg.DamageTypeClass = WeaponConfig.DamageType;
 	PointDmg.HitInfo = Impact;
 	PointDmg.ShotDirection = ShootDir;
-	PointDmg.Damage = InstantConfig.HitDamage;
+	PointDmg.Damage = WeaponConfig.BaseDamage;
 
 	Impact.GetActor()->TakeDamage(PointDmg.Damage, PointDmg, MyPawn->Controller, this);
 }

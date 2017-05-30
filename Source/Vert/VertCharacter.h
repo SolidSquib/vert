@@ -22,6 +22,8 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogVertCharacter, Log, All);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCharacterActionDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnWeaponStateChangedDelegate, ABaseWeapon*, weapon, EWeaponState, newState, UAnimMontage*, playerAnim);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponFiredDelegate, float, recoil);
 
 USTRUCT()
 struct FCharacterDebugSettings
@@ -58,6 +60,12 @@ class AVertCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnWeaponStateChangedDelegate OnWeaponStateChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnWeaponFiredDelegate OnWeaponFiredWithRecoil;
+
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnCharacterActionDelegate OnJumpExecuted;
 

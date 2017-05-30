@@ -11,7 +11,7 @@ AProjectileRangedWeapon::AProjectileRangedWeapon(const FObjectInitializer& Objec
 //////////////////////////////////////////////////////////////////////////
 // Weapon usage
 
-void AProjectileRangedWeapon::FireWeapon()
+bool AProjectileRangedWeapon::FireWeapon_Implementation()
 {
 	int32 randomSeed;
 	float currentSpread;
@@ -22,6 +22,13 @@ void AProjectileRangedWeapon::FireWeapon()
 	ServerFireProjectile(GetMuzzleLocation(), ShootDir);
 
 	mCurrentFiringSpread = FMath::Min(SpreadConfig.FiringSpreadMax, mCurrentFiringSpread + SpreadConfig.FiringSpreadIncrement);
+
+	if (MyPawn)
+	{
+		MyPawn->OnWeaponFiredWithRecoil.Broadcast(SpreadConfig.RecoilAmount);
+	}
+
+	return true;
 }
 
 bool AProjectileRangedWeapon::ServerFireProjectile_Validate(FVector Origin, FVector_NetQuantizeNormal ShootDir)
