@@ -9,7 +9,7 @@ void UVertCharacterMovementComponent::AddGrappleLineForce(const float desiredLin
 {
 	float magnitude = -k * (actualLineLength - desiredLineLength) - b * Velocity.Size();
 	//AddForce(magnitude*direction.GetSafeNormal());
-	CharacterOwner->LaunchCharacter(magnitude*direction.GetSafeNormal(), false, false);
+	CharacterOwner->LaunchCharacter(magnitude*direction.GetSafeNormal(), false, true);
 }
 
 void UVertCharacterMovementComponent::AddGrappleLineForce(const FVector& desiredLineLength, const FVector& actualLineLength, const float k, const float b)

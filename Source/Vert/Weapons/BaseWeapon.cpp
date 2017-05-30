@@ -199,14 +199,10 @@ void ABaseWeapon::ThrowWeapon_Implementation()
 {
 	if (AVertCharacter* character = Cast<AVertCharacter>(Instigator))
 	{
-		character->GetInteractionComponent()->DropInteractive();
-
-		EnableInteractionDetection();
-
 		FVector launchDirection = UVertUtilities::SnapVectorToAngle(character->GetAxisPostisions().GetPlayerLeftThumbstickDirection(), 45.f);
-		WeaponMesh->SetSimulatePhysics(true);
-		WeaponMesh->AddImpulse(launchDirection * 100000.f);
-		WeaponMesh->AddAngularImpulse(FVector(1.f, 0, 0) * 5000.f);
+
+		character->GetInteractionComponent()->ThrowInteractive(WeaponMesh, launchDirection*100000.f, FVector(1.f, 0, 0) * 5000.f);
+		EnableInteractionDetection();
 
 		UE_LOG(LogVertBaseWeapon, Log, TEXT("Weapon %s thrown by player %s"), *GetName(), *character->GetName());
 	}
@@ -524,7 +520,7 @@ void ABaseWeapon::SetWeaponState(EWeaponState NewState)
 
 	if (PrevState != NewState && MyPawn)
 	{
-		MyPawn->OnWeaponStateChanged.Broadcast(this, NewState, GetPlayerAnimForState(NewState));
+		Delegate_OnWeaponStateChanged.Broadcast(this, NewState, GetPlayerAnimForState(NewState));
 	}
 
 	if (PrevState != EWeaponState::Firing && NewState == EWeaponState::Firing)

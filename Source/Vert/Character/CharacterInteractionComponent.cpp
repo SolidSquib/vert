@@ -92,10 +92,7 @@ bool UCharacterInteractionComponent::HoldInteractive(AInteractive* interactive, 
 		{
 			mHeldWeapon = weapon;
 
-			if (mHeldInteractive->Instigator != nullptr)
-				OnCatchInteractive.Broadcast(mHeldInteractive);
-			else
-				OnPickupInteractive.Broadcast(mHeldInteractive);
+			Delegate_OnPickupInteractive.Broadcast(mHeldInteractive, mHeldInteractive->Instigator != nullptr);
 
 			mHeldWeapon->OnPickup(mCharacterOwner.Get());
 		}
@@ -116,18 +113,37 @@ void UCharacterInteractionComponent::DropInteractive()
 		{
 			mHeldWeapon->OnDrop();
 		}
-		
-		OnDropInteractive.Broadcast(mHeldInteractive);
 	
+		Delegate_OnDropInteractive.Broadcast(mHeldInteractive, false);
+
 		mHeldInteractive = nullptr;
 		mHeldWeapon = nullptr;
 		mInteractionState = EInteractionState::Free;
 	}
 }
 
-void UCharacterInteractionComponent::ForceDropInteractive(FVector force, float radialForce)
+void UCharacterInteractionComponent::ThrowInteractive(UPrimitiveComponent* body, const FVector& impulse, const FVector& radialImpulse)
 {
+	if (mHeldInteractive)
+	{
+		if (mHeldWeapon)
+		{
+			mHeldWeapon->OnDrop();
 
+			if (body)
+			{
+				body->SetSimulatePhysics(true);
+				body->AddImpulse(impulse);
+				body->AddAngularImpulse(radialImpulse);
+			}			
+		}
+
+		Delegate_OnDropInteractive.Broadcast(mHeldInteractive, true);
+
+		mHeldInteractive = nullptr;
+		mHeldWeapon = nullptr;
+		mInteractionState = EInteractionState::Free;
+	}
 }
 
 bool UCharacterInteractionComponent::AttemptAttack()
@@ -138,8 +154,6 @@ bool UCharacterInteractionComponent::AttemptAttack()
 		if (mHeldWeapon)
 		{
 			mHeldWeapon->StartFire();
-			OnStartAttacking.Broadcast(mHeldWeapon);
-		
 			return true;
 		}
 	}	
@@ -155,7 +169,6 @@ void UCharacterInteractionComponent::StopAttacking()
 		if (mHeldWeapon)
 		{
 			mHeldWeapon->StopFire();
-			OnStopAttacking.Broadcast(mHeldWeapon);
 		}
 	}	
 }

@@ -136,6 +136,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Grappling")
 	FORCEINLINE AActor* GetHookedActor() const { return mHookAttachment.Actor.Get(); }
 
+	UFUNCTION(BlueprintCallable, Category = "Grappling")
+	FORCEINLINE UPrimitiveComponent* GetHookedPrimitive() const { return mHookAttachment.Component.Get(); }
+
 private:
 	void StartReeling();
 	void TickReel(float DeltaSeconds);

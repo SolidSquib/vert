@@ -92,6 +92,27 @@ void AVertCharacter::BeginPlay()
 		onDeath.BindUFunction(this, TEXT("OnNotifyDeath"));
 		HealthComponent->OnDeath.Add(onDeath);
 	}
+
+	if (InteractionComponent)
+	{
+		FScriptDelegate onPickup;
+		onPickup.BindUFunction(this, TEXT("OnPickupInteractive"));
+		InteractionComponent->Delegate_OnPickupInteractive.Add(onPickup);
+
+		FScriptDelegate onDrop;
+		onDrop.BindUFunction(this, TEXT("OnDropInteractive"));
+		InteractionComponent->Delegate_OnDropInteractive.Add(onDrop);
+	}
+
+	if (DashingComponent)
+	{
+		FScriptDelegate onDashEnd;
+		onDashEnd.BindUFunction(this, TEXT("Character_OnDashEnded"));
+		DashingComponent->OnDashEnd.Add(onDashEnd);
+	}
+
+	mOnWeaponStateChangedDelegate.BindUFunction(this, TEXT("Character_OnWeaponStateChangeExecuted"));
+	mOnWeaponFiredWithRecoilDelegate.BindUFunction(this, TEXT("Character_OnWeaponFiredWithRecoilExecuted"));
 }
 
 void AVertCharacter::EndPlay(const EEndPlayReason::Type endPlayReason)
@@ -146,6 +167,7 @@ void AVertCharacter::ApplyDamageMomentum(float DamageTaken, FDamageEvent const& 
 void AVertCharacter::StopAttacking()
 {
 	InteractionComponent->StopAttacking();
+	Character_OnStopAttackExecuted();
 }
 
 bool AVertCharacter::CanFire() const
@@ -189,7 +211,7 @@ void AVertCharacter::ActionMoveRight(float Value)
 void AVertCharacter::ActionJump()
 {
 	Jump();
-	OnJumpExecuted.Broadcast();
+	Character_OnJumpExecuted();
 }
 
 void AVertCharacter::ActionGrappleShoot()
@@ -213,35 +235,47 @@ void AVertCharacter::ActionGrappleShoot()
 
 void AVertCharacter::ExecuteActionGrappleShoot()
 {
-	if (!GrapplingComponent->GetHookedActor())
+	if (!GrapplingComponent->GetHookedPrimitive())
 	{
 		if (GrapplingComponent->ExecuteGrapple(UsingGamepad() ? GetAxisPostisions().GetPlayerRightThumbstickDirection() : GetAxisPostisions().GetPlayerMouseDirection()))
 		{
-			// do something
+			Character_OnGrappleShootExecuted(GrapplingComponent->GetLineDirection());
 		}
 	}
 	else
 	{
 		if (GrapplingComponent->StartPulling())
 		{
-			// do something
+			Character_OnGrapplePullExecuted(GrapplingComponent->GetLineDirection());
 		}
 	}
 }
 
 void AVertCharacter::ActionDash()
 {
-	if (DashingComponent->ExecuteGroundDash())
+	FVector direction;
+
+	if (GrapplingComponent->IsGrappleDeployed())
 	{
-		// do something
+		if (DashingComponent->ExecuteGrappleDash(direction))
+		{
+			Character_OnDashExecuted(direction, true);
+		}
+	}
+	else
+	{
+		if (DashingComponent->ExecuteGroundDash(direction))
+		{
+			Character_OnDashExecuted(direction, false);
+		}
 	}
 }
 
 void AVertCharacter::ActionInteract()
 {
-	if (InteractionComponent->AttemptInteract())
+	if (AInteractive* interactive = InteractionComponent->AttemptInteract())
 	{
-		// do something
+		Character_OnInteractExecuted(interactive);
 	}
 }
 
@@ -249,7 +283,7 @@ void AVertCharacter::ActionAttack()
 {
 	if (InteractionComponent->AttemptAttack())
 	{
-		// do something
+		Character_OnStartAttackExecuted(GetWeapon());
 	}
 }
 
@@ -328,6 +362,28 @@ void AVertCharacter::UpdateCharacter()
 			Controller->SetControlRotation(FRotator(0.0f, 0.0f, 0.0f));
 		}
 	}
+}
+
+void AVertCharacter::OnPickupInteractive(AInteractive* interactive, bool wasCaught)
+{
+	if (ABaseWeapon* weapon = Cast<ABaseWeapon>(interactive))
+	{
+		weapon->Delegate_OnWeaponFiredWithRecoil.Add(mOnWeaponFiredWithRecoilDelegate);
+		weapon->Delegate_OnWeaponStateChanged.Add(mOnWeaponStateChangedDelegate);
+	}
+
+	Character_OnPickupNewInteractive(interactive, wasCaught);
+}
+
+void AVertCharacter::OnDropInteractive(AInteractive* interactive, bool wasThrown)
+{
+	if (ABaseWeapon* weapon = Cast<ABaseWeapon>(interactive))
+	{
+		weapon->Delegate_OnWeaponFiredWithRecoil.Remove(mOnWeaponFiredWithRecoilDelegate);
+		weapon->Delegate_OnWeaponStateChanged.Remove(mOnWeaponStateChangedDelegate);
+	}
+
+	Character_OnDropCurrentInteractive(interactive, wasThrown);
 }
 
 void AVertCharacter::OnNotifyDeath_Implementation(const FTakeHitInfo& lastHit)
