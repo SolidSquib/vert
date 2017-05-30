@@ -39,10 +39,13 @@ void AMeleeWeapon::StopSimulatingWeaponFire()
 	}
 }
 
-void AMeleeWeapon::FireWeapon_Implementation()
+bool AMeleeWeapon::FireWeapon_Implementation()
 {
 	// Handled in animgraph
 	OnMeleeAttack.Broadcast(mDidHit ? mComboDepth++ : (mComboDepth = 0));
+	mDidHit = false;
+
+	return true;
 }
 
 void AMeleeWeapon::NotifyAttackBegin()
@@ -84,6 +87,17 @@ void AMeleeWeapon::NotifyAttackEnd()
 void AMeleeWeapon::OnWeaponBeginOverlap_Implementation(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult)
 {
 	mDidHit = true;
+
+	if (otherActor)
+	{
+		FPointDamageEvent PointDmg;
+		PointDmg.DamageTypeClass = WeaponConfig.DamageType;
+		PointDmg.HitInfo = sweepResult;
+		PointDmg.ShotDirection = otherActor->GetActorLocation() - GetActorLocation();
+		PointDmg.Damage = WeaponConfig.BaseDamage;
+
+		otherActor->TakeDamage(PointDmg.Damage, PointDmg, MyPawn->Controller, this);
+	}
 }
 
 void AMeleeWeapon::OnWeaponEndOverlap_Implementation(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex)

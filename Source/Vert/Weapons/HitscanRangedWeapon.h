@@ -31,14 +31,6 @@ struct FInstantWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	float WeaponRange;
 
-	/** damage amount */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-	int32 HitDamage;
-
-	/** type of damage */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-	TSubclassOf<UDamageType> DamageType;
-
 	/** hit verification: scale for bounding box of hit actor */
 	UPROPERTY(EditDefaultsOnly, Category = HitVerification)
 	float ClientSideHitLeeway;
@@ -51,8 +43,6 @@ struct FInstantWeaponData
 	FInstantWeaponData()
 	{
 		WeaponRange = 10000.0f;
-		HitDamage = 10;
-		DamageType = UDamageType::StaticClass();
 		ClientSideHitLeeway = 200.0f;
 		AllowedViewDotHitDir = 0.8f;
 	}
@@ -93,7 +83,7 @@ protected:
 	void SimulateInstantHit(const FVector& Origin, int32 RandomSeed, float ReticleSpread); /** called in network play to do the cosmetic fx  */
 	void SpawnImpactEffects(const FHitResult& Impact); /** spawn effects for impact */
 	void SpawnTrailEffect(const FVector& EndPoint); /** spawn trail effect */
-	virtual void FireWeapon_Implementation() override; /** [local] weapon specific fire implementation */
+	virtual bool FireWeapon_Implementation() override; /** [local] weapon specific fire implementation */
 
 	UFUNCTION()
 	void OnRep_HitNotify();

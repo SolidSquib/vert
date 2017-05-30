@@ -30,6 +30,9 @@ struct FRangedWeaponSpreadConfig
 	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
 	float FiringSpreadMax;
 
+	UPROPERTY(EditDefaultsOnly, Category = Recoil)
+	float RecoilAmount;
+
 	/** defaults */
 	FRangedWeaponSpreadConfig()
 	{
@@ -37,6 +40,7 @@ struct FRangedWeaponSpreadConfig
 		MovingSpreadMod = 5.f;
 		FiringSpreadIncrement = 1.0f;
 		FiringSpreadMax = 10.0f;
+		RecoilAmount = 0.f;
 	}
 };
 

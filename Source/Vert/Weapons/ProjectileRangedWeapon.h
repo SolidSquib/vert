@@ -55,7 +55,7 @@ public:
 	void ApplyWeaponConfig(FProjectileWeaponData& Data); /** apply config on projectile */
 
 protected:
-	virtual void FireWeapon_Implementation() override; /** [local] weapon specific fire implementation */
+	virtual bool FireWeapon_Implementation() override; /** [local] weapon specific fire implementation */
 
 	/** spawn projectile on server */
 	UFUNCTION(BlueprintCallable, reliable, server, WithValidation)

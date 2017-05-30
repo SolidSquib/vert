@@ -15,7 +15,7 @@ AHitscanRangedWeapon::AHitscanRangedWeapon(const FObjectInitializer& ObjectIniti
 //////////////////////////////////////////////////////////////////////////
 // Weapon usage
 
-void AHitscanRangedWeapon::FireWeapon_Implementation()
+bool AHitscanRangedWeapon::FireWeapon_Implementation()
 {
 	int32 randomSeed;
 	float currentSpread;
@@ -31,6 +31,13 @@ void AHitscanRangedWeapon::FireWeapon_Implementation()
 	DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Green, false, 2.f);
 
 	mCurrentFiringSpread = FMath::Min(SpreadConfig.FiringSpreadMax, mCurrentFiringSpread + SpreadConfig.FiringSpreadIncrement);
+
+	if (MyPawn)
+	{
+		MyPawn->OnWeaponFiredWithRecoil.Broadcast(SpreadConfig.RecoilAmount);
+	}
+
+	return true;
 }
 
 bool AHitscanRangedWeapon::ServerNotifyHit_Validate(const FHitResult& Impact, FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread)
@@ -206,10 +213,10 @@ bool AHitscanRangedWeapon::ShouldDealDamage(AActor* TestActor) const
 void AHitscanRangedWeapon::DealDamage(const FHitResult& Impact, const FVector& ShootDir)
 {
 	FPointDamageEvent PointDmg;
-	PointDmg.DamageTypeClass = InstantConfig.DamageType;
+	PointDmg.DamageTypeClass = WeaponConfig.DamageType;
 	PointDmg.HitInfo = Impact;
 	PointDmg.ShotDirection = ShootDir;
-	PointDmg.Damage = InstantConfig.HitDamage;
+	PointDmg.Damage = WeaponConfig.BaseDamage;
 
 	Impact.GetActor()->TakeDamage(PointDmg.Damage, PointDmg, MyPawn->Controller, this);
 }
