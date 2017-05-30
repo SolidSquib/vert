@@ -15,6 +15,9 @@ enum class EWeaponState : uint8
 	Equipping,
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnWeaponStateChangedDelegate, ABaseWeapon*, weapon, EWeaponState, state, UAnimMontage*, anim);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponFiredWithRecoil, float, recoilAmount);
+
 UENUM(BlueprintType)
 enum class EFiringMode : uint8
 {
@@ -106,6 +109,13 @@ UCLASS(Abstract, Blueprintable)
 class ABaseWeapon : public AInteractive
 {
 	GENERATED_UCLASS_BODY()
+
+public:
+	UPROPERTY(BlueprintAssignable)
+	FOnWeaponStateChangedDelegate Delegate_OnWeaponStateChanged;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnWeaponFiredWithRecoil Delegate_OnWeaponFiredWithRecoil;
 
 public:
 	/** icon displayed on the HUD when weapon is equipped as primary */

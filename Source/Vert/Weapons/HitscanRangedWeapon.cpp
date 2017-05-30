@@ -28,14 +28,11 @@ bool AHitscanRangedWeapon::FireWeapon_Implementation()
 	const FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
 	ProcessInstantHit(Impact, StartTrace, ShootDir, randomSeed, currentSpread);
 
-	DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Green, false, 2.f);
+	//DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Green, false, 2.f);
 
 	mCurrentFiringSpread = FMath::Min(SpreadConfig.FiringSpreadMax, mCurrentFiringSpread + SpreadConfig.FiringSpreadIncrement);
 
-	if (MyPawn)
-	{
-		MyPawn->OnWeaponFiredWithRecoil.Broadcast(SpreadConfig.RecoilAmount);
-	}
+	Delegate_OnWeaponFiredWithRecoil.Broadcast(SpreadConfig.RecoilAmount);
 
 	return true;
 }

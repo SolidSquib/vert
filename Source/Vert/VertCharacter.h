@@ -22,7 +22,6 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogVertCharacter, Log, All);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCharacterActionDelegate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnWeaponStateChangedDelegate, ABaseWeapon*, weapon, EWeaponState, newState, UAnimMontage*, playerAnim);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponFiredDelegate, float, recoil);
 
 USTRUCT()
@@ -60,18 +59,6 @@ class AVertCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnWeaponStateChangedDelegate OnWeaponStateChanged;
-
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnWeaponFiredDelegate OnWeaponFiredWithRecoil;
-
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnCharacterActionDelegate OnJumpExecuted;
-
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnCharacterActionDelegate OnInteractExecuted;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Debug)
 	FCharacterDebugSettings ShowDebug;
 
@@ -155,6 +142,8 @@ protected:
 	void LeftThumbstickMoveY(float value);
 	void MouseMove(float value);	
 	void UpdateCharacter();
+	void OnPickupInteractive(AInteractive* interactive, bool wasCaught);
+	void OnDropInteractive(AInteractive* interactive, bool wasThrown);
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
@@ -163,6 +152,43 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Player Controller")
 	FORCEINLINE AVertPlayerController* GetPlayerController() const { if (AController* controller = GetController()) { if (AVertPlayerController* playerController = Cast<AVertPlayerController>(controller)) { return playerController; } } return nullptr; }
+
+	/// Blueprint Implementable functions //////////////////////////////////////////////////////////////////////////
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnGrappleShootExecuted(const FVector& direction);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnGrapplePullExecuted(const FVector& direction);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnDashExecuted(const FVector& direction, bool isGrappled);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnDashEnded();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnInteractExecuted(AInteractive* interactive);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnPickupNewInteractive(AInteractive* interactive, bool wasCaught);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnDropCurrentInteractive(AInteractive* interactive, bool wasThrown);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnStartAttackExecuted(ABaseWeapon* weapon);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnStopAttackExecuted();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnJumpExecuted();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnWeaponStateChangeExecuted(ABaseWeapon* weapon, EWeaponState newState, UAnimMontage* playerAnim);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnWeaponFiredWithRecoilExecuted(float recoilAmount);
 
 private:
 	void SetRagdollPhysics();
@@ -178,4 +204,7 @@ protected:
 	FTimerHandle mTimerHandle;
 	FTimerHandle mGamepadGrappleDelay;
 	bool mGamepadOnStandby = false;
+
+	FScriptDelegate mOnWeaponStateChangedDelegate;
+	FScriptDelegate mOnWeaponFiredWithRecoilDelegate;
 };
