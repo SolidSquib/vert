@@ -14,31 +14,20 @@ enum class EInteractionState : uint8
 	HoldingItem
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartAttackingDelegate, ABaseWeapon*, weapon);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStopAttackingDelegate, ABaseWeapon*, weapon);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPickupInteractiveDelegate, AInteractive*, interactive);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDropInteractiveDelegate, AInteractive*, interactive);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPickupInteractiveDelegate, AInteractive*, interactive, bool, wasCaught);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDropInteractiveDelegate, AInteractive*, interactive, bool, wasThrown);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VERT_API UCharacterInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
+		
 public:
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnStartAttackingDelegate OnStartAttacking;
+	UPROPERTY(BlueprintAssignable)
+	FOnPickupInteractiveDelegate Delegate_OnPickupInteractive;
 
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnStopAttackingDelegate OnStopAttacking;
-
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnPickupInteractiveDelegate OnPickupInteractive;
-
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnPickupInteractiveDelegate OnCatchInteractive;
-
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnDropInteractiveDelegate OnDropInteractive;
+	UPROPERTY(BlueprintAssignable)
+	FOnDropInteractiveDelegate Delegate_OnDropInteractive;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact|Trace")
@@ -63,7 +52,7 @@ public:
 	class AInteractive* AttemptInteract();
 	bool HoldInteractive(AInteractive* interactive, const FVector& localOffset = FVector::ZeroVector, bool forceDrop = false);
 	void DropInteractive();
-	void ForceDropInteractive(FVector force, float radialForce);
+	void ThrowInteractive(UPrimitiveComponent* body, const FVector& impulse, const FVector& radialImpulse);
 	bool AttemptAttack();
 	void StopAttacking();
 

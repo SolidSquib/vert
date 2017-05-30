@@ -32,10 +32,7 @@ bool AHitscanRangedWeapon::FireWeapon_Implementation()
 
 	mCurrentFiringSpread = FMath::Min(SpreadConfig.FiringSpreadMax, mCurrentFiringSpread + SpreadConfig.FiringSpreadIncrement);
 
-	if (MyPawn)
-	{
-		MyPawn->OnWeaponFiredWithRecoil.Broadcast(SpreadConfig.RecoilAmount);
-	}
+	Delegate_OnWeaponFiredWithRecoil.Broadcast(SpreadConfig.RecoilAmount);
 
 	return true;
 }

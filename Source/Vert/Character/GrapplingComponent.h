@@ -94,6 +94,9 @@ public:
 	FORCEINLINE UFUNCTION(BlueprintCallable)
 	AActor* GetHookedActor() const { return mGrappleHook.IsValid() ? mGrappleHook->GetHookedActor() : nullptr; }
 
+	FORCEINLINE UFUNCTION(BlueprintCallable)
+	UPrimitiveComponent* GetHookedPrimitive() const { return mGrappleHook.IsValid() ? mGrappleHook->GetHookedPrimitive() : nullptr; }
+
 	FORCEINLINE UFUNCTION(BlueprintCallable, Category = "Grappling")
 	float GetLineLength() const { return mGrappleHook.IsValid() ? mGrappleHook->GetCurrentDistanceFromLauncher() : 0.f; }
 
@@ -105,6 +108,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "States")
 	FORCEINLINE EGrappleState GetGrappleState() const { return mGrappleHook.IsValid() ? mGrappleHook->GetGrappleState() : EGrappleState::None; }
+
+	UFUNCTION(BlueprintCallable, Category = "States")
+	FORCEINLINE bool IsGrappleDeployed() const { return mGrappleHook->GetGrappleState() == EGrappleState::HookDeployed || mGrappleHook->GetGrappleState() == EGrappleState::HookDeployedAndReturning; }
 
 	UFUNCTION(BlueprintCallable, Category = "Grappling", meta = (DisplayName = "Get Grapple Hook"))
 	AGrappleHook* GetGrappleHookBP() const;

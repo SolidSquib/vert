@@ -73,9 +73,6 @@ public:
 	float AirSlowdownFriction = 1.f;
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnDashStartedDelegate OnDashStarted;
-
-	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnDashEndedDelegate OnDashEnd;
 
 public:	
@@ -93,10 +90,10 @@ public:
 	FORCEINLINE int32 GetRemainingDashes() const { return mRemainingDashes; }
 
 	UFUNCTION(BlueprintCallable, Category = "Dash")
-	bool ExecuteGroundDash();
+	bool ExecuteGroundDash(FVector& outDirection);
 
 	UFUNCTION(BlueprintCallable, Category = "Dash")
-	bool ExecuteGrappleDash(const FVector& hookDirection, FGrappleDashResponse& response);
+	bool ExecuteGrappleDash(FVector& outDirecton);
 
 protected:
 	// Called when the game starts

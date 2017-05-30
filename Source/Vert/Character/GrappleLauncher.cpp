@@ -497,8 +497,16 @@ void AGrappleHook::DeployHook(AActor* OtherActor, UPrimitiveComponent* OtherComp
 
 	if (attachToTarget)
 	{
-		AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
-		UE_LOG(LogGrappleHook, Log, TEXT("Hook [%s] attached to world object [%s]."), *GetName(), *OtherActor->GetName());
+		if (OtherActor)
+		{
+			AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
+			UE_LOG(LogGrappleHook, Log, TEXT("Hook [%s] attached to world object [%s]."), *GetName(), *OtherActor->GetName());
+		}
+		else if (OtherComp)
+		{
+			AttachToComponent(OtherComp, FAttachmentTransformRules::KeepWorldTransform);
+			UE_LOG(LogGrappleHook, Log, TEXT("Hook [%s] attached to geometry object [%s]."), *GetName(), *OtherComp->GetName());
+		}
 	}
 
 	mHookAttachment.Actor = OtherActor;
@@ -547,7 +555,7 @@ void AGrappleHook::DetatchHook()
 
 void AGrappleHook::OnHit_Implementation(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (OtherActor && mGrappleState == EGrappleState::HookLaunching)
+	if (mGrappleState == EGrappleState::HookLaunching)
 	{
 		if (mGrapplingComponent.IsValid())
 			DeployHook(OtherActor, OtherComp, Hit);
