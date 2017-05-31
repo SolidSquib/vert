@@ -7,6 +7,16 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogVertBaseWeapon, Log, All);
 
 UENUM(BlueprintType)
+enum class EWeaponAnimationMode : uint8
+{
+	LightMelee,
+	HeavyMelee,
+	PistolRanged,
+	RifleRanged,
+	HeavyRanged
+};
+
+UENUM(BlueprintType)
 enum class EWeaponState : uint8
 {
 	Idle,
@@ -15,7 +25,7 @@ enum class EWeaponState : uint8
 	Equipping,
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnWeaponStateChangedDelegate, ABaseWeapon*, weapon, EWeaponState, state, UAnimMontage*, anim);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnWeaponStateChangedDelegate, ABaseWeapon*, weapon, EWeaponState, state, EWeaponAnimationMode, anim);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponFiredWithRecoil, float, recoilAmount);
 
 UENUM(BlueprintType)
@@ -32,7 +42,7 @@ struct FWeaponAnim
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	UAnimMontage* PlayerAnim = nullptr;
+	EWeaponAnimationMode PlayerAnim;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	UAnimMontage* WeaponAnim = nullptr;
@@ -289,7 +299,7 @@ public:
 	FORCEINLINE int32 GetBaseDamage() const { return WeaponConfig.BaseDamage; }
 
 protected:
-	UAnimMontage* GetPlayerAnimForState(EWeaponState state);
+	EWeaponAnimationMode GetPlayerAnimForState(EWeaponState state);
 	void HandleFiring(); /** [local + server] handle weapon fire */
 	void SetWeaponState(EWeaponState NewState); /** update weapon state */
 	void DetermineWeaponState(); /** determine current weapon state */

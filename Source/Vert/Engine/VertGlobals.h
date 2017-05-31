@@ -52,7 +52,7 @@ namespace EVertDialogType
 	};
 }
 
-#define VERT_SURFACE_Default		SurfaceType_Default
+#define VERT_SURFACE_Default	SurfaceType_Default
 #define VERT_SURFACE_Concrete	SurfaceType1
 #define VERT_SURFACE_Dirt		SurfaceType2
 #define VERT_SURFACE_Water		SurfaceType3
