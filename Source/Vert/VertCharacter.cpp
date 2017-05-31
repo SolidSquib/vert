@@ -155,6 +155,8 @@ float AVertCharacter::TakeDamage(float Damage, const FDamageEvent& DamageEvent, 
 		}
 	}
 
+	UE_LOG(LogVertCharacter, Log, TEXT("%s recieved damage from %s"), *GetName(), *DamageCauser->GetName());
+
 	APawn* pawnInstigator = EventInstigator ? EventInstigator->GetPawn() : nullptr;
 	return HealthComponent->DealDamage(Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser), DamageEvent, pawnInstigator, DamageCauser);
 }

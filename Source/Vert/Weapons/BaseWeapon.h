@@ -9,6 +9,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogVertBaseWeapon, Log, All);
 UENUM(BlueprintType)
 enum class EWeaponAnimationMode : uint8
 {
+	Unarmed,
 	LightMelee,
 	HeavyMelee,
 	PistolRanged,

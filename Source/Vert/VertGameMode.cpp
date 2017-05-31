@@ -58,13 +58,7 @@ void AVertGameMode::OnPlayerControllerPossessedPawn_Implementation(APawn* pawn)
 
 void AVertGameMode::OnPlayerControllerUnPossessedPawn_Implementation(APawn* pawn)
 {
-	if (mPlayerCamera.IsValid())
-	{
-		if (pawn)
-		{
-			mPlayerCamera->UnregisterPlayerPawn(pawn);
-		}
-	}
+	// do something 
 }
 
 void AVertGameMode::OnControllerConnectionChange_Implementation(bool connected, int32 userID, int32 controllerID)
