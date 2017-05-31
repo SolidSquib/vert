@@ -57,30 +57,17 @@ void AVertLevelScriptActor::SetActiveCamera(AVertPlayerCameraActor* newCamera, f
 
 	if (mActiveCamera.IsValid())
 	{
-		for (APawn* pawn : mRegisteredPawns)
+		AVertGameMode* gameMode = GetWorld()->GetAuthGameMode<AVertGameMode>();
+
+		gameMode->SetPlayerCamera(mActiveCamera.Get());
+
+		for (APawn* pawn : gameMode->GetFollowedActors())
 		{
-			mActiveCamera->RegisterPlayerPawn(pawn);
 			if (APlayerController* controller = Cast<APlayerController>(pawn->GetController()))
 			{
 				controller->SetViewTargetWithBlend(mActiveCamera.Get(), transitionTime);
 			}
 		}
 		mActiveCamera->ActivateCamera();
-	}
-}
-
-void AVertLevelScriptActor::RegisterPlayerPawn(APawn* pawnToFollow)
-{
-	if (mRegisteredPawns.Find(pawnToFollow) == INDEX_NONE)
-	{
-		mRegisteredPawns.Add(pawnToFollow);
-	}
-}
-
-void AVertLevelScriptActor::UnregisterPlayerPawn(APawn* pawnToFollow)
-{
-	if (mRegisteredPawns.Find(pawnToFollow) != INDEX_NONE)
-	{
-		mRegisteredPawns.Remove(pawnToFollow);
 	}
 }

@@ -98,7 +98,11 @@ public:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type endPlayReason) override;
 	virtual void Landed(const FHitResult& Hit) override;
-	virtual void ApplyDamageMomentum(float DamageTaken, FDamageEvent const& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser) override;
+	virtual void ApplyDamageMomentum(float DamageTaken, const FDamageEvent& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser) override;
+	virtual bool CanDie(float KillingDamage, const FDamageEvent& DamageEvent, AController* Killer, AActor* DamageCauser) const;
+	virtual void OnDeath(float killingDamage, const FDamageEvent& damageEvent, APawn* pawnInstigator, AActor* damageCauser);
+	virtual void FellOutOfWorld(const class UDamageType& dmgType) override;
+	virtual void KilledBy(class APawn* EventInstigator);
 
 	FORCEINLINE class UCameraComponent* GetSideViewCameraComponent() const { return SideViewCameraComponent; }
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -109,7 +113,13 @@ public:
 	FORCEINLINE const FAxisPositions& GetAxisPostisions() const { return mAxisPositions; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
+	virtual float TakeDamage(float Damage, const FDamageEvent& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	virtual void Suicide();
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	virtual bool Die(float KillingDamage, const FDamageEvent& DamageEvent, class AController* Killer, class AActor* DamageCauser);
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void StopAttacking();
@@ -204,6 +214,7 @@ protected:
 	FTimerHandle mTimerHandle;
 	FTimerHandle mGamepadGrappleDelay;
 	bool mGamepadOnStandby = false;
+	bool mIsDying = false;
 
 	FScriptDelegate mOnWeaponStateChangedDelegate;
 	FScriptDelegate mOnWeaponFiredWithRecoilDelegate;
