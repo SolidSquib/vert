@@ -491,7 +491,7 @@ void ABaseWeapon::ReloadWeapon()
 	}
 }
 
-UAnimMontage* ABaseWeapon::GetPlayerAnimForState(EWeaponState state)
+EWeaponAnimationMode ABaseWeapon::GetPlayerAnimForState(EWeaponState state)
 {
 	switch (state)
 	{

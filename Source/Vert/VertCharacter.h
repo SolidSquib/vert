@@ -185,7 +185,7 @@ protected:
 	void Character_OnJumpExecuted();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
-	void Character_OnWeaponStateChangeExecuted(ABaseWeapon* weapon, EWeaponState newState, UAnimMontage* playerAnim);
+	void Character_OnWeaponStateChangeExecuted(ABaseWeapon* weapon, EWeaponState newState, EWeaponAnimationMode playerAnim);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
 	void Character_OnWeaponFiredWithRecoilExecuted(float recoilAmount);
