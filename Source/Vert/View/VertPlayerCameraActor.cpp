@@ -38,13 +38,13 @@ AVertPlayerCameraActor::AVertPlayerCameraActor()
 void AVertPlayerCameraActor::ActivateCamera()
 {
 	SetActorTickEnabled(true);
-	OnCameraBecomeActive.Broadcast(mPawnsToFollow);
+	OnCameraBecomeActive.Broadcast();
 }
 
 void AVertPlayerCameraActor::DeactivateCamera()
 {
 	SetActorTickEnabled(false);
-	OnCameraBecomeInactive.Broadcast(mPawnsToFollow);
+	OnCameraBecomeInactive.Broadcast();
 }
 
 // Called when the game starts or when spawned
@@ -52,13 +52,10 @@ void AVertPlayerCameraActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for (TActorIterator<APawn> ActorItr(GetWorld()); ActorItr; ++ActorItr)
-	{
-		RegisterPlayerPawn(*ActorItr);
-	}
-
 	PlayerSpline = (PlayerSpline) ? PlayerSpline : ((CameraSpline) ? CameraSpline : nullptr);
 	CameraSpline = (CameraSpline) ? CameraSpline : ((PlayerSpline) ? PlayerSpline : nullptr);
+
+	mActiveGameMode = GetWorld()->GetAuthGameMode<AVertGameMode>();
 
 	SetupDebugNumbers();
 }
@@ -116,11 +113,13 @@ void AVertPlayerCameraActor::Tick(float DeltaTime)
 //************************************
 void AVertPlayerCameraActor::UpdateTargetCameraPosition()
 {
+	const TArray<APawn*>& pawns = mActiveGameMode->GetFollowedActors();
+
 	if (mPawnOverride > -1)
 	{
-		if (mPawnsToFollow.Num() > mPawnOverride)
+		if (pawns.Num() > mPawnOverride)
 		{
-			SetActorLocation(mPawnsToFollow[mPawnOverride]->GetActorLocation());
+			SetActorLocation(pawns[mPawnOverride]->GetActorLocation());
 			CameraBoom->TargetArmLength = (mZoomOverride > -1) ? mZoomOverride : 1000.f;
 		} else { UE_LOG(LogVertPlayerCamera, Error, TEXT("Overriden pawn does not exist in array.")); }
 	}
@@ -130,13 +129,13 @@ void AVertPlayerCameraActor::UpdateTargetCameraPosition()
 		float largestSquareH = 0;
 		float largestSquareV = 0;
 
-		for (APawn* pawn : mPawnsToFollow)
+		for (APawn* pawn : pawns)
 		{
 			// Add the new pawn's location to the current value
 			meanLocation += pawn->GetActorLocation();
 		}
 		// determine the average location and set this actors position to that (in the center of all pawns)
-		meanLocation /= mPawnsToFollow.Num();
+		meanLocation /= pawns.Num();
 		mTargetLocation = meanLocation;
 	}	
 }
@@ -150,12 +149,14 @@ void AVertPlayerCameraActor::UpdateTargetCameraPosition()
 //************************************
 void AVertPlayerCameraActor::UpdateCameraZoom(float deltaTime, const FVector& zoomTarget)
 {
+	const TArray<APawn*>& pawns = mActiveGameMode->GetFollowedActors();
+
 	if (mZoomOverride < 0)
 	{
 		float largestSquareH = 0, largestSquareV = 0;
 
 		// Find the largest distance (vertical and horizontal) from each pawn to the desired camera location
-		for (APawn* pawn : mPawnsToFollow)
+		for (APawn* pawn : pawns)
 		{
 			FVector distance = zoomTarget - pawn->GetActorLocation();
 			FVector horizontal = FVector::CrossProduct(distance, CameraComponent->GetUpVector());
@@ -187,60 +188,17 @@ void AVertPlayerCameraActor::UpdateCameraZoom(float deltaTime, const FVector& zo
 //************************************
 void AVertPlayerCameraActor::CorrectPawnPositions(const FVector& largestDistance)
 {
+	const TArray<APawn*>& pawns = mActiveGameMode->GetFollowedActors();
+
 	UE_LOG(LogVertPlayerCamera, Warning, TEXT("Function not fully implemented, behaviour may be undesirable."));
 
-	for (APawn* pawn : mPawnsToFollow)
+	for (APawn* pawn : pawns)
 	{
 		FVector clamped = largestDistance.GetClampedToMaxSize(MaximumDistance);
 		FVector targetLocation = (FVector::DotProduct(pawn->GetActorLocation(), CameraComponent->GetRightVector()) > SMALL_NUMBER)
 			? GetActorLocation() + (clamped*0.5f)
 			: GetActorLocation() - (clamped*0.5f);
 		pawn->SetActorLocation(targetLocation);
-	}
-}
-
-//************************************
-// Method:    RegisterPlayerPawn
-// FullName:  AVertPlayerCameraActor::RegisterPlayerPawn
-// Access:    public 
-// Returns:   void
-// Qualifier:
-// Parameter: APawn * pawnToFollow
-//************************************
-void AVertPlayerCameraActor::RegisterPlayerPawn(APawn* pawnToFollow)
-{
-	if (mPawnsToFollow.Find(pawnToFollow) == INDEX_NONE)
-	{
-		mPawnsToFollow.Add(pawnToFollow);
-		UE_LOG(LogVertPlayerCamera, Warning, TEXT("Pawn added to follow list with name [%s]"), *pawnToFollow->GetName());
-
-		if (AVertPlayerController* controller = Cast<AVertPlayerController>(pawnToFollow->GetController()))
-		{
-			mPlayerControllers.Add(controller);
-			controller->SetViewTargetWithBlend(this);
-		}
-	}
-}
-
-//************************************
-// Method:    UnregisterPlayerPawn
-// FullName:  AVertPlayerCameraActor::UnregisterPlayerPawn
-// Access:    public 
-// Returns:   void
-// Qualifier:
-// Parameter: APawn * pawnToFollow
-//************************************
-void AVertPlayerCameraActor::UnregisterPlayerPawn(APawn* pawnToFollow)
-{
-	if (mPawnsToFollow.Find(pawnToFollow) != INDEX_NONE)
-	{
-		mPawnsToFollow.Remove(pawnToFollow);
-		UE_LOG(LogVertPlayerCamera, Warning, TEXT("Pawn removed from follow list with name [%s]"), *pawnToFollow->GetName());
-
-		if (AVertPlayerController* controller = Cast<AVertPlayerController>(pawnToFollow->GetController()))
-		{
-			mPlayerControllers.Remove(controller);
-		}
 	}
 }
 
@@ -450,7 +408,7 @@ FVector AVertPlayerCameraActor::UpdateDesiredTime(float DeltaTime)
 
 	if (mSplineCurrentTime >= 1.f)
 	{
-		OnCameraReachEndOfTrack.Broadcast(mPawnsToFollow);
+		OnCameraReachEndOfTrack.Broadcast();
 		mHasReachedEnd = true;
 	}		
 

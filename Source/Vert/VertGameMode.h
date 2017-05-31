@@ -23,6 +23,15 @@ public:
 	virtual void BeginPlay() override;
 	virtual APlayerController* SpawnPlayerController(ENetRole InRemoteRole, FVector const& SpawnLocation, FRotator const& SpawnRotation) override;
 
+	FORCEINLINE void SetPlayerCamera(AVertPlayerCameraActor* newCamera) { mPlayerCamera = newCamera; }
+	FORCEINLINE const TArray<APawn*>& GetFollowedActors() const { return mPawnsToFollow; }
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerPosition")
+	void RegisterPlayerPawn(class APawn* pawnToFollow);
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerPosition")
+	void UnregisterPlayerPawn(class APawn* pawnToFollow);
+
 	UFUNCTION(BlueprintCallable, Category = "PlayerCamera")
 	AVertPlayerCameraActor* GetActivePlayerCamera() const { return mPlayerCamera.Get(); }
 
@@ -39,4 +48,6 @@ protected:
 protected:
 	FDelegateHandle mOnControllerChangedHandle;
 	TWeakObjectPtr<AVertPlayerCameraActor> mPlayerCamera;
+	TArray<class APawn*> mPawnsToFollow;
+	TArray<AVertPlayerController*> mPlayerControllers;
 };

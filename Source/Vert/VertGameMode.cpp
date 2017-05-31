@@ -45,26 +45,58 @@ APlayerController* AVertGameMode::SpawnPlayerController(ENetRole InRemoteRole, F
 	return controller;
 }
 
-void AVertGameMode::OnPlayerControllerPossessedPawn_Implementation(APawn* pawn)
+//************************************
+// Method:    RegisterPlayerPawn
+// FullName:  AVertPlayerCameraActor::RegisterPlayerPawn
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: APawn * pawnToFollow
+//************************************
+void AVertGameMode::RegisterPlayerPawn(APawn* pawnToFollow)
 {
-	if (mPlayerCamera.IsValid())
+	if (mPawnsToFollow.Find(pawnToFollow) == INDEX_NONE)
 	{
-		if (pawn)
+		mPawnsToFollow.Add(pawnToFollow);
+		UE_LOG(LogVertGameMode, Warning, TEXT("Pawn added to follow list with name [%s]"), *pawnToFollow->GetName());
+
+		if (AVertPlayerController* controller = Cast<AVertPlayerController>(pawnToFollow->GetController()))
 		{
-			mPlayerCamera->RegisterPlayerPawn(pawn);
+			mPlayerControllers.Add(controller);
 		}
 	}
 }
 
-void AVertGameMode::OnPlayerControllerUnPossessedPawn_Implementation(APawn* pawn)
+//************************************
+// Method:    UnregisterPlayerPawn
+// FullName:  AVertPlayerCameraActor::UnregisterPlayerPawn
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: APawn * pawnToFollow
+//************************************
+void AVertGameMode::UnregisterPlayerPawn(APawn* pawnToFollow)
 {
-	if (mPlayerCamera.IsValid())
+	if (mPawnsToFollow.Find(pawnToFollow) != INDEX_NONE)
 	{
-		if (pawn)
+		mPawnsToFollow.Remove(pawnToFollow);
+		UE_LOG(LogVertGameMode, Warning, TEXT("Pawn removed from follow list with name [%s]"), *pawnToFollow->GetName());
+
+		if (AVertPlayerController* controller = Cast<AVertPlayerController>(pawnToFollow->GetController()))
 		{
-			mPlayerCamera->UnregisterPlayerPawn(pawn);
+			mPlayerControllers.Remove(controller);
 		}
 	}
+}
+
+void AVertGameMode::OnPlayerControllerPossessedPawn_Implementation(APawn* pawn)
+{
+	// do something
+}
+
+void AVertGameMode::OnPlayerControllerUnPossessedPawn_Implementation(APawn* pawn)
+{
+	// do something 
 }
 
 void AVertGameMode::OnControllerConnectionChange_Implementation(bool connected, int32 userID, int32 controllerID)

@@ -113,6 +113,17 @@ void AVertCharacter::BeginPlay()
 
 	mOnWeaponStateChangedDelegate.BindUFunction(this, TEXT("Character_OnWeaponStateChangeExecuted"));
 	mOnWeaponFiredWithRecoilDelegate.BindUFunction(this, TEXT("Character_OnWeaponFiredWithRecoilExecuted"));
+
+	if (UWorld* world = GetWorld())
+	{
+		if (AGameModeBase* gameMode = world->GetAuthGameMode())
+		{
+			if (AVertGameMode* vertGameMode = Cast<AVertGameMode>(gameMode))
+			{
+				vertGameMode->RegisterPlayerPawn(this);
+			}
+		}
+	}
 }
 
 void AVertCharacter::EndPlay(const EEndPlayReason::Type endPlayReason)
@@ -125,10 +136,7 @@ void AVertCharacter::EndPlay(const EEndPlayReason::Type endPlayReason)
 			{
 				if (AVertGameMode* vertGameMode = Cast<AVertGameMode>(gameMode))
 				{
-					if (AVertPlayerCameraActor* camera = vertGameMode->GetActivePlayerCamera())
-					{
-						camera->UnregisterPlayerPawn(this);
-					}
+					vertGameMode->UnregisterPlayerPawn(this);
 				}
 			}
 		}
@@ -155,11 +163,109 @@ float AVertCharacter::TakeDamage(float Damage, const FDamageEvent& DamageEvent, 
 		}
 	}
 
+	UE_LOG(LogVertCharacter, Log, TEXT("%s recieved damage from %s"), *GetName(), *DamageCauser->GetName());
+
 	APawn* pawnInstigator = EventInstigator ? EventInstigator->GetPawn() : nullptr;
 	return HealthComponent->DealDamage(Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser), DamageEvent, pawnInstigator, DamageCauser);
 }
 
-void AVertCharacter::ApplyDamageMomentum(float DamageTaken, FDamageEvent const& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser)
+bool AVertCharacter::CanDie(float KillingDamage, const FDamageEvent& DamageEvent, AController* Killer, AActor* DamageCauser) const
+{
+	if (mIsDying										// already dying
+		|| IsPendingKill()								// already destroyed
+		|| Role != ROLE_Authority						// not authority
+		|| GetWorld()->GetAuthGameMode<AVertGameMode>() == NULL
+		|| GetWorld()->GetAuthGameMode<AVertGameMode>()->GetMatchState() == MatchState::LeavingMap)	// level transition occurring
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void AVertCharacter::OnDeath(float killingDamage, const FDamageEvent& damageEvent, APawn* pawnInstigator, AActor* damageCauser)
+{
+	if (mIsDying)
+	{
+		return;
+	}
+
+	bReplicateMovement = false;
+	bTearOff = true;
+	mIsDying = true;
+
+	if (Role == ROLE_Authority)
+	{
+		HealthComponent->ReplicateHit(killingDamage, damageEvent, pawnInstigator, damageCauser, true);
+
+		// play the force feedback effect on the client player controller
+		APlayerController* PC = Cast<APlayerController>(Controller);
+		if (PC && damageEvent.DamageTypeClass)
+		{
+			UVertDamageType *damageType = Cast<UVertDamageType>(damageEvent.DamageTypeClass->GetDefaultObject());
+			if (damageType && damageType->KilledForceFeedback)
+			{
+				PC->ClientPlayForceFeedback(damageType->KilledForceFeedback, false, "Damage");
+			}
+		}
+	}
+
+	DetachFromControllerPendingDestroy();
+	GetWorld()->GetAuthGameMode<AVertGameMode>()->UnregisterPlayerPawn(this);
+
+	if (GetMesh())
+	{
+		static FName CollisionProfileName(TEXT("Ragdoll"));
+		GetMesh()->SetCollisionProfileName(CollisionProfileName);
+	}
+	SetActorEnableCollision(true);
+}
+
+void AVertCharacter::Suicide()
+{
+	KilledBy(this);
+}
+
+void AVertCharacter::KilledBy(class APawn* EventInstigator)
+{
+	if (Role == ROLE_Authority && !mIsDying)
+	{
+		AController* Killer = NULL;
+		if (EventInstigator != NULL)
+		{
+			Killer = EventInstigator->Controller;
+			LastHitBy = NULL;
+		}
+
+		Die(HealthComponent->GetCurrentDamageModifier(), FDamageEvent(UDamageType::StaticClass()), Killer, NULL);
+	}
+}
+
+bool AVertCharacter::Die(float KillingDamage, const FDamageEvent& DamageEvent, class AController* Killer, class AActor* DamageCauser)
+{
+	if (!CanDie(KillingDamage, DamageEvent, Killer, DamageCauser))
+		return false;
+
+	// if this is an environmental death then refer to the previous killer so that they receive credit (knocked into lava pits, etc)
+	UDamageType const* const DamageType = DamageEvent.DamageTypeClass ? DamageEvent.DamageTypeClass->GetDefaultObject<UDamageType>() : GetDefault<UDamageType>();
+	Killer = GetDamageInstigator(Killer, *DamageType);
+
+	AController* const KilledPlayer = (Controller != NULL) ? Controller : Cast<AController>(GetOwner());
+	// GetWorld()->GetAuthGameMode<AVertGameMode>()->Killed(Killer, KilledPlayer, this, DamageType);
+
+	NetUpdateFrequency = GetDefault<AVertGameMode>()->NetUpdateFrequency;
+	GetCharacterMovement()->ForceReplicationUpdate();
+
+	OnDeath(KillingDamage, DamageEvent, Killer ? Killer->GetPawn() : NULL, DamageCauser);
+	return true;
+}
+
+void AVertCharacter::FellOutOfWorld(const class UDamageType& dmgType)
+{
+	Die(HealthComponent->GetCurrentDamageModifier(), FDamageEvent(dmgType.GetClass()), NULL, NULL);
+}
+
+void AVertCharacter::ApplyDamageMomentum(float DamageTaken, const FDamageEvent& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser)
 {
 	Super::ApplyDamageMomentum(DamageTaken, DamageEvent, PawnInstigator, DamageCauser);
 }

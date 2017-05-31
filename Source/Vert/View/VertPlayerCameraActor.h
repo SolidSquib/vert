@@ -7,7 +7,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVertPlayerCamera, Log, All);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCameraPointReachedDelegate, const TArray<APawn*>&, pawns);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCameraPointReachedDelegate);
 
 UCLASS(BlueprintType, Blueprintable)
 class VERT_API AVertPlayerCameraActor : public AActor
@@ -103,12 +103,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintCallable, Category = "PlayerPosition")
-	void RegisterPlayerPawn(class APawn* pawnToFollow);
-
-	UFUNCTION(BlueprintCallable, Category = "PlayerPosition")
-	void UnregisterPlayerPawn(class APawn* pawnToFollow);
-
 	UFUNCTION(BlueprintCallable)
 	void OverridePawnFollow(int32 pawnIndex);
 
@@ -142,8 +136,7 @@ private:
 	int32 mPawnOverride = -1;
 	int32 mZoomOverride = -1;
 	FVector mTargetLocation = FVector::ZeroVector;
-	TArray<class APawn*> mPawnsToFollow;
-	TArray<AVertPlayerController*> mPlayerControllers;
+	TWeakObjectPtr<class AVertGameMode> mActiveGameMode = nullptr;
 	float mSplineDesiredTime;
 	float mSplineCurrentTime;
 	bool mHasReachedEnd = false;

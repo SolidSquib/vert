@@ -22,6 +22,8 @@ class VERT_API UHealthComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+	friend class AVertCharacter;
+
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Health")
 	FOnHitDelegate OnHit;
@@ -49,6 +51,8 @@ protected:
 public:	
 	// Sets default values for this component's properties
 	UHealthComponent();
+
+	virtual void PreReplication(IRepChangedPropertyTracker& PropertyChangeTracker) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	int32 DealDamage(float DamageTaken, const struct FDamageEvent& DamageEvent, class APawn* PawnInstigator, class AActor* DamageCauser);

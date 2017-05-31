@@ -42,10 +42,13 @@ public:
 	virtual void PostInitProperties() override;
 
 protected:
-	void OnBeginOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult);
-	void OnEndOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex);
-
 	virtual void DrawDebugInfo() override;
+
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult);
+
+	UFUNCTION()
+	void OnEndOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex);
 
 private:
 	bool PerformLedgeTrace(const FVector& start, const FVector& end, FHitResult& hit);

@@ -8,6 +8,7 @@ DEFINE_LOG_CATEGORY(LogVertPlayerController);
 AVertPlayerController::AVertPlayerController()
 {
 	PlayerCameraManagerClass = AVertCameraManager::StaticClass();
+	bAutoManageActiveCameraTarget = false;
 }
 
 void AVertPlayerController::DropIn()
