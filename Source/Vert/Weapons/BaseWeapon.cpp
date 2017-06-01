@@ -518,7 +518,7 @@ void ABaseWeapon::SetWeaponState(EWeaponState NewState)
 	
 	mCurrentState = NewState;
 
-	if (PrevState != NewState && MyPawn)
+	if (PrevState != NewState)
 	{
 		Delegate_OnWeaponStateChanged.Broadcast(this, NewState, GetPlayerAnimForState(NewState));
 	}

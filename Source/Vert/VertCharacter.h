@@ -152,8 +152,6 @@ protected:
 	void LeftThumbstickMoveY(float value);
 	void MouseMove(float value);	
 	void UpdateCharacter();
-	void OnPickupInteractive(AInteractive* interactive, bool wasCaught);
-	void OnDropInteractive(AInteractive* interactive, bool wasThrown);
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
@@ -162,6 +160,12 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Player Controller")
 	FORCEINLINE AVertPlayerController* GetPlayerController() const { if (AController* controller = GetController()) { if (AVertPlayerController* playerController = Cast<AVertPlayerController>(controller)) { return playerController; } } return nullptr; }
+
+	UFUNCTION()
+	void OnPickupInteractive(AInteractive* interactive, bool wasCaught);
+
+	UFUNCTION()
+	void OnDropInteractive(AInteractive* interactive, bool wasThrown);
 
 	/// Blueprint Implementable functions //////////////////////////////////////////////////////////////////////////
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
