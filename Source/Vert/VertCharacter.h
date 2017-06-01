@@ -21,9 +21,6 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVertCharacter, Log, All);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCharacterActionDelegate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponFiredDelegate, float, recoil);
-
 USTRUCT()
 struct FCharacterDebugSettings
 {
@@ -84,12 +81,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
+	/** material instances for setting team color in mesh (3rd person view) */
+	UPROPERTY(Transient)
+	TArray<UMaterialInstanceDynamic*> MeshMIDs;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Controls)
 	bool DisableInputWhenDashingOrGrappling;
 
 public:
 	AVertCharacter(const class FObjectInitializer& ObjectInitializer);
 
+	void UpdateTeamColoursAllMIDs();
 	bool CanComponentRecharge(ERechargeRule rule);
 	bool IsMoving();
 	const bool UsingGamepad() const;
@@ -152,12 +154,10 @@ protected:
 	void LeftThumbstickMoveY(float value);
 	void MouseMove(float value);	
 	void UpdateCharacter();
+	void UpdateTeamColours(UMaterialInstanceDynamic* useMIDs);
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character|Health")
-	void OnNotifyDeath(const FTakeHitInfo& lastHit);
-
+	
 	UFUNCTION(BlueprintCallable, Category = "Player Controller")
 	FORCEINLINE AVertPlayerController* GetPlayerController() const { if (AController* controller = GetController()) { if (AVertPlayerController* playerController = Cast<AVertPlayerController>(controller)) { return playerController; } } return nullptr; }
 

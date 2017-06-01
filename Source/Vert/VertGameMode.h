@@ -17,14 +17,40 @@ class AVertGameMode : public AGameMode
 {
 	GENERATED_BODY()
 		
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rules")
+	float RespawnTimer = 3.f;
+
+	/** score for kill */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rules")
+	int32 KillScore = 1;
+
+	/** score for death */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rules")
+	int32 DeathScore = -1;
+
+	/** scale for self instigated damage */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rules")
+	float DamageSelfScale = 1.f;
+
 public:
 	AVertGameMode();
 
+	/*Finishes the match and bumps everyone to main menu.*/
+	/*Only GameInstance should call this function */
+	void RequestFinishAndExitToMainMenu();
+
 	virtual void BeginPlay() override;
+	virtual void PostLogin(APlayerController* NewPlayer) override;	
 	virtual APlayerController* SpawnPlayerController(ENetRole InRemoteRole, FVector const& SpawnLocation, FRotator const& SpawnRotation) override;
+	virtual float ModifyDamage(float Damage, AActor* DamagedActor, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) const; /** prevents friendly fire */
+	virtual void Killed(AController* Killer, AController* KilledPlayer, APawn* KilledPawn, const UDamageType* DamageType); /** notify about kills */
+	virtual bool CanDealDamage(AVertPlayerState* DamageInstigator, AVertPlayerState* DamagedPlayer) const; /** can players damage each other? */
+	virtual bool AllowCheats(APlayerController* controller) override; /** always create cheat manager */
 
 	FORCEINLINE void SetPlayerCamera(AVertPlayerCameraActor* newCamera) { mPlayerCamera = newCamera; }
 	FORCEINLINE const TArray<APawn*>& GetFollowedActors() const { return mPawnsToFollow; }
+	FORCEINLINE const float GetRespawnTimer() const { return RespawnTimer; }
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerPosition")
 	void RegisterPlayerPawn(class APawn* pawnToFollow);
@@ -41,7 +67,13 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "PlayerController")
 	void OnPlayerControllerUnPossessedPawn(APawn* pawn);
 
+	UFUNCTION(exec)
+	void FinishMatch();
+
 protected:
+	virtual void DetermineMatchWinner();
+	virtual bool IsWinner(AVertPlayerState* playerState) const;
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Input")
 	void OnControllerConnectionChange(bool connected, int32 userID, int32 controllerID);
 
