@@ -169,6 +169,21 @@ void AVertPlayerController::UnPossess()
 	Super::UnPossess();
 }
 
+
+//************************************
+// Method:    UnFreeze
+// FullName:  AVertPlayerController::UnFreeze
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//
+// Respawn after dying.
+//************************************
+void AVertPlayerController::UnFreeze()
+{
+	ServerRestartPlayer();
+}
+
 //************************************
 // Method:    HandleReturnToMainMenu
 // FullName:  AVertPlayerController::HandleReturnToMainMenu

@@ -18,9 +18,6 @@ class AVertGameMode : public AGameMode
 	GENERATED_BODY()
 		
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rules")
-	float RespawnTimer = 3.f;
-
 	/** score for kill */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rules")
 	int32 KillScore = 1;
@@ -28,7 +25,11 @@ protected:
 	/** score for death */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rules")
 	int32 DeathScore = -1;
-
+	
+	/** How many lives does a player start with (-1 = Infinite)*/
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rules", meta = (UIMin = -1, UIMax = 100))
+	int32 NumLives = -1;
+	
 	/** scale for self instigated damage */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rules")
 	float DamageSelfScale = 1.f;
@@ -50,7 +51,6 @@ public:
 
 	FORCEINLINE void SetPlayerCamera(AVertPlayerCameraActor* newCamera) { mPlayerCamera = newCamera; }
 	FORCEINLINE const TArray<APawn*>& GetFollowedActors() const { return mPawnsToFollow; }
-	FORCEINLINE const float GetRespawnTimer() const { return RespawnTimer; }
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerPosition")
 	void RegisterPlayerPawn(class APawn* pawnToFollow);

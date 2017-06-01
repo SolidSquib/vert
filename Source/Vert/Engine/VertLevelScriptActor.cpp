@@ -7,6 +7,8 @@ DECLARE_LOG_CATEGORY_CLASS(LogVertLevelScript, Log, All);
 
 void AVertLevelScriptActor::BeginPlay()
 {
+	Super::BeginPlay();
+
 	GetWorld()->GetAuthGameMode<AVertGameMode>()->SetPlayerCamera(GetStartingCamera().Get());
 }
 
