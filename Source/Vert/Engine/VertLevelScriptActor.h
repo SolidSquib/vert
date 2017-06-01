@@ -24,5 +24,8 @@ public:
 	void SetActiveCamera(AVertPlayerCameraActor* newCamera, float transitionTime);
 
 protected:
+	virtual void BeginPlay() override;
+
+protected:
 	TWeakObjectPtr<AVertPlayerCameraActor> mActiveCamera = nullptr;
 };

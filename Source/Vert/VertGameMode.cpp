@@ -17,12 +17,6 @@ void AVertGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	mOnControllerChangedHandle = FCoreDelegates::OnControllerConnectionChange.AddUFunction(this, TEXT("OnControllerConnectionChange"));
-
-	AVertLevelScriptActor* level = Cast<AVertLevelScriptActor>(GetWorld()->GetLevelScriptActor());
-	if (level)
-	{
-		mPlayerCamera = level->GetStartingCamera();
-	}
 }
 
 //************************************
@@ -307,6 +301,8 @@ void AVertGameMode::UnregisterPlayerPawn(APawn* pawnToFollow)
 //************************************
 void AVertGameMode::PostLogin(APlayerController* NewPlayer)
 {
+	Super::PostLogin(NewPlayer);
+
 	if (NewPlayer && mPlayerCamera.IsValid())
 	{
 		NewPlayer->SetViewTargetWithBlend(mPlayerCamera.Get(), 1.f);
