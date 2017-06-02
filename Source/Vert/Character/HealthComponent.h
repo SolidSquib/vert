@@ -61,9 +61,6 @@ public:
 	int32 HealDamage(int32 magnitude);
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	void Kill(const FHitResult& hit);
-
-	UFUNCTION(BlueprintCallable, Category = "Health")
 	int32 GetCurrentDamageModifier() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
@@ -77,7 +74,6 @@ protected:
 
 	virtual void PlayHit(float DamageTaken, const struct FDamageEvent& DamageEvent, class APawn* PawnInstigator, class AActor* DamageCauser);
 	virtual void BeginPlay() override;
-	virtual void EndPlay(EEndPlayReason::Type endPlayReason) override;
 
 	UFUNCTION()
 	void OnRep_LastTakeHitInfo();
