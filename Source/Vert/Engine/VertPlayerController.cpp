@@ -392,4 +392,15 @@ void AVertPlayerController::EnableDebugInfo(bool enable)
 			debuggable->EnableDebug(enable);
 		}
 	}
+
+	if (GetPawn())
+	{
+		for (UActorComponent* component : GetPawn()->GetComponents())
+		{
+			if (IDebuggable* debuggable = Cast<IDebuggable>(component))
+			{
+				debuggable->EnableDebug(enable);
+			}
+		}
+	}
 }
