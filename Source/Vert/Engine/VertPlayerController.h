@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameFramework/PlayerController.h"
+#include "Engine/VertGlobals.h"
 #include "VertPlayerController.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVertPlayerController, Log, All);
@@ -38,18 +39,17 @@ public:
 public:
 	AVertPlayerController();
 
-	void DisplayClientMessage(FString s);
-	void DisplayInt(FString label, int32 theInt);
-	void DisplayFloat(FString label, float theFloat);
-	void DisplayVector(FString label, FVector theVector);
-	void DisplayVector2D(FString label, FVector2D theVector);
+	void OnKill();
 
 	virtual void DropIn();
 	virtual bool InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad);
+	virtual void HandleReturnToMainMenu();
 	virtual void Possess(APawn* aPawn) override;
 	virtual void UnPossess() override;
+	virtual void UnFreeze() override;
 
 	class UVertLocalPlayer* GetVertLocalPlayer();
+	class AVertPlayerState* GetVertPlayerState();
 
 	FORCEINLINE void ToggleFOV() { UE_LOG(LogVertPlayerController, Warning, TEXT("Toggling FOV for test")); mTestFOV = !mTestFOV; }
 	FORCEINLINE bool IsTestingFOV() const { return mTestFOV; }
@@ -91,6 +91,12 @@ protected:
 	virtual void SetupInputComponent() override;
 	virtual ASpectatorPawn* SpawnSpectatorPawn() override;
 
+	UFUNCTION(BlueprintNativeEvent, Category = "PlayerPawn")
+	void OnPawnDeath(const struct FTakeHitInfo& lastHit);
+
+	UFUNCTION(BlueprintNativeEvent, Category = "PlayerPawn")
+	void RespawnDeadPawn();
+
 private:
 	bool mTestFOV = false;
 	bool mGodMode = false;
@@ -103,4 +109,5 @@ private:
 #elif PLATFORM_SWITCH
 	EControllerType mControllerType = EControllerType::Gamepad_Switch;
 #endif
+	FTimerHandle mPawnDeathRespawnTimer;
 };

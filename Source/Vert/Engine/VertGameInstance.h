@@ -17,6 +17,8 @@ class VERT_API UVertGameInstance : public UGameInstance
 	GENERATED_BODY()
 
 public:
+	void RemoveSplitScreenPlayers();
+	void RemoveExistingLocalPlayer(ULocalPlayer* ExistingPlayer);
 	bool IsControllerIDAvailable(const int32& id);
 
 	virtual void Init() override;

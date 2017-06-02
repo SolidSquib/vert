@@ -241,6 +241,17 @@ void AVertCharacter::KilledBy(class APawn* EventInstigator)
 	}
 }
 
+//************************************
+// Method:    Die
+// FullName:  AVertCharacter::Die
+// Access:    virtual public 
+// Returns:   bool
+// Qualifier:
+// Parameter: float KillingDamage
+// Parameter: const FDamageEvent & DamageEvent
+// Parameter: class AController * Killer
+// Parameter: class AActor * DamageCauser
+//************************************
 bool AVertCharacter::Die(float KillingDamage, const FDamageEvent& DamageEvent, class AController* Killer, class AActor* DamageCauser)
 {
 	if (!CanDie(KillingDamage, DamageEvent, Killer, DamageCauser))
@@ -251,7 +262,7 @@ bool AVertCharacter::Die(float KillingDamage, const FDamageEvent& DamageEvent, c
 	Killer = GetDamageInstigator(Killer, *DamageType);
 
 	AController* const KilledPlayer = (Controller != NULL) ? Controller : Cast<AController>(GetOwner());
-	// GetWorld()->GetAuthGameMode<AVertGameMode>()->Killed(Killer, KilledPlayer, this, DamageType);
+	GetWorld()->GetAuthGameMode<AVertGameMode>()->Killed(Killer, KilledPlayer, this, DamageType);
 
 	NetUpdateFrequency = GetDefault<AVertGameMode>()->NetUpdateFrequency;
 	GetCharacterMovement()->ForceReplicationUpdate();
@@ -260,27 +271,67 @@ bool AVertCharacter::Die(float KillingDamage, const FDamageEvent& DamageEvent, c
 	return true;
 }
 
+//************************************
+// Method:    FellOutOfWorld
+// FullName:  AVertCharacter::FellOutOfWorld
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: const class UDamageType & dmgType
+//************************************
 void AVertCharacter::FellOutOfWorld(const class UDamageType& dmgType)
 {
 	Die(HealthComponent->GetCurrentDamageModifier(), FDamageEvent(dmgType.GetClass()), NULL, NULL);
 }
 
+//************************************
+// Method:    ApplyDamageMomentum
+// FullName:  AVertCharacter::ApplyDamageMomentum
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: float DamageTaken
+// Parameter: const FDamageEvent & DamageEvent
+// Parameter: APawn * PawnInstigator
+// Parameter: AActor * DamageCauser
+//************************************
 void AVertCharacter::ApplyDamageMomentum(float DamageTaken, const FDamageEvent& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser)
 {
 	Super::ApplyDamageMomentum(DamageTaken, DamageEvent, PawnInstigator, DamageCauser);
 }
 
+//************************************
+// Method:    StopAttacking
+// FullName:  AVertCharacter::StopAttacking
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertCharacter::StopAttacking()
 {
 	InteractionComponent->StopAttacking();
 	Character_OnStopAttackExecuted();
 }
 
+//************************************
+// Method:    CanFire
+// FullName:  AVertCharacter::CanFire
+// Access:    public 
+// Returns:   bool
+// Qualifier: const
+//************************************
 bool AVertCharacter::CanFire() const
 {
 	return HealthComponent->IsAlive();
 }
 
+//************************************
+// Method:    CanReload
+// FullName:  AVertCharacter::CanReload
+// Access:    public 
+// Returns:   bool
+// Qualifier: const
+//************************************
 bool AVertCharacter::CanReload() const
 {
 	return true;
@@ -289,6 +340,14 @@ bool AVertCharacter::CanReload() const
 //////////////////////////////////////////////////////////////////////////
 // Input
 
+//************************************
+// Method:    SetupPlayerInputComponent
+// FullName:  AVertCharacter::SetupPlayerInputComponent
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+// Parameter: class UInputComponent * PlayerInputComponent
+//************************************
 void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// Note: the 'Jump' action and the 'MoveRight' axis are bound to actual keys/buttons/sticks in DefaultInput.ini (editable from Project Settings..Input)
@@ -307,6 +366,14 @@ void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAxis("MouseMove", this, &AVertCharacter::MouseMove);
 }
 
+//************************************
+// Method:    ActionMoveRight
+// FullName:  AVertCharacter::ActionMoveRight
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: float Value
+//************************************
 void AVertCharacter::ActionMoveRight(float Value)
 {
 	mAxisPositions.LeftX = Value;
@@ -314,12 +381,26 @@ void AVertCharacter::ActionMoveRight(float Value)
 	AddMovementInput(FVector(1.f, 0.f, 0.f), Value);
 }
 
+//************************************
+// Method:    ActionJump
+// FullName:  AVertCharacter::ActionJump
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertCharacter::ActionJump()
 {
 	Jump();
 	Character_OnJumpExecuted();
 }
 
+//************************************
+// Method:    ActionGrappleShoot
+// FullName:  AVertCharacter::ActionGrappleShoot
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertCharacter::ActionGrappleShoot()
 {
 	switch (UsingGamepad())
@@ -339,6 +420,13 @@ void AVertCharacter::ActionGrappleShoot()
 	}
 }
 
+//************************************
+// Method:    ExecuteActionGrappleShoot
+// FullName:  AVertCharacter::ExecuteActionGrappleShoot
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertCharacter::ExecuteActionGrappleShoot()
 {
 	if (!GrapplingComponent->GetHookedPrimitive())
@@ -357,6 +445,13 @@ void AVertCharacter::ExecuteActionGrappleShoot()
 	}
 }
 
+//************************************
+// Method:    ActionDash
+// FullName:  AVertCharacter::ActionDash
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertCharacter::ActionDash()
 {
 	FVector direction;
@@ -377,6 +472,13 @@ void AVertCharacter::ActionDash()
 	}
 }
 
+//************************************
+// Method:    ActionInteract
+// FullName:  AVertCharacter::ActionInteract
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertCharacter::ActionInteract()
 {
 	if (AInteractive* interactive = InteractionComponent->AttemptInteract())
@@ -385,6 +487,13 @@ void AVertCharacter::ActionInteract()
 	}
 }
 
+//************************************
+// Method:    ActionAttack
+// FullName:  AVertCharacter::ActionAttack
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertCharacter::ActionAttack()
 {
 	if (InteractionComponent->AttemptAttack())
@@ -394,6 +503,13 @@ void AVertCharacter::ActionAttack()
 }
 
 #if !UE_BUILD_SHIPPING
+//************************************
+// Method:    PrintDebugInfo
+// FullName:  AVertCharacter::PrintDebugInfo
+// Access:    private 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertCharacter::PrintDebugInfo()
 {
 	int debugIndex = 0;
@@ -428,6 +544,50 @@ void AVertCharacter::PrintDebugInfo()
 }
 #endif
 
+//************************************
+// Method:    UpdateTeamColoursAllMIDs
+// FullName:  AVertCharacter::UpdateTeamColoursAllMIDs
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertCharacter::UpdateTeamColoursAllMIDs()
+{
+	for (int32 i = 0; i < MeshMIDs.Num(); ++i)
+	{
+		UpdateTeamColours(MeshMIDs[i]);
+	}
+}
+
+//************************************
+// Method:    UpdateTeamColours
+// FullName:  AVertCharacter::UpdateTeamColours
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: UMaterialInstanceDynamic * useMIDs
+//************************************
+void AVertCharacter::UpdateTeamColours(UMaterialInstanceDynamic* useMID)
+{
+	if (useMID)
+	{
+		AVertPlayerState* playerState = Cast<AVertPlayerState>(PlayerState);
+		if (playerState != NULL)
+		{
+			float MaterialParam = (float)playerState->GetTeamNum();
+			useMID->SetScalarParameterValue(TEXT("Team Color Index"), MaterialParam);
+		}
+	}
+}
+
+//************************************
+// Method:    CanComponentRecharge
+// FullName:  AVertCharacter::CanComponentRecharge
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+// Parameter: ERechargeRule rule
+//************************************
 bool AVertCharacter::CanComponentRecharge(ERechargeRule rule)
 {
 	if (GrapplingComponent)
@@ -445,12 +605,26 @@ bool AVertCharacter::CanComponentRecharge(ERechargeRule rule)
 	return false;
 }
 
+//************************************
+// Method:    IsMoving
+// FullName:  AVertCharacter::IsMoving
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+//************************************
 bool AVertCharacter::IsMoving()
 {
 	FVector velocity = GetVelocity();
 	return velocity.SizeSquared() > KINDA_SMALL_NUMBER;
 }
 
+//************************************
+// Method:    UpdateCharacter
+// FullName:  AVertCharacter::UpdateCharacter
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertCharacter::UpdateCharacter()
 {
 	// Now setup the rotation of the controller based on the direction we are travelling
@@ -470,6 +644,15 @@ void AVertCharacter::UpdateCharacter()
 	}
 }
 
+//************************************
+// Method:    OnPickupInteractive
+// FullName:  AVertCharacter::OnPickupInteractive
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: AInteractive * interactive
+// Parameter: bool wasCaught
+//************************************
 void AVertCharacter::OnPickupInteractive(AInteractive* interactive, bool wasCaught)
 {
 	if (ABaseWeapon* weapon = Cast<ABaseWeapon>(interactive))
@@ -481,6 +664,15 @@ void AVertCharacter::OnPickupInteractive(AInteractive* interactive, bool wasCaug
 	Character_OnPickupNewInteractive(interactive, wasCaught);
 }
 
+//************************************
+// Method:    OnDropInteractive
+// FullName:  AVertCharacter::OnDropInteractive
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: AInteractive * interactive
+// Parameter: bool wasThrown
+//************************************
 void AVertCharacter::OnDropInteractive(AInteractive* interactive, bool wasThrown)
 {
 	if (ABaseWeapon* weapon = Cast<ABaseWeapon>(interactive))
@@ -492,11 +684,13 @@ void AVertCharacter::OnDropInteractive(AInteractive* interactive, bool wasThrown
 	Character_OnDropCurrentInteractive(interactive, wasThrown);
 }
 
-void AVertCharacter::OnNotifyDeath_Implementation(const FTakeHitInfo& lastHit)
-{
-
-}
-
+//************************************
+// Method:    SetRagdollPhysics
+// FullName:  AVertCharacter::SetRagdollPhysics
+// Access:    private 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertCharacter::SetRagdollPhysics()
 {
 	bool bInRagdoll = false;
@@ -536,21 +730,53 @@ void AVertCharacter::SetRagdollPhysics()
 	}
 }
 
+//************************************
+// Method:    RightThumbstickMoveX
+// FullName:  AVertCharacter::RightThumbstickMoveX
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: float value
+//************************************
 void AVertCharacter::RightThumbstickMoveX(float value)
 {
 	mAxisPositions.RightX = value;
 }
 
+//************************************
+// Method:    RightThumbstickMoveY
+// FullName:  AVertCharacter::RightThumbstickMoveY
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: float value
+//************************************
 void AVertCharacter::RightThumbstickMoveY(float value)
 {
 	mAxisPositions.RightY = value;
 }
 
+//************************************
+// Method:    LeftThumbstickMoveY
+// FullName:  AVertCharacter::LeftThumbstickMoveY
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: float value
+//************************************
 void AVertCharacter::LeftThumbstickMoveY(float value)
 {
 	mAxisPositions.LeftY = value;
 }
 
+//************************************
+// Method:    MouseMove
+// FullName:  AVertCharacter::MouseMove
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: float value
+//************************************
 void AVertCharacter::MouseMove(float value)
 {	
 	if (AVertPlayerController* controller = GetPlayerController())
@@ -575,6 +801,13 @@ void AVertCharacter::MouseMove(float value)
 	}
 }
 
+//************************************
+// Method:    UsingGamepad
+// FullName:  AVertCharacter::UsingGamepad
+// Access:    public 
+// Returns:   const bool
+// Qualifier: const
+//************************************
 const bool AVertCharacter::UsingGamepad() const
 {
 	return GetPlayerController()->UsingGamepad();
