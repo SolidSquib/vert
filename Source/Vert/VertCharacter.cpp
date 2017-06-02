@@ -145,6 +145,14 @@ void AVertCharacter::EndPlay(const EEndPlayReason::Type endPlayReason)
 	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 }
 
+//************************************
+// Method:    Landed
+// FullName:  AVertCharacter::Landed
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: const FHitResult & Hit
+//************************************
 void AVertCharacter::Landed(const FHitResult& Hit)
 {
 	GrapplingComponent->OnLanded();
@@ -153,6 +161,17 @@ void AVertCharacter::Landed(const FHitResult& Hit)
 	Super::Landed(Hit);
 }
 
+//************************************
+// Method:    TakeDamage
+// FullName:  AVertCharacter::TakeDamage
+// Access:    virtual public 
+// Returns:   float
+// Qualifier:
+// Parameter: float Damage
+// Parameter: const FDamageEvent & DamageEvent
+// Parameter: class AController * EventInstigator
+// Parameter: class AActor * DamageCauser
+//************************************
 float AVertCharacter::TakeDamage(float Damage, const FDamageEvent& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser)
 {
 	if (AVertPlayerController* pc = Cast<AVertPlayerController>(Controller))
@@ -183,6 +202,17 @@ bool AVertCharacter::CanDie(float KillingDamage, const FDamageEvent& DamageEvent
 	return true;
 }
 
+//************************************
+// Method:    OnDeath
+// FullName:  AVertCharacter::OnDeath
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: float killingDamage
+// Parameter: const FDamageEvent & damageEvent
+// Parameter: APawn * pawnInstigator
+// Parameter: AActor * damageCauser
+//************************************
 void AVertCharacter::OnDeath(float killingDamage, const FDamageEvent& damageEvent, APawn* pawnInstigator, AActor* damageCauser)
 {
 	if (mIsDying)
@@ -221,11 +251,26 @@ void AVertCharacter::OnDeath(float killingDamage, const FDamageEvent& damageEven
 	SetActorEnableCollision(true);
 }
 
+//************************************
+// Method:    Suicide
+// FullName:  AVertCharacter::Suicide
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertCharacter::Suicide()
 {
 	KilledBy(this);
 }
 
+//************************************
+// Method:    KilledBy
+// FullName:  AVertCharacter::KilledBy
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: class APawn * EventInstigator
+//************************************
 void AVertCharacter::KilledBy(class APawn* EventInstigator)
 {
 	if (Role == ROLE_Authority && !mIsDying)
@@ -431,9 +476,10 @@ void AVertCharacter::ExecuteActionGrappleShoot()
 {
 	if (!GrapplingComponent->GetHookedPrimitive())
 	{
-		if (GrapplingComponent->ExecuteGrapple(UsingGamepad() ? GetAxisPostisions().GetPlayerRightThumbstickDirection() : GetAxisPostisions().GetPlayerMouseDirection()))
+		FVector aimDirection = UsingGamepad() ? GetAxisPostisions().GetPlayerRightThumbstickDirection() : GetAxisPostisions().GetPlayerMouseDirection();
+		if (GrapplingComponent->ExecuteGrapple(aimDirection))
 		{
-			Character_OnGrappleShootExecuted(GrapplingComponent->GetLineDirection());
+			Character_OnGrappleShootExecuted(aimDirection);
 		}
 	}
 	else

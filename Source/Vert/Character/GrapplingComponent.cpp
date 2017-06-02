@@ -57,11 +57,12 @@ void UGrapplingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	mRechargeTimer.TickTimer(DeltaTime);
 }
 
-bool UGrapplingComponent::ExecuteGrapple(const FVector& aimDirection)
+bool UGrapplingComponent::ExecuteGrapple(FVector& aimDirection)
 {
 	if (mGrappleLauncher.IsValid() && (mRemainingGrapples > 0 || MaxGrapples == -1))
 	{
-		if (mGrappleLauncher->FireGrapple(UVertUtilities::LimitAimTrajectory(AimFreedom, aimDirection)))
+		aimDirection = UVertUtilities::LimitAimTrajectory(AimFreedom, aimDirection);
+		if (mGrappleLauncher->FireGrapple(aimDirection))
 		{
 			mRemainingGrapples = FMath::Max(0, mRemainingGrapples - 1);
 			return true;

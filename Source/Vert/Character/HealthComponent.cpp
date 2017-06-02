@@ -26,18 +26,17 @@ void UHealthComponent::BeginPlay()
 	SetDamageTaken(mDamageTaken);
 }
 
-void UHealthComponent::EndPlay(EEndPlayReason::Type endPlayReason)
-{
-	Super::EndPlay(endPlayReason);
-
-	// #Timer manager plays funny in components? hmm...
-// 	FTimerManager& timerMan = GetWorld()->GetTimerManager();
-// 	if (timerMan.IsTimerActive(mUpdateShownDamageTakenTimer))
-// 	{
-// 		timerMan.ClearTimer(mUpdateShownDamageTakenTimer);
-// 	}
-}
-
+//************************************
+// Method:    DealDamage
+// FullName:  UHealthComponent::DealDamage
+// Access:    public 
+// Returns:   int32
+// Qualifier:
+// Parameter: float DamageTaken
+// Parameter: const FDamageEvent & DamageEvent
+// Parameter: APawn * PawnInstigator
+// Parameter: AActor * DamageCauser
+//************************************
 int32 UHealthComponent::DealDamage(float DamageTaken, const FDamageEvent& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser)
 {
 	check(mCharacterOwner.IsValid());
@@ -55,6 +54,14 @@ int32 UHealthComponent::DealDamage(float DamageTaken, const FDamageEvent& Damage
 	return mDamageTaken;
 }
 
+//************************************
+// Method:    HealDamage
+// FullName:  UHealthComponent::HealDamage
+// Access:    public 
+// Returns:   int32
+// Qualifier:
+// Parameter: int32 magnitude
+//************************************
 int32 UHealthComponent::HealDamage(int32 magnitude)
 {
 	SetDamageTaken(mDamageTaken - magnitude);
@@ -63,6 +70,14 @@ int32 UHealthComponent::HealDamage(int32 magnitude)
 	return mDamageTaken;
 }
 
+//************************************
+// Method:    SetDamageTaken
+// FullName:  UHealthComponent::SetDamageTaken
+// Access:    private 
+// Returns:   void
+// Qualifier:
+// Parameter: int32 totalDamage
+//************************************
 void UHealthComponent::SetDamageTaken(int32 totalDamage)
 {
 	mDamageTaken = totalDamage;
@@ -88,6 +103,17 @@ void UHealthComponent::SetDamageTaken(int32 totalDamage)
 	}
 }
 
+//************************************
+// Method:    PlayHit
+// FullName:  UHealthComponent::PlayHit
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+// Parameter: float DamageTaken
+// Parameter: const FDamageEvent & DamageEvent
+// Parameter: APawn * PawnInstigator
+// Parameter: AActor * DamageCauser
+//************************************
 void UHealthComponent::PlayHit(float DamageTaken, const FDamageEvent& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser)
 {
 	check(mCharacterOwner.IsValid());
@@ -118,6 +144,18 @@ void UHealthComponent::PlayHit(float DamageTaken, const FDamageEvent& DamageEven
 	}
 }
 
+//************************************
+// Method:    ReplicateHit
+// FullName:  UHealthComponent::ReplicateHit
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: float Damage
+// Parameter: const FDamageEvent & DamageEvent
+// Parameter: APawn * PawnInstigator
+// Parameter: AActor * DamageCauser
+// Parameter: bool bKilled
+//************************************
 void UHealthComponent::ReplicateHit(float Damage, const FDamageEvent& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser, bool bKilled)
 {
 	const float TimeoutTime = GetWorld()->GetTimeSeconds() + 0.5f;
@@ -146,13 +184,13 @@ void UHealthComponent::ReplicateHit(float Damage, const FDamageEvent& DamageEven
 	mLastTakeHitTimeTimeout = TimeoutTime;
 }
 
-void UHealthComponent::Kill(const FHitResult& hit)
-{
-	AVertGameMode* gameMode = Cast<AVertGameMode>(GetWorld()->GetAuthGameMode());
-	mIsDead = true;
-	OnDeath.Broadcast(LastTakeHitInfo);
-}
-
+//************************************
+// Method:    GetCurrentDamageModifier
+// FullName:  UHealthComponent::GetCurrentDamageModifier
+// Access:    public 
+// Returns:   int32
+// Qualifier: const
+//************************************
 int32 UHealthComponent::GetCurrentDamageModifier() const
 {
 	// #MI_TODO: Something will probably need changing here for networking purposes.
@@ -169,11 +207,26 @@ int32 UHealthComponent::GetCurrentDamageModifier() const
  	}
 }
 
+//************************************
+// Method:    OnRep_LastTakeHitInfo
+// FullName:  UHealthComponent::OnRep_LastTakeHitInfo
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void UHealthComponent::OnRep_LastTakeHitInfo()
 {
 	PlayHit(LastTakeHitInfo.ActualDamage, LastTakeHitInfo.GetDamageEvent(), LastTakeHitInfo.PawnInstigator.Get(), LastTakeHitInfo.DamageCauser.Get());
 }
 
+//************************************
+// Method:    GetLifetimeReplicatedProps
+// FullName:  UHealthComponent::GetLifetimeReplicatedProps
+// Access:    public 
+// Returns:   void
+// Qualifier: const
+// Parameter: TArray< FLifetimeProperty > & OutLifetimeProps
+//************************************
 void UHealthComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -182,6 +235,14 @@ void UHealthComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & 
 	DOREPLIFETIME(UHealthComponent, DamageModifier);
 }
 
+//************************************
+// Method:    PreReplication
+// FullName:  UHealthComponent::PreReplication
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: IRepChangedPropertyTracker & ChangedPropertyTracker
+//************************************
 void UHealthComponent::PreReplication(IRepChangedPropertyTracker & ChangedPropertyTracker)
 {
 	Super::PreReplication(ChangedPropertyTracker);
