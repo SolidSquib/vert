@@ -476,9 +476,10 @@ void AVertCharacter::ExecuteActionGrappleShoot()
 {
 	if (!GrapplingComponent->GetHookedPrimitive())
 	{
-		if (GrapplingComponent->ExecuteGrapple(UsingGamepad() ? GetAxisPostisions().GetPlayerRightThumbstickDirection() : GetAxisPostisions().GetPlayerMouseDirection()))
+		FVector aimDirection = UsingGamepad() ? GetAxisPostisions().GetPlayerRightThumbstickDirection() : GetAxisPostisions().GetPlayerMouseDirection();
+		if (GrapplingComponent->ExecuteGrapple(aimDirection))
 		{
-			Character_OnGrappleShootExecuted(GrapplingComponent->GetLineDirection());
+			Character_OnGrappleShootExecuted(aimDirection);
 		}
 	}
 	else

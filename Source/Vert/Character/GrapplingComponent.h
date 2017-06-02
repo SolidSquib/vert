@@ -86,7 +86,7 @@ public:
 	bool Reset();
 
 	UFUNCTION(BlueprintCallable, Category = "Grappling")
-	bool ExecuteGrapple(const FVector& aimDirection);
+	bool ExecuteGrapple(FVector& aimDirection);
 
 	UFUNCTION(BlueprintCallable, Category = "Grappling")
 	bool StartPulling();
