@@ -9,6 +9,7 @@
 #include "Character/HealthComponent.h"
 #include "Character/GrapplingComponent.h"
 #include "Character/DashingComponent.h"
+#include "Character/LedgeGrabbingComponent.h"
 #include "Engine/AxisPositions.h"
 #include "VertCharacter.generated.h"
 
@@ -75,6 +76,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Dashing")
 	UDashingComponent* DashingComponent;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Climbing")
+	ULedgeGrabbingComponent* ClimbingComponent;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* SideViewCameraComponent;
 
@@ -149,6 +153,7 @@ protected:
 	void ActionInteract();
 	void ActionAttack();
 	void ActionJump();
+	void ActionDropDown();
 	void RightThumbstickMoveX(float value);
 	void RightThumbstickMoveY(float value);
 	void LeftThumbstickMoveY(float value);

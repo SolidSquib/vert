@@ -16,6 +16,7 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 	InteractionComponent(CreateDefaultSubobject<UCharacterInteractionComponent>(TEXT("InteractionComponent"))),
 	GrapplingComponent(CreateDefaultSubobject<UGrapplingComponent>(TEXT("GrapplingComponent"))),
 	DashingComponent(CreateDefaultSubobject<UDashingComponent>(TEXT("DashingComponent"))),
+	ClimbingComponent(CreateDefaultSubobject<ULedgeGrabbingComponent>(TEXT("ClimbingComponent"))),
 	DisableInputWhenDashingOrGrappling(false)
 {
 	// Use only Yaw from the controller and ignore the rest of the rotation.
@@ -403,6 +404,7 @@ void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AVertCharacter::ActionInteract);
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &AVertCharacter::ActionAttack);
 	PlayerInputComponent->BindAction("Attack", IE_Released, this, &AVertCharacter::StopAttacking);
+	PlayerInputComponent->BindAction("DropDown", IE_Pressed, this, &AVertCharacter::ActionDropDown);
 
 	PlayerInputComponent->BindAxis("MoveRight", this, &AVertCharacter::ActionMoveRight);
 	PlayerInputComponent->BindAxis("LeftThumbstickMoveY", this, &AVertCharacter::LeftThumbstickMoveY);
@@ -423,7 +425,25 @@ void AVertCharacter::ActionMoveRight(float Value)
 {
 	mAxisPositions.LeftX = Value;
 
-	AddMovementInput(FVector(1.f, 0.f, 0.f), Value);
+	if (ClimbingComponent->IsClimbingLedge())
+	{
+		static constexpr float direction_threshold = 0.25;
+
+		FVector direction = ClimbingComponent->GetLedgeDirection(EAimFreedom::Horizontal);
+		float dot = FVector::DotProduct(GetActorRotation().Vector(), direction);
+		if (dot > direction_threshold)
+		{
+			ClimbingComponent->ClimbLedge();
+		}
+		else if (dot < -direction_threshold)
+		{
+			ClimbingComponent->DropLedge();
+		}
+	}
+	else
+	{
+		AddMovementInput(FVector(1.f, 0.f, 0.f), Value);
+	}
 }
 
 //************************************
@@ -437,6 +457,14 @@ void AVertCharacter::ActionJump()
 {
 	Jump();
 	Character_OnJumpExecuted();
+}
+
+void AVertCharacter::ActionDropDown()
+{
+	if (ClimbingComponent->IsClimbingLedge())
+	{
+		ClimbingComponent->DropLedge();
+	}
 }
 
 //************************************

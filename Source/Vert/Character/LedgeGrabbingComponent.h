@@ -16,6 +16,9 @@ public:
 	TArray<AActor*> ActorsToIgnore;
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LedgeDetection")
+	bool Enable = true;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Range")
 	float ForwardRange = 150.f;
 
@@ -32,14 +35,23 @@ protected:
 	float TraceRadius = 20.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Channel")
-	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_LedgeTracer;
+	TEnumAsByte<ECollisionChannel> TraceChannel;
 
 public:	
 	// Sets default values for this component's properties
 	ULedgeGrabbingComponent();
 
+	void DropLedge();
+	void ClimbLedge();
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void PostInitProperties() override;
+
+	UFUNCTION(BlueprintCallable)
+	FVector GetLedgeDirection(EAimFreedom freedom = EAimFreedom::Free) const;
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool IsClimbingLedge() const { return mClimbingLedge; }
 
 protected:
 	virtual void DrawDebugInfo() override;
@@ -59,5 +71,6 @@ private:
 private:
 	bool mCanTrace = false;
 	bool mClimbingLedge = false;
+	FVector mLastGrabLedgeNormal = FVector::ZeroVector;
 	TWeakObjectPtr<class ACharacter> mCharacterOwner = nullptr;
 };
