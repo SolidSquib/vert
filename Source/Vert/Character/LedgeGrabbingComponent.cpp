@@ -26,7 +26,7 @@ void ULedgeGrabbingComponent::TickComponent(float DeltaTime, ELevelTick TickType
 		FHitResult hitV;
 		FHitResult hitH;
 
-		if (!mClimbingLedge && TraceForForwardLedge(hitH) && TraceForUpwardLedge(hitV))
+		if (!mClimbingLedge && TraceForUpwardLedge(hitV) && InGrabbingRange(hitV.ImpactPoint) && TraceForForwardLedge(hitH))
 		{
 			GrabLedge(hitH.ImpactPoint, hitH.ImpactNormal, hitV.ImpactPoint);
 		}
@@ -80,6 +80,28 @@ void ULedgeGrabbingComponent::OnEndOverlap(UPrimitiveComponent* overlappedComp, 
 {
 	mCanTrace = false;
 	PrimaryComponentTick.SetTickFunctionEnable(false);
+}
+
+//************************************
+// Method:    InGrabbingRange
+// FullName:  ULedgeGrabbingComponent::InGrabbingRange
+// Access:    private 
+// Returns:   bool
+// Qualifier:
+// Parameter: const FVector & ledgeHeight
+//************************************
+bool ULedgeGrabbingComponent::InGrabbingRange(const FVector& ledgeHeight)
+{
+	if (mCharacterOwner.IsValid())
+	{
+		FVector hipHeight = (HipSocket != NAME_None)
+			? mCharacterOwner->GetMesh()->GetSocketLocation(HipSocket)
+			: mCharacterOwner->GetActorLocation();
+
+		return UKismetMathLibrary::InRange_FloatFloat(hipHeight.Z - ledgeHeight.Z, HipHeightThreshold, 0);
+	}
+
+	return false;
 }
 
 //************************************

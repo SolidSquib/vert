@@ -20,6 +20,12 @@ protected:
 	bool Enable = true;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Range")
+	FName HipSocket = NAME_None;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Range")
+	float HipHeightThreshold = -50.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Range")
 	float ForwardRange = 150.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Range")
@@ -63,6 +69,7 @@ protected:
 	void OnEndOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex);
 
 private:
+	bool InGrabbingRange(const FVector& ledgeHeight);
 	bool PerformLedgeTrace(const FVector& start, const FVector& end, FHitResult& hit);
 	bool TraceForForwardLedge(FHitResult& hit);
 	bool TraceForUpwardLedge(FHitResult& hit);
