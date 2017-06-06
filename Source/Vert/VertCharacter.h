@@ -64,19 +64,19 @@ public:
 	FName ItemHandSocket = "ItemSocket";
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Health")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character|Health")
 	UHealthComponent* HealthComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Character|Interact")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Character|Interact")
 	UCharacterInteractionComponent* InteractionComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Grappling")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character|Grappling")
 	UGrapplingComponent* GrapplingComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Dashing")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character|Dashing")
 	UDashingComponent* DashingComponent;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Climbing")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character|Climbing")
 	ULedgeGrabbingComponent* ClimbingComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))

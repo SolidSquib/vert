@@ -13,6 +13,13 @@ ULedgeGrabbingComponent::ULedgeGrabbingComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 
+	bGenerateOverlapEvents = true;
+	SetCollisionObjectType(ECC_SphereTracer);
+	SetCollisionResponseToAllChannels(ECR_Ignore);
+	SetCollisionResponseToChannel(ECC_LedgeTracer, ECR_Block);
+	SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+	CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
+
 	TraceChannel = ECC_LedgeTracer;
 }
 
@@ -21,14 +28,18 @@ void ULedgeGrabbingComponent::TickComponent(float DeltaTime, ELevelTick TickType
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (Enable && mCanTrace && (!mCharacterOwner.IsValid() || (!mCharacterOwner->GetCharacterMovement()->IsFlying() && !mCharacterOwner->GetCharacterMovement()->IsFalling())))
+	if (mLerping)
+	{
+		LerpToLedge(DeltaTime);
+	}
+	else if (Enable && mCanTrace && !mClimbingLedge)
 	{
 		FHitResult hitV;
 		FHitResult hitH;
 
-		if (!mClimbingLedge && TraceForUpwardLedge(hitV) && InGrabbingRange(hitV.ImpactPoint) && TraceForForwardLedge(hitH))
+		if (TraceForUpwardLedge(hitV) && TraceForForwardLedge(hitH) && InGrabbingRange(hitV.ImpactPoint))
 		{
-			GrabLedge(hitH.ImpactPoint, hitH.ImpactNormal, hitV.ImpactPoint);
+			GrabLedge(hitH, hitV);
 		}
 	}
 }
@@ -44,6 +55,26 @@ void ULedgeGrabbingComponent::PostInitProperties()
 	{
 		mCharacterOwner = character;
 	} else { UE_LOG(LogLedgeGrabbingComponent, Error, TEXT("[%s] not attached to ACharacter, functionality may be dimished and crashes may occur."), *GetName()); }
+}
+
+//************************************
+// Method:    LerpToLedge
+// FullName:  ULedgeGrabbingComponent::LerpToLedge
+// Access:    private 
+// Returns:   void
+// Qualifier:
+// Parameter: float deltaTime
+//************************************
+void ULedgeGrabbingComponent::LerpToLedge(float deltaTime)
+{
+	mCharacterOwner->SetActorLocation(FMath::VInterpConstantTo(mCharacterOwner->GetActorLocation(), mLerpTarget, deltaTime, 1000.f));
+	FVector diff = mLerpTarget - mCharacterOwner->GetActorLocation();
+
+	if (FMath::Abs(diff.X) < SMALL_NUMBER && FMath::Abs(diff.Y) < SMALL_NUMBER && FMath::Abs(diff.Z) < SMALL_NUMBER)
+	{
+		mLerping = false;
+		mLerpTarget = FVector::ZeroVector;
+	}
 }
 
 //************************************
@@ -132,19 +163,17 @@ bool ULedgeGrabbingComponent::PerformLedgeTrace(const FVector& start, const FVec
 #if ENABLE_DRAW_DEBUG
 	if (mShowDebug)
 	{
-		const float lifetime = 5.f;
-
 		if (foundHit && hit.bBlockingHit)
 		{
 			// Red up to the blocking hit, green thereafter
-			UVertUtilities::DrawDebugSweptSphere(world, start, hit.Location, TraceRadius, FColor::Red, false, lifetime);
-			UVertUtilities::DrawDebugSweptSphere(world, hit.Location, end, TraceRadius, FColor::Green, false, lifetime);
-			DrawDebugPoint(world, hit.ImpactPoint, 16.f, FColor::Red, false, lifetime);
+			UVertUtilities::DrawDebugSweptSphere(world, start, hit.Location, TraceRadius, FColor::Red, false);
+			UVertUtilities::DrawDebugSweptSphere(world, hit.Location, end, TraceRadius, FColor::Green, false);
+			DrawDebugPoint(world, hit.ImpactPoint, 16.f, FColor::Red, false);
 		}
 		else
 		{
 			// no hit means all red
-			UVertUtilities::DrawDebugSweptSphere(world, start, end, TraceRadius, FColor::Red, false, lifetime);
+			UVertUtilities::DrawDebugSweptSphere(world, start, end, TraceRadius, FColor::Red, false);
 		}
 	}
 #endif
@@ -162,8 +191,10 @@ bool ULedgeGrabbingComponent::PerformLedgeTrace(const FVector& start, const FVec
 //************************************
 bool ULedgeGrabbingComponent::TraceForForwardLedge(FHitResult& hit)
 {
-	FVector start = FVector(GetOwner()->GetActorLocation().X, GetOwner()->GetActorLocation().Y, 0.f); // #MI_TODO: Z setup pending
-	FVector end = FVector(GetOwner()->GetActorRotation().Vector().X * ForwardRange, GetOwner()->GetActorRotation().Vector().Y * ForwardRange, 0.f); // #MI_TODO: Z setup pending
+	FVector forward = FRotationMatrix(GetOwner()->GetActorRotation()).GetScaledAxis(EAxis::X);
+
+	FVector start = GetOwner()->GetActorLocation(); // #MI_TODO: Z setup pending
+	FVector end = start + (forward * FVector(ForwardRange, ForwardRange, 0.f)); // #MI_TODO: Z setup pending
 
 	return PerformLedgeTrace(start, end, hit);
 }
@@ -178,7 +209,7 @@ bool ULedgeGrabbingComponent::TraceForForwardLedge(FHitResult& hit)
 //************************************
 bool ULedgeGrabbingComponent::TraceForUpwardLedge(FHitResult& hit)
 {
-	FVector start = FVector(GetOwner()->GetActorLocation().X, GetOwner()->GetActorLocation().Y, UpwardTraceZStartOffset) + (GetOwner()->GetActorRotation().Vector()*UpwardTraceForwardOffset);
+	FVector start = FVector(GetOwner()->GetActorLocation().X, GetOwner()->GetActorLocation().Y, GetOwner()->GetActorLocation().Z + UpwardTraceZStartOffset) + (GetOwner()->GetActorRotation().Vector()*UpwardTraceForwardOffset);
 	FVector end = FVector(start.X, start.Y, start.Z - UpwardRange); // #MI_TODO: Z setup pending
 
 	return PerformLedgeTrace(start, end, hit);
@@ -194,27 +225,47 @@ bool ULedgeGrabbingComponent::TraceForUpwardLedge(FHitResult& hit)
 // Parameter: const FVector & wallImpactNormal
 // Parameter: const FVector & ledgeHeight
 //************************************
-void ULedgeGrabbingComponent::GrabLedge(const FVector& wallImpactPoint, const FVector& wallImpactNormal, const FVector& ledgeHeight)
+void ULedgeGrabbingComponent::GrabLedge(const FHitResult& forwardHit, const FHitResult& downwardHit)
 {
+	UE_LOG(LogLedgeGrabbingComponent, Log, TEXT("%s grabbing ledge."), *mCharacterOwner->GetName());
+	mLastLedgeHeight = downwardHit.ImpactPoint;
+	
 	float radius = mCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleRadius();
 	float halfHeight = mCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-
-	FVector levelImpactPoint = wallImpactNormal * FVector(wallImpactPoint.X, wallImpactPoint.Y, 0.f);
-	FVector targetRelativeLocation = FVector(
-		levelImpactPoint.X + wallImpactPoint.X,
-		levelImpactPoint.Y + wallImpactPoint.Y,
-		ledgeHeight.Z - halfHeight
+	
+	FVector playerOffset = FVector(radius, 0.f, 0.f) * forwardHit.ImpactNormal;
+	mLerpTarget = playerOffset + FVector(
+		downwardHit.ImpactPoint.X,
+		downwardHit.ImpactPoint.Y,
+		downwardHit.ImpactPoint.Z - halfHeight
 	);
 
-	FRotator targetRelativeRotation = (mCharacterOwner->GetActorLocation() - wallImpactPoint).Rotation();
-	targetRelativeRotation.Pitch = 0;
-	mCharacterOwner->GetCapsuleComponent()->MoveComponent(targetRelativeLocation, targetRelativeRotation, false);
+	FRotator targetRotation = (mCharacterOwner->GetActorLocation() - forwardHit.ImpactPoint).Rotation();
+	targetRotation.Pitch = 0;
+	mCharacterOwner->SetActorRotation(targetRotation);
 	mCharacterOwner->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
 	mCharacterOwner->GetCharacterMovement()->StopMovementImmediately();
 
-	mLastGrabLedgeNormal = targetRelativeRotation.Vector().GetSafeNormal();
+	mLastGrabLedgeNormal = targetRotation.Vector().GetSafeNormal();
+
+	OnLedgeGrabbed.Broadcast(forwardHit, downwardHit);
 
 	mClimbingLedge = true;
+	mLerping = true;
+}
+
+//************************************
+// Method:    GetHipLocation
+// FullName:  ULedgeGrabbingComponent::GetHipLocation
+// Access:    private 
+// Returns:   FVector
+// Qualifier: const
+//************************************
+FVector ULedgeGrabbingComponent::GetHipLocation() const 
+{
+	return (HipSocket != NAME_None)
+		? mCharacterOwner->GetMesh()->GetSocketLocation(HipSocket)
+		: mCharacterOwner->GetActorLocation();
 }
 
 //************************************
@@ -228,23 +279,37 @@ void ULedgeGrabbingComponent::DropLedge()
 {
 	if (mClimbingLedge && mCharacterOwner.IsValid())
 	{
+		UE_LOG(LogLedgeGrabbingComponent, Log, TEXT("%s dropping ledge."), *mCharacterOwner->GetName());
 		mCharacterOwner->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 		mClimbingLedge = false;
 	}
 }
 
 //************************************
-// Method:    ClimbLedge
-// FullName:  ULedgeGrabbingComponent::ClimbLedge
+// Method:    TransitionLedge
+// FullName:  ULedgeGrabbingComponent::TransitionLedge
 // Access:    public 
 // Returns:   void
 // Qualifier:
+// Parameter: ELedgeTransition transition
 //************************************
-void ULedgeGrabbingComponent::ClimbLedge()
+void ULedgeGrabbingComponent::TransitionLedge(ELedgeTransition transition)
 {
-
+	if (!mLerping && mClimbingLedge)
+	{
+		OnLedgeTransition.Broadcast(transition);
+		DropLedge();
+	}
 }
 
+//************************************
+// Method:    GetLedgeDirection
+// FullName:  ULedgeGrabbingComponent::GetLedgeDirection
+// Access:    public 
+// Returns:   FVector
+// Qualifier: const
+// Parameter: EAimFreedom freedom
+//************************************
 FVector ULedgeGrabbingComponent::GetLedgeDirection(EAimFreedom freedom /* = EAimFreedom::Free */) const
 {
 	FVector direction = FVector::ZeroVector;
