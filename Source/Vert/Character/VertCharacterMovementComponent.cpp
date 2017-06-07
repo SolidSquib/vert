@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Vert.h"
 #include "VertCharacterMovementComponent.h"
+#include "Vert.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogVertCharacterMovement, Log, All);
 

@@ -1,7 +1,7 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
-#include "Vert.h"
 #include "VertImpactEffect.h"
+#include "Vert.h"
 
 AVertImpactEffect::AVertImpactEffect(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {

@@ -5,21 +5,9 @@ using System.Collections.Generic;
 
 public class VertTarget : TargetRules
 {
-	public VertTarget(TargetInfo Target)
+	public VertTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Game;
-	}
-
-	//
-	// TargetRules interface.
-	//
-
-	public override void SetupBinaries(
-		TargetInfo Target,
-		ref List<UEBuildBinaryConfiguration> OutBuildBinaryConfigurations,
-		ref List<string> OutExtraModuleNames
-		)
-	{
-		OutExtraModuleNames.Add("Vert");
+        ExtraModuleNames.AddRange(new string[] { "Vert" });
 	}
 }

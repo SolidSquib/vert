@@ -1,6 +1,5 @@
 // Copyright Inside Out Games Ltd. 2017
 
-#include "Vert.h"
 #include "GrapplingComponent.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogGrapplingComponent, Log, All);

@@ -1,7 +1,7 @@
 ﻿// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
-#include "Vert.h"
 #include "VertCharacter.h"
+#include "Vert.h"
 #include "PaperFlipbookComponent.h"
 #include "ContainerAllocationPolicies.h"
 
@@ -66,6 +66,8 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 	// Note: This can cause a little floating when going up inclines; you can choose the tradeoff between better
 	// behavior on the edge of a ledge versus inclines by setting this to true or false
 	GetCharacterMovement()->bUseFlatBaseForFloorChecks = true;
+
+	ClimbingComponent->SetupAttachment(GetRootComponent());
 
 	// Enable replication on the Sprite component so animations show up when networked
 	GetMesh()->SetIsReplicated(true);
@@ -429,16 +431,19 @@ void AVertCharacter::ActionMoveRight(float Value)
 	{
 		static constexpr float direction_threshold = 0.25;
 
-		FVector direction = ClimbingComponent->GetLedgeDirection(EAimFreedom::Horizontal);
-		float dot = FVector::DotProduct(GetActorRotation().Vector(), direction);
-		if (dot > direction_threshold)
+		if (FMath::Abs(Value) > KINDA_SMALL_NUMBER)
 		{
-			ClimbingComponent->ClimbLedge();
-		}
-		else if (dot < -direction_threshold)
-		{
-			ClimbingComponent->DropLedge();
-		}
+			FVector direction = ClimbingComponent->GetLedgeDirection(EAimFreedom::Horizontal);
+			float dot = FVector::DotProduct(GetActorRotation().Vector(), direction);
+			if (dot > direction_threshold)
+			{
+				ClimbingComponent->TransitionLedge(ELedgeTransition::Climb);
+			}
+			else if (dot < -direction_threshold)
+			{
+				ClimbingComponent->TransitionLedge(ELedgeTransition::JumpAway);
+			}
+		}		
 	}
 	else
 	{
@@ -455,15 +460,22 @@ void AVertCharacter::ActionMoveRight(float Value)
 //************************************
 void AVertCharacter::ActionJump()
 {
-	Jump();
-	Character_OnJumpExecuted();
+	if (ClimbingComponent->IsClimbingLedge())
+	{
+		ClimbingComponent->TransitionLedge(ELedgeTransition::Launch);
+	}
+	else
+	{
+		Jump();
+		Character_OnJumpExecuted();
+	}	
 }
 
 void AVertCharacter::ActionDropDown()
 {
 	if (ClimbingComponent->IsClimbingLedge())
 	{
-		ClimbingComponent->DropLedge();
+		ClimbingComponent->TransitionLedge(ELedgeTransition::Drop);
 	}
 }
 

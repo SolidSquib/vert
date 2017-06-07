@@ -6,7 +6,20 @@
 #include "Engine/Debuggable.h"
 #include "LedgeGrabbingComponent.generated.h"
 
-UCLASS( ClassGroup=(CharacterComponents), meta=(BlueprintSpawnableComponent) )
+UENUM()
+enum class ELedgeTransition : uint8 
+{
+	Climb,
+	JumpAway,
+	Launch,
+	Attack,
+	Drop
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLedgeTransitionDelegate, ELedgeTransition, transition);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLedgeGrabbedDelegate, const FHitResult&, forwardHit, const FHitResult&, downwardHit);
+
+UCLASS(ClassGroup=(CharacterComponents), meta=(BlueprintSpawnableComponent))
 class VERT_API ULedgeGrabbingComponent : public USphereComponent, public IDebuggable
 {
 	GENERATED_BODY()
@@ -15,9 +28,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ignore")
 	TArray<AActor*> ActorsToIgnore;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnLedgeTransitionDelegate OnLedgeTransition;
+
+	UPROPERTY(BlueprintAssignable)
+		FOnLedgeGrabbedDelegate OnLedgeGrabbed;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LedgeDetection")
 	bool Enable = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LedgeDetection")
+	bool UseRootMotion = true;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Range")
 	FName HipSocket = NAME_None;
@@ -47,8 +69,7 @@ public:
 	// Sets default values for this component's properties
 	ULedgeGrabbingComponent();
 
-	void DropLedge();
-	void ClimbLedge();
+	void TransitionLedge(ELedgeTransition transition);
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void PostInitProperties() override;
@@ -60,6 +81,8 @@ public:
 	FORCEINLINE bool IsClimbingLedge() const { return mClimbingLedge; }
 
 protected:
+	void DropLedge();
+
 	virtual void DrawDebugInfo() override;
 
 	UFUNCTION()
@@ -73,11 +96,17 @@ private:
 	bool PerformLedgeTrace(const FVector& start, const FVector& end, FHitResult& hit);
 	bool TraceForForwardLedge(FHitResult& hit);
 	bool TraceForUpwardLedge(FHitResult& hit);
-	void GrabLedge(const FVector& wallImpactPoint, const FVector& wallImpactNormal, const FVector& ledgeHeight);
+	void GrabLedge(const FHitResult& forwardHit, const FHitResult& downwardHit);
+	FVector GetHipLocation() const;
+	void LerpToLedge(float deltaTime);
 
 private:
 	bool mCanTrace = false;
 	bool mClimbingLedge = false;
+	bool mTransitioning = false;
+	bool mLerping = false;
+	FVector mLerpTarget = FVector::ZeroVector;
 	FVector mLastGrabLedgeNormal = FVector::ZeroVector;
+	FVector mLastLedgeHeight = FVector::ZeroVector;
 	TWeakObjectPtr<class ACharacter> mCharacterOwner = nullptr;
 };

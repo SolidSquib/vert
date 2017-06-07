@@ -1,6 +1,5 @@
 // Copyright Inside Out Games Ltd. 2017
 
-#include "Vert.h"
 #include "Interactive.h"
 
 AInteractive::AInteractive(const class FObjectInitializer& ObjectInitializer)

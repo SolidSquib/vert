@@ -1,5 +1,6 @@
 // Copyright Inside Out Games Ltd. 2017
 
+#include "VertGameState.h"
 #include "Vert.h"
 #include "VertPlayerState.h"
 #include "VertGameInstance.h"

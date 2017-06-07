@@ -1,7 +1,7 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
-#include "Vert.h"
 #include "SoundNodeLocalPlayer.h"
+#include "Vert.h"
 #include "SoundDefinitions.h"
 
 #define LOCTEXT_NAMESPACE "SoundNodeLocalPlayer"
