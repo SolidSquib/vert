@@ -1,7 +1,7 @@
 // Copyright Inside Out Games Ltd. 2017
 
-#include "Vert.h"
 #include "SplineActor.h"
+#include "Vert.h"
 
 ASplineActor::ASplineActor(const FObjectInitializer& objectInitializer) : Super(objectInitializer)
 {

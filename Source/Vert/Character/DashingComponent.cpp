@@ -1,6 +1,5 @@
 // Copyright Inside Out Games Ltd. 2017
 
-#include "Vert.h"
 #include "DashingComponent.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogDashingComponent, Log, All);

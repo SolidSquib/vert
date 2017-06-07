@@ -1,7 +1,7 @@
 // Copyright Inside Out Games Ltd. 2017
 
-#include "Vert.h"
 #include "VertViewportClient.h"
+#include "Vert.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogVertViewportClient, Log, All);
 

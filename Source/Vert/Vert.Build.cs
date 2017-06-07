@@ -4,8 +4,11 @@ using UnrealBuildTool;
 
 public class Vert : ModuleRules
 {
-	public Vert(TargetInfo Target)
+	public Vert(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Paper2D", "CableComponent" });
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "CableComponent" });
+        PrivateDependencyModuleNames.AddRange(new string[] { "OnlineSubsystem"/*, "Slate", "SlateCore" */ });
 	}
 }

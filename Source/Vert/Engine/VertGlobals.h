@@ -62,6 +62,16 @@ namespace EVertDialogType
 #define VERT_SURFACE_Glass		SurfaceType7
 #define VERT_SURFACE_Flesh		SurfaceType8
 
+// Define custom collision object types in code
+#define ECC_Grappler ECC_GameTraceChannel1
+#define ECC_Interactive ECC_GameTraceChannel2
+#define ECC_SphereTracer ECC_GameTraceChannel3
+#define ECC_LedgeTracer ECC_GameTraceChannel4
+#define ECC_WeaponTrace ECC_GameTraceChannel7
+#define ECC_WeaponProjectile ECC_GameTraceChannel8
+#define ECC_InteractionTrace ECC_GameTraceChannel9
+#define ECC_WeaponMelee ECC_GameTraceChannel10
+
 USTRUCT()
 struct FDecalData
 {

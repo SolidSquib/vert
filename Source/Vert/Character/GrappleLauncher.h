@@ -2,8 +2,8 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-//#include "Character/GrappleHook.h"
 #include "GrappleLauncher.generated.h"
 
 UCLASS()
@@ -97,8 +97,8 @@ public:
 	FHookEventDelegate OnHookReleased;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Sprite")
-	class UPaperFlipbookComponent* Sprite;
+	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	class USkeletalMeshComponent* HookMesh;
 
 	UPROPERTY(VisibleDefaultsOnly)
 	class USphereComponent* SphereCollider;
@@ -123,7 +123,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
-	FORCEINLINE UPaperFlipbookComponent* GetSprite() const { return Sprite; }
+	FORCEINLINE USkeletalMeshComponent* GetMesh() const { return HookMesh; }
 	FORCEINLINE EGrappleState GetGrappleState() const { return mGrappleState; }
 	FORCEINLINE float GetCurrentDistanceFromLauncher() const { return mDistanceFromLauncher; }
 

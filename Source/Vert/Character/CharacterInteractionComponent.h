@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Interactives/Interactive.h"
 #include "Weapons/BaseWeapon.h"

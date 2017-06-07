@@ -1,7 +1,7 @@
 // Copyright Inside Out Games Ltd. 2017
 
-#include "Vert.h"
 #include "VertPlayerCameraActor.h"
+#include "Vert.h"
 #include "Kismet/KismetTextLibrary.h"
 
 DEFINE_LOG_CATEGORY(LogVertPlayerCamera);

@@ -1,7 +1,9 @@
 // Copyright Inside Out Games Ltd. 2017
 
-#include "Vert.h"
 #include "CharacterInteractionComponent.h"
+#include "VertCharacter.h"
+#include "Components/CapsuleComponent.h"
+#include "DrawDebugHelpers.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogCharacterInteractionComponent, Log, All);
 

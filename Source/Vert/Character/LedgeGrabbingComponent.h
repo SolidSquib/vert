@@ -103,6 +103,7 @@ private:
 private:
 	bool mCanTrace = false;
 	bool mClimbingLedge = false;
+	bool mTransitioning = false;
 	bool mLerping = false;
 	FVector mLerpTarget = FVector::ZeroVector;
 	FVector mLastGrabLedgeNormal = FVector::ZeroVector;
