@@ -1,7 +1,7 @@
 // Copyright Inside Out Games Ltd. 2017
 
-#include "Vert.h"
 #include "WeaponProjectile.h"
+#include "Vert.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Effects/VertExplosionEffect.h"
 

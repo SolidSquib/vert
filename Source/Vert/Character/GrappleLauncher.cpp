@@ -1,7 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Vert.h"
 #include "GrappleLauncher.h"
+#include "CableComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "Engine/VertGlobals.h"
+#include "Kismet/GameplayStatics.h"
 
 //************************************
 // Class:    AGrappleLauncher
@@ -64,7 +67,7 @@ void AGrappleLauncher::BeginPlay()
 			if (spawnedHook)
 			{
 				mGrappleHook = spawnedHook;
-				Cable->SetAttachEndTo(mGrappleHook.Get(), mGrappleHook->GetSprite()->GetFName());
+				Cable->SetAttachEndTo(mGrappleHook.Get(), mGrappleHook->GetMesh()->GetFName());
 			}
 		}
 	}
@@ -172,8 +175,8 @@ AGrappleHook::AGrappleHook()
 
 	RootComponent = SphereCollider;
 
-	Sprite = CreateDefaultSubobject<UPaperFlipbookComponent>(TEXT("Sprite"));
-	Sprite->SetupAttachment(SphereCollider);
+	HookMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HookMesh"));
+	HookMesh->SetupAttachment(SphereCollider);
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->UpdatedComponent = SphereCollider;

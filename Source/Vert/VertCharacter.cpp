@@ -1,7 +1,7 @@
 ﻿// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
-#include "Vert.h"
 #include "VertCharacter.h"
+#include "Vert.h"
 #include "PaperFlipbookComponent.h"
 #include "ContainerAllocationPolicies.h"
 

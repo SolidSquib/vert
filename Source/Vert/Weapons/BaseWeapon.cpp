@@ -1,6 +1,5 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
-#include "Vert.h"
 #include "BaseWeapon.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Engine/VertPlayerState.h"

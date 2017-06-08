@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+#include "Sound/SoundCue.h"
 #include "BaseWeapon.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVertBaseWeapon, Log, All);
@@ -127,44 +129,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnWeaponFiredWithRecoil Delegate_OnWeaponFiredWithRecoil;
-
-public:
-	/** icon displayed on the HUD when weapon is equipped as primary */
-	UPROPERTY(EditDefaultsOnly, Category = HUD)
-	FCanvasIcon PrimaryIcon;
-
-	/** icon displayed on the HUD when weapon is secondary */
-	UPROPERTY(EditDefaultsOnly, Category = HUD)
-	FCanvasIcon SecondaryIcon;
-
-	/** bullet icon used to draw current clip (left side) */
-	UPROPERTY(EditDefaultsOnly, Category = HUD)
-	FCanvasIcon PrimaryClipIcon;
-
-	/** bullet icon used to draw secondary clip (left side) */
-	UPROPERTY(EditDefaultsOnly, Category = HUD)
-	FCanvasIcon SecondaryClipIcon;
-
-	/** how many icons to draw per clip */
-	UPROPERTY(EditDefaultsOnly, Category = HUD)
-	float AmmoIconsCount;
-
-	/** defines spacing between primary ammo icons (left side) */
-	UPROPERTY(EditDefaultsOnly, Category = HUD)
-	int32 PrimaryClipIconOffset;
-
-	/** defines spacing between secondary ammo icons (left side) */
-	UPROPERTY(EditDefaultsOnly, Category = HUD)
-	int32 SecondaryClipIconOffset;
-
-	/** crosshair parts icons (left, top, right, bottom and center) */
-	UPROPERTY(EditDefaultsOnly, Category = HUD)
-	FCanvasIcon Crosshair[5];
-
-	/** crosshair parts icons when targeting (left, top, right, bottom and center) */
-	UPROPERTY(EditDefaultsOnly, Category = HUD)
-	FCanvasIcon AimingCrosshair[5];
-
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aim")
 	bool UseControllerAim = true;

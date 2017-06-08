@@ -1,7 +1,9 @@
 // Copyright Inside Out Games Ltd. 2017
 
-#include "Vert.h"
 #include "HealthComponent.h"
+#include "Engine/VertPlayerState.h"
+#include "Weapons/VertDamageType.h"
+#include "UnrealNetwork.h"
 
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()

@@ -1,7 +1,7 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
-#include "Vert.h"
 #include "Weapons/ProjectileRangedWeapon.h"
+#include "Vert.h"
 #include "Weapons/WeaponProjectile.h"
 
 AProjectileRangedWeapon::AProjectileRangedWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)

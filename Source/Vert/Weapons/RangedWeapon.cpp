@@ -1,5 +1,5 @@
-#include "Vert.h"
 #include "RangedWeapon.h"
+#include "Vert.h"
 
 ARangedWeapon::ARangedWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
