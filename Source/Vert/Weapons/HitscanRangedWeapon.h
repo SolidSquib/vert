@@ -49,7 +49,7 @@ struct FInstantWeaponData
 };
 
 // A weapon where the damage impact occurs instantly upon firing
-UCLASS(Abstract)
+UCLASS(Abstract, Blueprintable)
 class AHitscanRangedWeapon : public ARangedWeapon
 {
 	GENERATED_UCLASS_BODY()

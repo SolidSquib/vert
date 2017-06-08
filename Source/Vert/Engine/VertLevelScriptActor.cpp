@@ -8,10 +8,38 @@ DECLARE_LOG_CATEGORY_CLASS(LogVertLevelScript, Log, All);
 void AVertLevelScriptActor::BeginPlay()
 {
 	Super::BeginPlay();
-
-	GetWorld()->GetAuthGameMode<AVertGameMode>()->SetPlayerCamera(GetStartingCamera().Get());
 }
 
+void AVertLevelScriptActor::Tick(float DeltaTime)
+{
+	if (!mPlayerCameraSet)
+	{
+		if (UWorld* world = GetWorld())
+		{
+			if (AVertGameMode* gameMode = world->GetAuthGameMode<AVertGameMode>())
+			{
+				TWeakObjectPtr<AVertPlayerCameraActor> camera = GetStartingCamera();
+				if (camera.IsValid())
+				{
+					gameMode->SetPlayerCamera(camera.Get());
+					mPlayerCameraSet = true;
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("Camera doesn't exist"));
+				}
+			}
+		}
+	}
+}
+
+//************************************
+// Method:    GetStartingCamera
+// FullName:  AVertLevelScriptActor::GetStartingCamera
+// Access:    public 
+// Returns:   TWeakObjectPtr<AVertPlayerCameraActor>
+// Qualifier:
+//************************************
 TWeakObjectPtr<AVertPlayerCameraActor> AVertLevelScriptActor::GetStartingCamera()
 {
 	if (StartCamera)
@@ -47,6 +75,15 @@ TWeakObjectPtr<AVertPlayerCameraActor> AVertLevelScriptActor::GetStartingCamera(
 	return mActiveCamera;
 }
 
+//************************************
+// Method:    SetActiveCamera
+// FullName:  AVertLevelScriptActor::SetActiveCamera
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: AVertPlayerCameraActor * newCamera
+// Parameter: float transitionTime
+//************************************
 void AVertLevelScriptActor::SetActiveCamera(AVertPlayerCameraActor* newCamera, float transitionTime)
 {
 	if (newCamera == mActiveCamera)

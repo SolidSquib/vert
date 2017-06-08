@@ -141,7 +141,7 @@ void UHealthComponent::PlayHit(float DamageTaken, const FDamageEvent& DamageEven
 		if (const ABaseWeapon* weapon = Cast<ABaseWeapon>(DamageCauser))
 		{
 			//LaunchCharacter(DamageEvent, weapon);
-			mCharacterOwner->ApplyDamageMomentum(weapon->GetKnockbackMagnitude()*GetCurrentDamageModifier(), DamageEvent, PawnInstigator, DamageCauser);
+			mCharacterOwner->ApplyDamageMomentum(DamageTaken, DamageEvent, PawnInstigator, DamageCauser);
 		}
 	}
 }

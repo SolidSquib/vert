@@ -23,14 +23,14 @@ void AMeleeWeapon::BeginPlay()
 	WeaponMesh->OnComponentEndOverlap.AddDynamic(this, &AMeleeWeapon::OnWeaponEndOverlap);
 }
 
-void AMeleeWeapon::SimulateWeaponFire()
+void AMeleeWeapon::ClientSimulateWeaponFire_Implementation()
 {
-	Super::SimulateWeaponFire();
+	Super::ClientSimulateWeaponFire_Implementation();
 }
 
-void AMeleeWeapon::StopSimulatingWeaponFire()
+void AMeleeWeapon::ClientStopSimulateWeaponFire_Implementation()
 {
-	Super::StopSimulatingWeaponFire();
+	Super::ClientStopSimulateWeaponFire_Implementation();
 
 	if (ArcPSC != NULL)
 	{

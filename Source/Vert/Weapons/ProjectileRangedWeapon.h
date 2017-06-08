@@ -41,7 +41,7 @@ struct FProjectileWeaponData
 };
 
 // A weapon that fires a visible projectile
-UCLASS(Abstract)
+UCLASS(Abstract, Blueprintable)
 class AProjectileRangedWeapon : public ARangedWeapon
 {
 	GENERATED_UCLASS_BODY()

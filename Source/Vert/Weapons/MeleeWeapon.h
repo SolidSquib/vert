@@ -8,7 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMeleeAttackExecute, int32, comboDepth);
 
-UCLASS()
+UCLASS(Abstract, Blueprintable)
 class VERT_API AMeleeWeapon : public ABaseWeapon
 {
 	GENERATED_UCLASS_BODY()
@@ -41,8 +41,8 @@ protected:
 
 protected:	
 	virtual void BeginPlay() override;
-	virtual void SimulateWeaponFire() override;
-	virtual void StopSimulatingWeaponFire() override;
+	virtual void ClientSimulateWeaponFire_Implementation() override;
+	virtual void ClientStopSimulateWeaponFire_Implementation() override;
 	virtual bool FireWeapon_Implementation() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Attack|Notify")

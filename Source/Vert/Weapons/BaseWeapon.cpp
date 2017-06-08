@@ -20,11 +20,10 @@ ABaseWeapon::ABaseWeapon(const FObjectInitializer& ObjectInitializer) : Super(Ob
 
 	InteractionSphere->SetupAttachment(RootComponent);
 
-	bPlayingFireAnim = false;
-	bIsEquipped = false;
-	bWantsToFire = false;
-	bPendingReload = false;
-	bPendingEquip = false;
+	IsEquipped = false;
+	WantsToFire = false;
+	PendingReload = false;
+	PendingEquip = false;
 	mCurrentState = EWeaponState::Idle;
 
 	CurrentAmmo = 0;
@@ -59,60 +58,77 @@ void ABaseWeapon::Destroyed()
 	StopSimulatingWeaponFire();
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Inventory
-
+//************************************
+// Method:    OnEquip
+// FullName:  ABaseWeapon::OnEquip
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::OnEquip()
 {
 	AttachMeshToPawn();
 
-	bPendingEquip = true;
+	PendingEquip = true;
 	DetermineWeaponState();
 
 	AttachMeshToPawn();
 
-	bIsEquipped = true;
-	bPendingEquip = false;
+	IsEquipped = true;
+	PendingEquip = false;
 
 	// Determine the state so that the can reload checks will work
 	DetermineWeaponState();
 
-	if (MyPawn)
-	{
-		// try to reload empty clip
-		if (MyPawn->IsLocallyControlled() &&
-			CurrentAmmoInClip <= 0 &&
-			CanReload())
-		{
-			StartReload();
-		}
-	}
-	
 	if (MyPawn && MyPawn->IsLocallyControlled())
 	{
 		PlayWeaponSound(EquipSound);
 	}
 }
 
+//************************************
+// Method:    NotifyEquipAnimationEnded
+// FullName:  ABaseWeapon::NotifyEquipAnimationEnded
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void ABaseWeapon::NotifyEquipAnimationEnded()
+{
+	if (PendingEquip)
+	{
+		PendingEquip = false;
+		IsEquipped = true;
+	}
+	else { UE_LOG(LogVertBaseWeapon, Warning, TEXT("%s attempting to notify animation ended when equip is not pending. Check for multiple calls."), *GetName()); }
+}
+
+//************************************
+// Method:    OnUnEquip
+// FullName:  ABaseWeapon::OnUnEquip
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::OnUnEquip()
 {
 	DetachMeshFromPawn();
-	bIsEquipped = false;
-	StopFire();
+	IsEquipped = false;
+	StopAttacking();
 
-	if (bPendingReload)
+	if (PendingReload)
 	{
 		StopWeaponAnimation(ReloadAnim);
-		bPendingReload = false;
+		PendingReload = false;
 
 		GetWorldTimerManager().ClearTimer(mTimerHandle_StopReload);
 		GetWorldTimerManager().ClearTimer(mTimerHandle_ReloadWeapon);
 	}
 
-	if (bPendingEquip)
+	if (PendingEquip)
 	{
 		StopWeaponAnimation(EquipAnim);
-		bPendingEquip = false;
+		PendingEquip = false;
 
 		GetWorldTimerManager().ClearTimer(mTimerHandle_OnEquipFinished);
 	}
@@ -120,6 +136,14 @@ void ABaseWeapon::OnUnEquip()
 	DetermineWeaponState();
 }
 
+//************************************
+// Method:    OnPickup
+// FullName:  ABaseWeapon::OnPickup
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: AVertCharacter * NewOwner
+//************************************
 void ABaseWeapon::OnPickup(AVertCharacter* NewOwner)
 {
 	SetOwningPawn(NewOwner);
@@ -127,6 +151,13 @@ void ABaseWeapon::OnPickup(AVertCharacter* NewOwner)
 	OnEquip();
 }
 
+//************************************
+// Method:    OnDrop
+// FullName:  ABaseWeapon::OnDrop
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::OnDrop()
 {
 	if (Role == ROLE_Authority)
@@ -140,6 +171,13 @@ void ABaseWeapon::OnDrop()
 	}
 }
 
+//************************************
+// Method:    AttachMeshToPawn
+// FullName:  ABaseWeapon::AttachMeshToPawn
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::AttachMeshToPawn()
 {
 	if (MyPawn)
@@ -157,22 +195,53 @@ void ABaseWeapon::AttachMeshToPawn()
 	}
 }
 
+//************************************
+// Method:    DetachMeshFromPawn
+// FullName:  ABaseWeapon::DetachMeshFromPawn
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::DetachMeshFromPawn()
 {
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 }
 
+//************************************
+// Method:    Interact
+// FullName:  ABaseWeapon::Interact
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: const TWeakObjectPtr<class UCharacterInteractionComponent> & instigator
+//************************************
 void ABaseWeapon::Interact(const TWeakObjectPtr<class UCharacterInteractionComponent>& instigator)
 {
 	WeaponInteract(instigator.Get(), instigator->GetCharacterOwner());
 }
 
+//************************************
+// Method:    FireWeapon_Implementation
+// FullName:  ABaseWeapon::FireWeapon_Implementation
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+//************************************
 bool ABaseWeapon::FireWeapon_Implementation()
 {
 	UE_LOG(LogVertBaseWeapon, Fatal, TEXT("Call to pure virtual function ABaseWeapon::FireWeapon_Implementation not allowed"));
 	return false;
 }
 
+//************************************
+// Method:    WeaponInteract_Implementation
+// FullName:  ABaseWeapon::WeaponInteract_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: UCharacterInteractionComponent * interactionComponent
+// Parameter: AVertCharacter * character
+//************************************
 void ABaseWeapon::WeaponInteract_Implementation(UCharacterInteractionComponent* interactionComponent, AVertCharacter* character)
 {
 	if (interactionComponent != nullptr)
@@ -194,6 +263,13 @@ void ABaseWeapon::WeaponInteract_Implementation(UCharacterInteractionComponent* 
 	}
 }
 
+//************************************
+// Method:    ThrowWeapon_Implementation
+// FullName:  ABaseWeapon::ThrowWeapon_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::ThrowWeapon_Implementation()
 {
 	if (AVertCharacter* character = Cast<AVertCharacter>(Instigator))
@@ -207,37 +283,56 @@ void ABaseWeapon::ThrowWeapon_Implementation()
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Input
-
-void ABaseWeapon::StartFire()
+//************************************
+// Method:    StartAttacking
+// FullName:  ABaseWeapon::StartAttacking
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//************************************
+void ABaseWeapon::StartAttacking()
 {
 	if (Role < ROLE_Authority)
 	{
 		ServerStartFire();
 	}
 
-	if (!bWantsToFire)
+	if (!WantsToFire)
 	{
-		bWantsToFire = true;
+		WantsToFire = true;
 		DetermineWeaponState();
 	}
 }
 
-void ABaseWeapon::StopFire()
+//************************************
+// Method:    StopAttacking
+// FullName:  ABaseWeapon::StopAttacking
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//************************************
+void ABaseWeapon::StopAttacking()
 {
 	if (Role < ROLE_Authority)
 	{
 		ServerStopFire();
 	}
 
-	if (bWantsToFire && (WeaponConfig.FiringMode != EFiringMode::Burst || BurstCounter >= WeaponConfig.BurstNumberOfShots || GetCurrentAmmoInClip() <= 0))
+	if (WantsToFire && (WeaponConfig.FiringMode != EFiringMode::Burst || BurstCounter >= WeaponConfig.BurstNumberOfShots || GetCurrentAmmoInClip() <= 0))
 	{
-		bWantsToFire = false;
+		WantsToFire = false;
 		DetermineWeaponState();
 	}
 }
 
+//************************************
+// Method:    StartReload
+// FullName:  ABaseWeapon::StartReload
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: bool bFromReplication
+//************************************
 void ABaseWeapon::StartReload(bool bFromReplication)
 {
 	if (!bFromReplication && Role < ROLE_Authority)
@@ -247,20 +342,16 @@ void ABaseWeapon::StartReload(bool bFromReplication)
 
 	if (bFromReplication || CanReload())
 	{
-		bPendingReload = true;
+		PendingReload = true;
 		DetermineWeaponState();
 
-		float AnimDuration = PlayWeaponAnimation(ReloadAnim);
-		if (AnimDuration <= 0.0f)
-		{
-			AnimDuration = WeaponConfig.NoAnimReloadDuration;
-		}
+		PlayWeaponAnimation(ReloadAnim);
 
-		GetWorldTimerManager().SetTimer(mTimerHandle_StopReload, this, &ABaseWeapon::StopReload, AnimDuration, false);
-		if (Role == ROLE_Authority)
-		{
-			GetWorldTimerManager().SetTimer(mTimerHandle_ReloadWeapon, this, &ABaseWeapon::ReloadWeapon, FMath::Max(0.1f, AnimDuration - 0.1f), false);
-		}
+		//GetWorldTimerManager().SetTimer(mTimerHandle_StopReload, this, &ABaseWeapon::StopReload, AnimDuration, false);
+		//if (Role == ROLE_Authority)
+		//{
+		//	GetWorldTimerManager().SetTimer(mTimerHandle_ReloadWeapon, this, &ABaseWeapon::ReloadWeapon, FMath::Max(0.1f, AnimDuration - 0.1f), false);
+		//}
 
 		if (MyPawn && MyPawn->IsLocallyControlled())
 		{
@@ -269,56 +360,126 @@ void ABaseWeapon::StartReload(bool bFromReplication)
 	}
 }
 
+//************************************
+// Method:    StopReload
+// FullName:  ABaseWeapon::StopReload
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::StopReload()
 {
 	if (mCurrentState == EWeaponState::Reloading)
 	{
-		bPendingReload = false;
+		PendingReload = false;
 		DetermineWeaponState();
 		StopWeaponAnimation(ReloadAnim);
 	}
 }
 
+//************************************
+// Method:    ServerStartFire_Validate
+// FullName:  ABaseWeapon::ServerStartFire_Validate
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+//************************************
 bool ABaseWeapon::ServerStartFire_Validate()
 {
 	return true;
 }
 
+//************************************
+// Method:    ServerStartFire_Implementation
+// FullName:  ABaseWeapon::ServerStartFire_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::ServerStartFire_Implementation()
 {
-	StartFire();
+	StartAttacking();
 }
 
+//************************************
+// Method:    ServerStopFire_Validate
+// FullName:  ABaseWeapon::ServerStopFire_Validate
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+//************************************
 bool ABaseWeapon::ServerStopFire_Validate()
 {
 	return true;
 }
 
+//************************************
+// Method:    ServerStopFire_Implementation
+// FullName:  ABaseWeapon::ServerStopFire_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::ServerStopFire_Implementation()
 {
-	StopFire();
+	StopAttacking();
 }
 
+//************************************
+// Method:    ServerStartReload_Validate
+// FullName:  ABaseWeapon::ServerStartReload_Validate
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+//************************************
 bool ABaseWeapon::ServerStartReload_Validate()
 {
 	return true;
 }
 
+//************************************
+// Method:    ServerStartReload_Implementation
+// FullName:  ABaseWeapon::ServerStartReload_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::ServerStartReload_Implementation()
 {
 	StartReload();
 }
 
+//************************************
+// Method:    ServerStopReload_Validate
+// FullName:  ABaseWeapon::ServerStopReload_Validate
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+//************************************
 bool ABaseWeapon::ServerStopReload_Validate()
 {
 	return true;
 }
 
+//************************************
+// Method:    ServerStopReload_Implementation
+// FullName:  ABaseWeapon::ServerStopReload_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::ServerStopReload_Implementation()
 {
 	StopReload();
 }
 
+//************************************
+// Method:    ClientStartReload_Implementation
+// FullName:  ABaseWeapon::ClientStartReload_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::ClientStartReload_Implementation()
 {
 	StartReload();
@@ -327,13 +488,27 @@ void ABaseWeapon::ClientStartReload_Implementation()
 //////////////////////////////////////////////////////////////////////////
 // Control
 
+//************************************
+// Method:    CanFire
+// FullName:  ABaseWeapon::CanFire
+// Access:    public 
+// Returns:   bool
+// Qualifier: const
+//************************************
 bool ABaseWeapon::CanFire() const
 {
 	bool bCanFire = MyPawn && MyPawn->CanFire();
 	bool bStateOKToFire = ((mCurrentState == EWeaponState::Idle) || (mCurrentState == EWeaponState::Firing));
-	return ((bCanFire == true) && (bStateOKToFire == true) && (bPendingReload == false));
+	return ((bCanFire == true) && (bStateOKToFire == true) && (PendingReload == false));
 }
 
+//************************************
+// Method:    CanReload
+// FullName:  ABaseWeapon::CanReload
+// Access:    public 
+// Returns:   bool
+// Qualifier: const
+//************************************
 bool ABaseWeapon::CanReload() const
 {
 	bool bCanReload = (!MyPawn || MyPawn->CanReload());
@@ -347,6 +522,14 @@ bool ABaseWeapon::CanReload() const
 //////////////////////////////////////////////////////////////////////////
 // Weapon usage
 
+//************************************
+// Method:    GiveAmmo
+// FullName:  ABaseWeapon::GiveAmmo
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: int AddAmount
+//************************************
 void ABaseWeapon::GiveAmmo(int AddAmount)
 {
 	const int32 MissingAmmo = FMath::Max(0, WeaponConfig.MaxAmmo - CurrentAmmo);
@@ -360,6 +543,13 @@ void ABaseWeapon::GiveAmmo(int AddAmount)
 	}
 }
 
+//************************************
+// Method:    UseAmmo
+// FullName:  ABaseWeapon::UseAmmo
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::UseAmmo()
 {
 	if (!HasInfiniteAmmo())
@@ -373,6 +563,13 @@ void ABaseWeapon::UseAmmo()
 	}
 }
 
+//************************************
+// Method:    HandleFiring
+// FullName:  ABaseWeapon::HandleFiring
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::HandleFiring()
 {
 	if ((CurrentAmmoInClip > 0 || HasInfiniteClip() || HasInfiniteAmmo()) && CanFire())
@@ -397,7 +594,7 @@ void ABaseWeapon::HandleFiring()
 
 			if (WeaponConfig.FiringMode == EFiringMode::SemiAutomatic || (WeaponConfig.FiringMode == EFiringMode::Burst && BurstCounter >= WeaponConfig.BurstNumberOfShots))
 			{
-				StopFire();
+				StopAttacking();
 			}
 		}
 	}
@@ -407,7 +604,7 @@ void ABaseWeapon::HandleFiring()
 	}
 	else if (MyPawn && MyPawn->IsLocallyControlled())
 	{
-		if (GetCurrentAmmo() == 0 && !bRefiring)
+		if (GetCurrentAmmo() == 0 && !Refiring)
 		{
 			PlayWeaponSound(OutOfAmmoSound);
 		}
@@ -434,8 +631,8 @@ void ABaseWeapon::HandleFiring()
 		}
 
 		// setup refire timer
-		bRefiring = (mCurrentState == EWeaponState::Firing && WeaponConfig.TimeBetweenShots > 0.0f);
-		if (bRefiring)
+		Refiring = (mCurrentState == EWeaponState::Firing && WeaponConfig.TimeBetweenShots > 0.0f);
+		if (Refiring)
 		{
 			GetWorldTimerManager().SetTimer(mTimerHandle_HandleFiring, this, &ABaseWeapon::HandleFiring, WeaponConfig.TimeBetweenShots, false);
 		}
@@ -444,11 +641,25 @@ void ABaseWeapon::HandleFiring()
 	mLastFireTime = GetWorld()->GetTimeSeconds();
 }
 
+//************************************
+// Method:    ServerHandleFiring_Validate
+// FullName:  ABaseWeapon::ServerHandleFiring_Validate
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+//************************************
 bool ABaseWeapon::ServerHandleFiring_Validate()
 {
 	return true;
 }
 
+//************************************
+// Method:    ServerHandleFiring_Implementation
+// FullName:  ABaseWeapon::ServerHandleFiring_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::ServerHandleFiring_Implementation()
 {
 	const bool bShouldUpdateAmmo = (CurrentAmmoInClip > 0 && CanFire());
@@ -465,11 +676,18 @@ void ABaseWeapon::ServerHandleFiring_Implementation()
 
 		if (WeaponConfig.FiringMode == EFiringMode::SemiAutomatic || (WeaponConfig.FiringMode == EFiringMode::Burst && BurstCounter >= WeaponConfig.BurstNumberOfShots))
 		{
-			StopFire();
+			StopAttacking();
 		}
 	}
 }
 
+//************************************
+// Method:    ReloadWeapon
+// FullName:  ABaseWeapon::ReloadWeapon
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::ReloadWeapon()
 {
 	int32 ClipDelta = FMath::Min(WeaponConfig.AmmoPerClip - CurrentAmmoInClip, CurrentAmmo - CurrentAmmoInClip);
@@ -490,7 +708,15 @@ void ABaseWeapon::ReloadWeapon()
 	}
 }
 
-EWeaponAnimationMode ABaseWeapon::GetPlayerAnimForState(EWeaponState state)
+//************************************
+// Method:    GetPlayerAnimForState
+// FullName:  ABaseWeapon::GetPlayerAnimForState
+// Access:    protected 
+// Returns:   UAnimSequence*
+// Qualifier:
+// Parameter: EWeaponState state
+//************************************
+UAnimSequence* ABaseWeapon::GetPlayerAnimForState(EWeaponState state)
 {
 	switch (state)
 	{
@@ -506,6 +732,14 @@ EWeaponAnimationMode ABaseWeapon::GetPlayerAnimForState(EWeaponState state)
 	}
 }
 
+//************************************
+// Method:    SetWeaponState
+// FullName:  ABaseWeapon::SetWeaponState
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: EWeaponState NewState
+//************************************
 void ABaseWeapon::SetWeaponState(EWeaponState NewState)
 {
 	const EWeaponState PrevState = mCurrentState;
@@ -528,13 +762,20 @@ void ABaseWeapon::SetWeaponState(EWeaponState NewState)
 	}
 }
 
+//************************************
+// Method:    DetermineWeaponState
+// FullName:  ABaseWeapon::DetermineWeaponState
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::DetermineWeaponState()
 {
 	EWeaponState NewState = EWeaponState::Idle;
 
-	if (bIsEquipped)
+	if (IsEquipped)
 	{
-		if (bPendingReload)
+		if (PendingReload)
 		{
 			if (CanReload() == false)
 			{
@@ -545,12 +786,12 @@ void ABaseWeapon::DetermineWeaponState()
 				NewState = EWeaponState::Reloading;
 			}
 		}
-		else if ((bPendingReload == false) && (bWantsToFire == true) && (CanFire() == true))
+		else if ((PendingReload == false) && (WantsToFire == true) && (CanFire() == true))
 		{
 			NewState = EWeaponState::Firing;
 		}
 	}
-	else if (bPendingEquip)
+	else if (PendingEquip)
 	{
 		NewState = EWeaponState::Equipping;
 	}
@@ -558,6 +799,13 @@ void ABaseWeapon::DetermineWeaponState()
 	SetWeaponState(NewState);
 }
 
+//************************************
+// Method:    OnBurstStarted
+// FullName:  ABaseWeapon::OnBurstStarted
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::OnBurstStarted()
 {
 	// start firing, can be delayed to satisfy TimeBetweenShots
@@ -573,6 +821,13 @@ void ABaseWeapon::OnBurstStarted()
 	}
 }
 
+//************************************
+// Method:    OnBurstFinished
+// FullName:  ABaseWeapon::OnBurstFinished
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::OnBurstFinished()
 {
 	// stop firing FX on remote clients
@@ -585,13 +840,21 @@ void ABaseWeapon::OnBurstFinished()
 	}
 
 	GetWorldTimerManager().ClearTimer(mTimerHandle_HandleFiring);
-	bRefiring = false;
+	Refiring = false;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 // Weapon usage helpers
 
+//************************************
+// Method:    PlayWeaponSound
+// FullName:  ABaseWeapon::PlayWeaponSound
+// Access:    protected 
+// Returns:   UAudioComponent*
+// Qualifier:
+// Parameter: USoundCue * Sound
+//************************************
 UAudioComponent* ABaseWeapon::PlayWeaponSound(USoundCue* Sound)
 {
 	UAudioComponent* AC = NULL;
@@ -603,17 +866,30 @@ UAudioComponent* ABaseWeapon::PlayWeaponSound(USoundCue* Sound)
 	return AC;
 }
 
-float ABaseWeapon::PlayWeaponAnimation(const FWeaponAnim& Animation)
+//************************************
+// Method:    PlayWeaponAnimation
+// FullName:  ABaseWeapon::PlayWeaponAnimation
+// Access:    protected 
+// Returns:   float
+// Qualifier:
+// Parameter: const FWeaponAnim & Animation
+//************************************
+void ABaseWeapon::PlayWeaponAnimation(const FWeaponAnim& Animation)
 {
-	float Duration = 0.0f;
 	if (Animation.WeaponAnim)
 	{
 		WeaponMesh->PlayAnimation(Animation.WeaponAnim, false);
 	}
-
-	return Duration;
 }
 
+//************************************
+// Method:    StopWeaponAnimation
+// FullName:  ABaseWeapon::StopWeaponAnimation
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const FWeaponAnim & Animation
+//************************************
 void ABaseWeapon::StopWeaponAnimation(const FWeaponAnim& Animation)
 {
 	if (Animation.WeaponAnim)
@@ -622,6 +898,15 @@ void ABaseWeapon::StopWeaponAnimation(const FWeaponAnim& Animation)
 	}
 }
 
+//************************************
+// Method:    WeaponTrace
+// FullName:  ABaseWeapon::WeaponTrace
+// Access:    protected 
+// Returns:   FHitResult
+// Qualifier: const
+// Parameter: const FVector & StartTrace
+// Parameter: const FVector & EndTrace
+//************************************
 FHitResult ABaseWeapon::WeaponTrace(const FVector& StartTrace, const FVector& EndTrace) const
 {
 	static FName WeaponFireTag = FName(TEXT("WeaponTrace"));
@@ -637,6 +922,14 @@ FHitResult ABaseWeapon::WeaponTrace(const FVector& StartTrace, const FVector& En
 	return Hit;
 }
 
+//************************************
+// Method:    SetOwningPawn
+// FullName:  ABaseWeapon::SetOwningPawn
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: AVertCharacter * NewOwner
+//************************************
 void ABaseWeapon::SetOwningPawn(AVertCharacter* NewOwner)
 {
 	if (MyPawn != NewOwner)
@@ -651,6 +944,13 @@ void ABaseWeapon::SetOwningPawn(AVertCharacter* NewOwner)
 //////////////////////////////////////////////////////////////////////////
 // Replication & effects
 
+//************************************
+// Method:    OnRep_MyPawn
+// FullName:  ABaseWeapon::OnRep_MyPawn
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::OnRep_MyPawn()
 {
 	if (MyPawn)
@@ -663,6 +963,13 @@ void ABaseWeapon::OnRep_MyPawn()
 	}
 }
 
+//************************************
+// Method:    OnRep_BurstCounter
+// FullName:  ABaseWeapon::OnRep_BurstCounter
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::OnRep_BurstCounter()
 {
 	if (BurstCounter > 0)
@@ -675,9 +982,16 @@ void ABaseWeapon::OnRep_BurstCounter()
 	}
 }
 
+//************************************
+// Method:    OnRep_Reload
+// FullName:  ABaseWeapon::OnRep_Reload
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::OnRep_Reload()
 {
-	if (bPendingReload)
+	if (PendingReload)
 	{
 		StartReload(true);
 	}
@@ -687,6 +1001,13 @@ void ABaseWeapon::OnRep_Reload()
 	}
 }
 
+//************************************
+// Method:    SimulateWeaponFire
+// FullName:  ABaseWeapon::SimulateWeaponFire
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void ABaseWeapon::SimulateWeaponFire()
 {
 	if (Role == ROLE_Authority && mCurrentState != EWeaponState::Firing)
@@ -694,6 +1015,30 @@ void ABaseWeapon::SimulateWeaponFire()
 		return;
 	}
 
+	ClientSimulateWeaponFire();
+}
+
+//************************************
+// Method:    StopSimulatingWeaponFire
+// FullName:  ABaseWeapon::StopSimulatingWeaponFire
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void ABaseWeapon::StopSimulatingWeaponFire()
+{
+	ClientStopSimulateWeaponFire();
+}
+
+//************************************
+// Method:    ClientSimulateWeaponFire_Implementation
+// FullName:  ABaseWeapon::ClientSimulateWeaponFire_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void ABaseWeapon::ClientSimulateWeaponFire_Implementation()
+{
 	AVertPlayerController* PC = (MyPawn != NULL) ? Cast<AVertPlayerController>(MyPawn->Controller) : NULL;
 	if (PC != NULL && PC->IsLocalController())
 	{
@@ -708,9 +1053,16 @@ void ABaseWeapon::SimulateWeaponFire()
 	}
 }
 
-void ABaseWeapon::StopSimulatingWeaponFire()
+//************************************
+// Method:    ClientStopSimulateWeaponFire_Implementation
+// FullName:  ABaseWeapon::ClientStopSimulateWeaponFire_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void ABaseWeapon::ClientStopSimulateWeaponFire_Implementation()
 {
-	
+
 }
 
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
@@ -723,7 +1075,7 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLi
 	DOREPLIFETIME_CONDITION(ABaseWeapon, CurrentAmmoInClip, COND_OwnerOnly);
 
 	DOREPLIFETIME_CONDITION(ABaseWeapon, BurstCounter, COND_SkipOwner);
-	DOREPLIFETIME_CONDITION(ABaseWeapon, bPendingReload, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(ABaseWeapon, PendingReload, COND_SkipOwner);
 }
 
 class AVertCharacter* ABaseWeapon::GetPawnOwner() const
@@ -731,14 +1083,14 @@ class AVertCharacter* ABaseWeapon::GetPawnOwner() const
 	return MyPawn;
 }
 
-bool ABaseWeapon::IsEquipped() const
+bool ABaseWeapon::IsWeaponEquipped() const
 {
-	return bIsEquipped;
+	return IsEquipped;
 }
 
 bool ABaseWeapon::IsAttachedToPawn() const
 {
-	return bIsEquipped || bPendingEquip;
+	return IsEquipped || PendingEquip;
 }
 
 EWeaponState ABaseWeapon::GetCurrentState() const
@@ -769,13 +1121,13 @@ int32 ABaseWeapon::GetMaxAmmo() const
 bool ABaseWeapon::HasInfiniteAmmo() const
 {
 	const AVertPlayerController* MyPC = (MyPawn != NULL) ? Cast<const AVertPlayerController>(MyPawn->Controller) : NULL;
-	return WeaponConfig.bInfiniteAmmo || (MyPC && MyPC->HasInfiniteWeaponUsage());
+	return WeaponConfig.InfiniteAmmo || (MyPC && MyPC->HasInfiniteWeaponUsage());
 }
 
 bool ABaseWeapon::HasInfiniteClip() const
 {
 	const AVertPlayerController* MyPC = (MyPawn != NULL) ? Cast<const AVertPlayerController>(MyPawn->Controller) : NULL;
-	return WeaponConfig.bInfiniteClip || (MyPC && MyPC->HasInfiniteClip());
+	return WeaponConfig.InfiniteClip || (MyPC && MyPC->HasInfiniteClip());
 }
 
 float ABaseWeapon::GetEquipStartedTime() const

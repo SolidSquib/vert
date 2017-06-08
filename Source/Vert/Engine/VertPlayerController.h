@@ -42,11 +42,13 @@ public:
 	void OnKill();
 
 	virtual void DropIn();
-	virtual bool InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad);
 	virtual void HandleReturnToMainMenu();
 	virtual void Possess(APawn* aPawn) override;
 	virtual void UnPossess() override;
 	virtual void UnFreeze() override;
+#if PLATFORM_WINDOWS
+	virtual bool InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad) override;
+#endif
 
 	class UVertLocalPlayer* GetVertLocalPlayer();
 	class AVertPlayerState* GetVertPlayerState();

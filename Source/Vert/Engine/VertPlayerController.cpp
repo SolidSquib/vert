@@ -61,6 +61,7 @@ bool AVertPlayerController::UsingGamepad() const
 	return mControllerType != EControllerType::Keyboard_Mouse;
 }
 
+#if PLATFORM_WINDOWS
 //************************************
 // Method:    InputKey
 // FullName:  AVertPlayerController::InputKey
@@ -92,6 +93,7 @@ bool AVertPlayerController::InputKey(FKey Key, EInputEvent EventType, float Amou
 
 	return Super::InputKey(Key, EventType, AmountDepressed, bGamepad);
 }
+#endif
 
 //************************************
 // Method:    GetVertLocalPlayer
@@ -144,7 +146,7 @@ void AVertPlayerController::Possess(APawn* aPawn)
 
 	if (aPawn)
 	{
-		UE_LOG(LogVertPlayerController, Warning, TEXT("Broadcasting controller possessed"));
+		UE_LOG(LogVertPlayerController, Log, TEXT("Broadcasting controller possessed"));
 		OnPossessed.Broadcast(aPawn);
 
 
@@ -162,7 +164,7 @@ void AVertPlayerController::UnPossess()
 {
 	if (GetPawn())
 	{
-		UE_LOG(LogVertPlayerController, Warning, TEXT("Broadcasting controller unpossessed"));
+		UE_LOG(LogVertPlayerController, Log, TEXT("Broadcasting controller unpossessed"));
 		OnUnPossessed.Broadcast(GetPawn());
 	}
 
@@ -226,7 +228,7 @@ ASpectatorPawn* AVertPlayerController::SpawnSpectatorPawn()
 	ASpectatorPawn* pawn = nullptr;
 	return Super::SpawnSpectatorPawn();
 
-	UE_LOG(LogVertPlayerController, Warning, TEXT("Player inactive, no spectator spawned"));
+	UE_LOG(LogVertPlayerController, Log, TEXT("Player inactive, no spectator spawned"));
 
 	return pawn;
 }
