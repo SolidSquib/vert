@@ -44,17 +44,21 @@ void ULedgeGrabbingComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	}
 }
 
+void ULedgeGrabbingComponent::BeginPlay()
+{
+	if (ACharacter* character = Cast<ACharacter>(GetOwner()))
+	{
+		mCharacterOwner = character;
+	}
+	else { UE_LOG(LogLedgeGrabbingComponent, Error, TEXT("[%s] not attached to ACharacter, functionality may be dimished and crashes may occur."), *GetName()); }
+}
+
 void ULedgeGrabbingComponent::PostInitProperties()
 {
 	Super::PostInitProperties();
 
 	OnComponentBeginOverlap.AddDynamic(this, &ULedgeGrabbingComponent::OnBeginOverlap);
 	OnComponentEndOverlap.AddDynamic(this, &ULedgeGrabbingComponent::OnEndOverlap);
-
-	if (ACharacter* character = Cast<ACharacter>(GetOwner()))
-	{
-		mCharacterOwner = character;
-	} else { UE_LOG(LogLedgeGrabbingComponent, Error, TEXT("[%s] not attached to ACharacter, functionality may be dimished and crashes may occur."), *GetName()); }
 }
 
 //************************************
