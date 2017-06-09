@@ -61,7 +61,7 @@ bool AVertPlayerController::UsingGamepad() const
 	return mControllerType != EControllerType::Keyboard_Mouse;
 }
 
-#if PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS || PLATFORM_MAC
 //************************************
 // Method:    InputKey
 // FullName:  AVertPlayerController::InputKey

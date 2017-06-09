@@ -46,7 +46,7 @@ public:
 	virtual void Possess(APawn* aPawn) override;
 	virtual void UnPossess() override;
 	virtual void UnFreeze() override;
-#if PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS || PLATFORM_MAC
 	virtual bool InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad) override;
 #endif
 
@@ -104,7 +104,7 @@ private:
 	bool mGodMode = false;
 	bool mInfiniteClip = false;
 	bool mInfiniteWeaponUsage = false;
-#if PLATFORM_WINDOWS || PLATFORM_XBOXONE
+#if PLATFORM_WINDOWS || PLATFORM_XBOXONE || PLATFORM_MAC
 	EControllerType mControllerType = EControllerType::Gamepad_Xbox;
 #elif PLATFORM_PS4
 	EControllerType mControllerType = EControllerType::Gamepad_PS4;

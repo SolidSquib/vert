@@ -91,8 +91,8 @@ public:
 protected:	
 	virtual FVector GetShootDirectionAfterSpread(const FVector& aimDirection, int32& outRandomSeed, float& outCurrentSpread);
 	virtual void OnBurstFinished() override; /** [local + server] update spread on firing */
-	virtual void ClientSimulateWeaponFire_Implementation() override;
-	virtual void ClientStopSimulateWeaponFire_Implementation() override;
+	virtual void ClientSimulateWeaponAttack_Implementation() override;
+	virtual void ClientStopSimulateWeaponAttack_Implementation() override;
 
 protected:
 	float mCurrentFiringSpread;

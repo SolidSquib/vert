@@ -14,7 +14,7 @@ AHitscanRangedWeapon::AHitscanRangedWeapon(const FObjectInitializer& ObjectIniti
 //////////////////////////////////////////////////////////////////////////
 // Weapon usage
 
-bool AHitscanRangedWeapon::FireWeapon_Implementation()
+bool AHitscanRangedWeapon::AttackWithWeapon_Implementation()
 {
 	int32 randomSeed;
 	float currentSpread;

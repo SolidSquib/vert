@@ -171,7 +171,17 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = Animation)
 	FWeaponAnim IdleAnim;
-		
+	
+	/* Mainly for testing purposes, ignores the wait for an animation to notify after euip begin or reload begin */
+	UPROPERTY(EditDefaultsOnly, Category = "Animation|Overrides")
+	uint32 OverrideAnimCompleteNotify : 1;
+
+	/* Whether we should block all user input for this weapon whilst an attack animation is playing */
+	UPROPERTY(EditDefaultsOnly, Category = "Animation|Overrides")
+	uint32 UseAnimsForAttackStartAndEnd : 1;
+
+	uint32 WaitingForAttackEnd : 1;
+
 	/** is weapon currently equipped? */
 	uint32 IsEquipped : 1;
 
@@ -221,8 +231,6 @@ public:
 	int32 GetAmmoPerClip() const; /** get clip size */
 	int32 GetMaxAmmo() const; /** get max ammo amount */
 
-	virtual void OnEquip();	/** weapon is being equipped by owner pawn */
-	virtual void OnUnEquip(); /** weapon is holstered by owner pawn */
 	virtual void OnPickup(AVertCharacter* NewOwner); /** [server] weapon was added to pawn's inventory */
 	virtual void OnDrop(); /** [server] weapon was removed from pawn's inventory */
 	virtual void Interact(const TWeakObjectPtr<class UCharacterInteractionComponent>& instigator) final;
@@ -246,13 +254,33 @@ public:
 	FORCEINLINE int32 GetBaseDamage() const { return WeaponConfig.BaseDamage; }
 	
 	UFUNCTION(BlueprintCallable, Category = "AnimationNotifies")
+	FORCEINLINE bool IsAttackAnimationFinished() const { return !WaitingForAttackEnd; }
+
+	/* [LOCAL} animation notify to tell us it's alright to leave the Equipping state */
+	UFUNCTION(BlueprintCallable, Category = "AnimationNotifies")
 	void NotifyEquipAnimationEnded();
+
+	/* [LOCAL} animation notify to tell us it's alright to leave the Reloading state */
+	UFUNCTION(BlueprintCallable, Category = "AnimationNotifies")
+	void NotifyReloadAnimationEnded();
+
+	/* [LOCAL} animation notify to tell us it's alright to leave the Attacking state */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AnimationNotifies")
+	void NotifyAttackAnimationActiveStarted();
+
+	/* [LOCAL} animation notify to tell us it's alright to leave the Attacking state */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AnimationNotifies")
+	void NotifyAttackAnimationActiveEnded();
+
+	/* [LOCAL} animation notify to tell us it's alright to leave the Attacking state */
+	UFUNCTION(BlueprintCallable, Category = "AnimationNotifies")
+	void NotifyAttackAnimationEnded();
 
 protected:
 	UAnimSequence* GetPlayerAnimForState(EWeaponState state);
-	void SimulateWeaponFire(); /** Called in network play to do the cosmetic fx for firing */
-	void StopSimulatingWeaponFire(); /** Called in network play to stop cosmetic fx (e.g. for a looping shot). */
-	void HandleFiring(); /** [local + server] handle weapon fire */
+	void SimulateWeaponAttack(); /** Called in network play to do the cosmetic fx for firing */
+	void StopSimulatingWeaponAttack(); /** Called in network play to stop cosmetic fx (e.g. for a looping shot). */
+	void HandleAttacking(); /** [local + server] handle weapon fire */
 	void SetWeaponState(EWeaponState NewState); /** update weapon state */
 	void DetermineWeaponState(); /** determine current weapon state */
 	void AttachMeshToPawn(); /** attaches weapon mesh to pawn's mesh */
@@ -260,37 +288,53 @@ protected:
 	UAudioComponent* PlayWeaponSound(USoundCue* Sound); /** play weapon sounds */
 	void PlayWeaponAnimation(const FWeaponAnim& Animation); /** play weapon animations */
 	void StopWeaponAnimation(const FWeaponAnim& Animation); /** stop playing weapon animations */
-	FHitResult WeaponTrace(const FVector& TraceFrom, const FVector& TraceTo) const; /** find hit */
 
 	virtual void OnBurstStarted(); /** [local + server] firing started */
 	virtual void OnBurstFinished(); /** [local + server] firing finished */
 	
 	UFUNCTION(BlueprintNativeEvent, Category = "FX")
-	void ClientSimulateWeaponFire();
+	void ClientSimulateWeaponAttack();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "FX")
-	void ClientStopSimulateWeaponFire();
+	void ClientStopSimulateWeaponAttack();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
 	void WeaponInteract(UCharacterInteractionComponent* interactionComponent, AVertCharacter* character);
 	
+	/** [local] weapon specific fire implementation */
 	UFUNCTION(BlueprintNativeEvent, Category = "Attack")
-	bool FireWeapon(); /** [local] weapon specific fire implementation */
+	bool AttackWithWeapon();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
 	void ThrowWeapon();
 
-	UFUNCTION(reliable, server, WithValidation)
-	void ServerStartFire();
+	/* [LOCAL] Called when a weapon has been equipped. */
+	UFUNCTION(BlueprintImplementableEvent)
+	void WeaponReadyFromPickup();
+
+	/* [LOCAL] Called at the end of a burst, after a semi-auto shot, or when the weapon is out of ammo. */
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnAttackFinished();
+
+	/** find hit */
+	UFUNCTION(BlueprintCallable, Category = "Hit Detection")
+	FHitResult WeaponTrace(const FVector& TraceFrom, const FVector& TraceTo) const;
 
 	UFUNCTION(reliable, server, WithValidation)
-	void ServerStopFire();
+	void ServerStartAttacking();
+
+	UFUNCTION(reliable, server, WithValidation)
+	void ServerStopAttacking();
 
 	UFUNCTION(reliable, server, WithValidation)
 	void ServerStartReload();
 
 	UFUNCTION(reliable, server, WithValidation)
 	void ServerStopReload();
+
+	/** [server] fire & update ammo */
+	UFUNCTION(reliable, server, WithValidation)
+	void ServerHandleAttacking();
 
 	UFUNCTION()
 	void OnRep_MyPawn();
@@ -300,11 +344,7 @@ protected:
 
 	UFUNCTION()
 	void OnRep_Reload();
-
-	/** [server] fire & update ammo */
-	UFUNCTION(reliable, server, WithValidation)
-	void ServerHandleFiring();	
-
+	
 protected:
 	float mLastFireTime; /** time of last successful weapon fire */
 	float mEquipStartedTime; /** last time when this weapon was switched to */

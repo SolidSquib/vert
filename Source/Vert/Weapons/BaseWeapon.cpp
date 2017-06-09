@@ -24,6 +24,8 @@ ABaseWeapon::ABaseWeapon(const FObjectInitializer& ObjectInitializer) : Super(Ob
 	WantsToFire = false;
 	PendingReload = false;
 	PendingEquip = false;
+	OverrideAnimCompleteNotify = false;
+	WaitingForAttackEnd = false;
 	mCurrentState = EWeaponState::Idle;
 
 	CurrentAmmo = 0;
@@ -55,35 +57,7 @@ void ABaseWeapon::Destroyed()
 {
 	Super::Destroyed();
 
-	StopSimulatingWeaponFire();
-}
-
-//************************************
-// Method:    OnEquip
-// FullName:  ABaseWeapon::OnEquip
-// Access:    virtual public 
-// Returns:   void
-// Qualifier:
-//************************************
-void ABaseWeapon::OnEquip()
-{
-	AttachMeshToPawn();
-
-	PendingEquip = true;
-	DetermineWeaponState();
-
-	AttachMeshToPawn();
-
-	IsEquipped = true;
-	PendingEquip = false;
-
-	// Determine the state so that the can reload checks will work
-	DetermineWeaponState();
-
-	if (MyPawn && MyPawn->IsLocallyControlled())
-	{
-		PlayWeaponSound(EquipSound);
-	}
+	StopSimulatingWeaponAttack();
 }
 
 //************************************
@@ -97,43 +71,16 @@ void ABaseWeapon::NotifyEquipAnimationEnded()
 {
 	if (PendingEquip)
 	{
+		AttachMeshToPawn();
+
 		PendingEquip = false;
 		IsEquipped = true;
+
+		DetermineWeaponState();
+
+		WeaponReadyFromPickup();
 	}
 	else { UE_LOG(LogVertBaseWeapon, Warning, TEXT("%s attempting to notify animation ended when equip is not pending. Check for multiple calls."), *GetName()); }
-}
-
-//************************************
-// Method:    OnUnEquip
-// FullName:  ABaseWeapon::OnUnEquip
-// Access:    virtual public 
-// Returns:   void
-// Qualifier:
-//************************************
-void ABaseWeapon::OnUnEquip()
-{
-	DetachMeshFromPawn();
-	IsEquipped = false;
-	StopAttacking();
-
-	if (PendingReload)
-	{
-		StopWeaponAnimation(ReloadAnim);
-		PendingReload = false;
-
-		GetWorldTimerManager().ClearTimer(mTimerHandle_StopReload);
-		GetWorldTimerManager().ClearTimer(mTimerHandle_ReloadWeapon);
-	}
-
-	if (PendingEquip)
-	{
-		StopWeaponAnimation(EquipAnim);
-		PendingEquip = false;
-
-		GetWorldTimerManager().ClearTimer(mTimerHandle_OnEquipFinished);
-	}
-
-	DetermineWeaponState();
 }
 
 //************************************
@@ -147,8 +94,21 @@ void ABaseWeapon::OnUnEquip()
 void ABaseWeapon::OnPickup(AVertCharacter* NewOwner)
 {
 	SetOwningPawn(NewOwner);
+	AttachMeshToPawn();
 
-	OnEquip();
+	if (!OverrideAnimCompleteNotify)
+	{
+		PendingEquip = true;
+
+		if (MyPawn && MyPawn->IsLocallyControlled())
+		{
+			PlayWeaponSound(EquipSound);
+		}
+
+		PlayWeaponAnimation(EquipAnim);
+	}
+
+	DetermineWeaponState();
 }
 
 //************************************
@@ -167,7 +127,28 @@ void ABaseWeapon::OnDrop()
 
 	if (IsAttachedToPawn())
 	{
-		OnUnEquip();
+		DetachMeshFromPawn();
+		IsEquipped = false;
+		StopAttacking();
+
+		if (PendingReload)
+		{
+			StopWeaponAnimation(ReloadAnim);
+			PendingReload = false;
+
+			GetWorldTimerManager().ClearTimer(mTimerHandle_StopReload);
+			GetWorldTimerManager().ClearTimer(mTimerHandle_ReloadWeapon);
+		}
+
+		if (PendingEquip)
+		{
+			StopWeaponAnimation(EquipAnim);
+			PendingEquip = false;
+
+			GetWorldTimerManager().ClearTimer(mTimerHandle_OnEquipFinished);
+		}
+
+		DetermineWeaponState();
 	}
 }
 
@@ -227,9 +208,9 @@ void ABaseWeapon::Interact(const TWeakObjectPtr<class UCharacterInteractionCompo
 // Returns:   bool
 // Qualifier:
 //************************************
-bool ABaseWeapon::FireWeapon_Implementation()
+bool ABaseWeapon::AttackWithWeapon_Implementation()
 {
-	UE_LOG(LogVertBaseWeapon, Fatal, TEXT("Call to pure virtual function ABaseWeapon::FireWeapon_Implementation not allowed"));
+	UE_LOG(LogVertBaseWeapon, Fatal, TEXT("Call to pure virtual function ABaseWeapon::AttackWithWeapon_Implementation not allowed"));
 	return false;
 }
 
@@ -294,11 +275,12 @@ void ABaseWeapon::StartAttacking()
 {
 	if (Role < ROLE_Authority)
 	{
-		ServerStartFire();
+		ServerStartAttacking();
 	}
 
 	if (!WantsToFire)
 	{
+		WaitingForAttackEnd = (UseAnimsForAttackStartAndEnd) ? true : false;
 		WantsToFire = true;
 		DetermineWeaponState();
 	}
@@ -315,7 +297,7 @@ void ABaseWeapon::StopAttacking()
 {
 	if (Role < ROLE_Authority)
 	{
-		ServerStopFire();
+		ServerStopAttacking();
 	}
 
 	if (WantsToFire && (WeaponConfig.FiringMode != EFiringMode::Burst || BurstCounter >= WeaponConfig.BurstNumberOfShots || GetCurrentAmmoInClip() <= 0))
@@ -323,6 +305,43 @@ void ABaseWeapon::StopAttacking()
 		WantsToFire = false;
 		DetermineWeaponState();
 	}
+}
+
+//************************************
+// Method:    NotifyAttackAnimationActiveStarted_Implementation
+// FullName:  ABaseWeapon::NotifyAttackAnimationActiveStarted_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void ABaseWeapon::NotifyAttackAnimationActiveStarted_Implementation()
+{
+	// Do nothing
+}
+
+//************************************
+// Method:    NotifyAttackAnimationActiveEnded_Implementation
+// FullName:  ABaseWeapon::NotifyAttackAnimationActiveEnded_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void ABaseWeapon::NotifyAttackAnimationActiveEnded_Implementation()
+{
+	// Do nothing
+}
+
+//************************************
+// Method:    NotifyAttackAnimationEnded
+// FullName:  ABaseWeapon::NotifyAttackAnimationEnded
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void ABaseWeapon::NotifyAttackAnimationEnded()
+{
+	WaitingForAttackEnd = false;
+	DetermineWeaponState();
 }
 
 //************************************
@@ -342,22 +361,39 @@ void ABaseWeapon::StartReload(bool bFromReplication)
 
 	if (bFromReplication || CanReload())
 	{
-		PendingReload = true;
-		DetermineWeaponState();
-
-		PlayWeaponAnimation(ReloadAnim);
-
-		//GetWorldTimerManager().SetTimer(mTimerHandle_StopReload, this, &ABaseWeapon::StopReload, AnimDuration, false);
-		//if (Role == ROLE_Authority)
-		//{
-		//	GetWorldTimerManager().SetTimer(mTimerHandle_ReloadWeapon, this, &ABaseWeapon::ReloadWeapon, FMath::Max(0.1f, AnimDuration - 0.1f), false);
-		//}
-
-		if (MyPawn && MyPawn->IsLocallyControlled())
+		if (!OverrideAnimCompleteNotify)
 		{
-			PlayWeaponSound(ReloadSound);
+			PendingReload = true;
+			PlayWeaponAnimation(ReloadAnim);
+
+			if (MyPawn && MyPawn->IsLocallyControlled())
+			{
+				PlayWeaponSound(ReloadSound);
+			}
+		}		
+
+		DetermineWeaponState();
+	}
+}
+
+//************************************
+// Method:    NotifyReloadAnimationEnded_Implementation
+// FullName:  ABaseWeapon::NotifyReloadAnimationEnded_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void ABaseWeapon::NotifyReloadAnimationEnded()
+{
+	if (PendingReload)
+	{
+		StopReload();
+		if (Role == ROLE_Authority)
+		{
+			ReloadWeapon();
 		}
 	}
+	else { UE_LOG(LogVertBaseWeapon, Warning, TEXT("%s attempting to notify animation ended when reload is not pending. Check for multiple calls."), *GetName()); }
 }
 
 //************************************
@@ -384,7 +420,7 @@ void ABaseWeapon::StopReload()
 // Returns:   bool
 // Qualifier:
 //************************************
-bool ABaseWeapon::ServerStartFire_Validate()
+bool ABaseWeapon::ServerStartAttacking_Validate()
 {
 	return true;
 }
@@ -396,7 +432,7 @@ bool ABaseWeapon::ServerStartFire_Validate()
 // Returns:   void
 // Qualifier:
 //************************************
-void ABaseWeapon::ServerStartFire_Implementation()
+void ABaseWeapon::ServerStartAttacking_Implementation()
 {
 	StartAttacking();
 }
@@ -408,7 +444,7 @@ void ABaseWeapon::ServerStartFire_Implementation()
 // Returns:   bool
 // Qualifier:
 //************************************
-bool ABaseWeapon::ServerStopFire_Validate()
+bool ABaseWeapon::ServerStopAttacking_Validate()
 {
 	return true;
 }
@@ -420,7 +456,7 @@ bool ABaseWeapon::ServerStopFire_Validate()
 // Returns:   void
 // Qualifier:
 //************************************
-void ABaseWeapon::ServerStopFire_Implementation()
+void ABaseWeapon::ServerStopAttacking_Implementation()
 {
 	StopAttacking();
 }
@@ -570,18 +606,17 @@ void ABaseWeapon::UseAmmo()
 // Returns:   void
 // Qualifier:
 //************************************
-void ABaseWeapon::HandleFiring()
+void ABaseWeapon::HandleAttacking()
 {
-	if ((CurrentAmmoInClip > 0 || HasInfiniteClip() || HasInfiniteAmmo()) && CanFire())
+	if ((CurrentAmmoInClip > 0 || HasInfiniteClip() || HasInfiniteAmmo()) && CanFire() && ((WeaponConfig.FiringMode == EFiringMode::SemiAutomatic && BurstCounter == 0) || (WeaponConfig.FiringMode == EFiringMode::Burst && BurstCounter < WeaponConfig.BurstNumberOfShots)))
 	{
-		if (GetNetMode() != NM_DedicatedServer)
-		{
-			SimulateWeaponFire();
-		}
-
+		SimulateWeaponAttack();
+		
 		if (MyPawn && MyPawn->IsLocallyControlled())
 		{
-			if (FireWeapon())
+			// Play sounds and use ammo if the function returned true, ignore if not
+			// Allows for charging weapons etc.
+			if (AttackWithWeapon())
 			{
 				PlayWeaponAnimation(FireAnim);
 				PlayWeaponSound(FireSound);
@@ -590,17 +625,8 @@ void ABaseWeapon::HandleFiring()
 
 				// update firing FX on remote clients if function was called on server
 				BurstCounter++;
-			}			
-
-			if (WeaponConfig.FiringMode == EFiringMode::SemiAutomatic || (WeaponConfig.FiringMode == EFiringMode::Burst && BurstCounter >= WeaponConfig.BurstNumberOfShots))
-			{
-				StopAttacking();
 			}
 		}
-	}
-	else if (CanReload())
-	{
-		StartReload();
 	}
 	else if (MyPawn && MyPawn->IsLocallyControlled())
 	{
@@ -621,20 +647,14 @@ void ABaseWeapon::HandleFiring()
 		// local client will notify server
 		if (Role < ROLE_Authority)
 		{
-			ServerHandleFiring();
-		}
-
-		// reload after firing last round
-		if (CurrentAmmoInClip <= 0 && CanReload())
-		{
-			StartReload();
+			ServerHandleAttacking();
 		}
 
 		// setup refire timer
 		Refiring = (mCurrentState == EWeaponState::Firing && WeaponConfig.TimeBetweenShots > 0.0f);
 		if (Refiring)
 		{
-			GetWorldTimerManager().SetTimer(mTimerHandle_HandleFiring, this, &ABaseWeapon::HandleFiring, WeaponConfig.TimeBetweenShots, false);
+			GetWorldTimerManager().SetTimer(mTimerHandle_HandleFiring, this, &ABaseWeapon::HandleAttacking, WeaponConfig.TimeBetweenShots, false);
 		}
 	}
 
@@ -648,7 +668,7 @@ void ABaseWeapon::HandleFiring()
 // Returns:   bool
 // Qualifier:
 //************************************
-bool ABaseWeapon::ServerHandleFiring_Validate()
+bool ABaseWeapon::ServerHandleAttacking_Validate()
 {
 	return true;
 }
@@ -660,11 +680,11 @@ bool ABaseWeapon::ServerHandleFiring_Validate()
 // Returns:   void
 // Qualifier:
 //************************************
-void ABaseWeapon::ServerHandleFiring_Implementation()
+void ABaseWeapon::ServerHandleAttacking_Implementation()
 {
 	const bool bShouldUpdateAmmo = (CurrentAmmoInClip > 0 && CanFire());
 
-	HandleFiring();
+	HandleAttacking();
 
 	if (bShouldUpdateAmmo)
 	{
@@ -786,7 +806,7 @@ void ABaseWeapon::DetermineWeaponState()
 				NewState = EWeaponState::Reloading;
 			}
 		}
-		else if ((PendingReload == false) && (WantsToFire == true) && (CanFire() == true))
+		else if ((PendingReload == false) && (WantsToFire == true || WaitingForAttackEnd) && (CanFire() == true))
 		{
 			NewState = EWeaponState::Firing;
 		}
@@ -813,11 +833,11 @@ void ABaseWeapon::OnBurstStarted()
 	if (mLastFireTime > 0 && WeaponConfig.TimeBetweenShots > 0.0f &&
 		mLastFireTime + WeaponConfig.TimeBetweenShots > GameTime)
 	{
-		GetWorldTimerManager().SetTimer(mTimerHandle_HandleFiring, this, &ABaseWeapon::HandleFiring, mLastFireTime + WeaponConfig.TimeBetweenShots - GameTime, false);
+		GetWorldTimerManager().SetTimer(mTimerHandle_HandleFiring, this, &ABaseWeapon::HandleAttacking, mLastFireTime + WeaponConfig.TimeBetweenShots - GameTime, false);
 	}
 	else
 	{
-		HandleFiring();
+		HandleAttacking();
 	}
 }
 
@@ -832,15 +852,13 @@ void ABaseWeapon::OnBurstFinished()
 {
 	// stop firing FX on remote clients
 	BurstCounter = 0;
+	StopSimulatingWeaponAttack();
 	
-	// stop firing FX locally, unless it's a dedicated server
-	if (GetNetMode() != NM_DedicatedServer)
-	{
-		StopSimulatingWeaponFire();
-	}
-
 	GetWorldTimerManager().ClearTimer(mTimerHandle_HandleFiring);
 	Refiring = false;
+
+	if(!WaitingForAttackEnd)
+		OnAttackFinished();
 }
 
 
@@ -974,11 +992,11 @@ void ABaseWeapon::OnRep_BurstCounter()
 {
 	if (BurstCounter > 0)
 	{
-		SimulateWeaponFire();
+		SimulateWeaponAttack();
 	}
 	else
 	{
-		StopSimulatingWeaponFire();
+		StopSimulatingWeaponAttack();
 	}
 }
 
@@ -1008,14 +1026,17 @@ void ABaseWeapon::OnRep_Reload()
 // Returns:   void
 // Qualifier:
 //************************************
-void ABaseWeapon::SimulateWeaponFire()
+void ABaseWeapon::SimulateWeaponAttack()
 {
-	if (Role == ROLE_Authority && mCurrentState != EWeaponState::Firing)
+	if (GetNetMode() != NM_DedicatedServer)
 	{
-		return;
-	}
+		if (Role == ROLE_Authority && mCurrentState != EWeaponState::Firing)
+		{
+			return;
+		}
 
-	ClientSimulateWeaponFire();
+		ClientSimulateWeaponAttack();
+	}
 }
 
 //************************************
@@ -1025,9 +1046,13 @@ void ABaseWeapon::SimulateWeaponFire()
 // Returns:   void
 // Qualifier:
 //************************************
-void ABaseWeapon::StopSimulatingWeaponFire()
+void ABaseWeapon::StopSimulatingWeaponAttack()
 {
-	ClientStopSimulateWeaponFire();
+	// stop firing FX locally, unless it's a dedicated server
+	if (GetNetMode() != NM_DedicatedServer)
+	{
+		ClientStopSimulateWeaponAttack();
+	}
 }
 
 //************************************
@@ -1037,7 +1062,7 @@ void ABaseWeapon::StopSimulatingWeaponFire()
 // Returns:   void
 // Qualifier:
 //************************************
-void ABaseWeapon::ClientSimulateWeaponFire_Implementation()
+void ABaseWeapon::ClientSimulateWeaponAttack_Implementation()
 {
 	AVertPlayerController* PC = (MyPawn != NULL) ? Cast<AVertPlayerController>(MyPawn->Controller) : NULL;
 	if (PC != NULL && PC->IsLocalController())
@@ -1060,7 +1085,7 @@ void ABaseWeapon::ClientSimulateWeaponFire_Implementation()
 // Returns:   void
 // Qualifier:
 //************************************
-void ABaseWeapon::ClientStopSimulateWeaponFire_Implementation()
+void ABaseWeapon::ClientStopSimulateWeaponAttack_Implementation()
 {
 
 }

@@ -28,9 +28,9 @@ void ARangedWeapon::OnBurstFinished()
 	mCurrentFiringSpread = 0.0f;
 }
 
-void ARangedWeapon::ClientSimulateWeaponFire_Implementation()
+void ARangedWeapon::ClientSimulateWeaponAttack_Implementation()
 {
-	Super::ClientSimulateWeaponFire_Implementation();
+	Super::ClientSimulateWeaponAttack_Implementation();
 
 	if (MuzzleFX)
 	{
@@ -41,9 +41,9 @@ void ARangedWeapon::ClientSimulateWeaponFire_Implementation()
 	}
 }
 
-void ARangedWeapon::ClientStopSimulateWeaponFire_Implementation()
+void ARangedWeapon::ClientStopSimulateWeaponAttack_Implementation()
 {
-	Super::StopSimulatingWeaponFire();
+	Super::ClientStopSimulateWeaponAttack_Implementation();
 
 	if (LoopedMuzzleFX)
 	{
