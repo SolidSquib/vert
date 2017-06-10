@@ -278,7 +278,11 @@ void ABaseWeapon::StartAttacking()
 		ServerStartAttacking();
 	}
 
-	if (!WantsToFire)
+	if (CurrentAmmoInClip <= 0 && CanReload())
+	{
+		StartReload();
+	}
+	else if (!WantsToFire)
 	{
 		WaitingForAttackEnd = (UseAnimsForAttackStartAndEnd) ? true : false;
 		WantsToFire = true;
@@ -316,7 +320,7 @@ void ABaseWeapon::StopAttacking()
 //************************************
 void ABaseWeapon::NotifyAttackAnimationActiveStarted_Implementation()
 {
-	// Do nothing
+	// Do nothing, this exists purely to avoid having to cast up to a melee weapon
 }
 
 //************************************
@@ -328,7 +332,7 @@ void ABaseWeapon::NotifyAttackAnimationActiveStarted_Implementation()
 //************************************
 void ABaseWeapon::NotifyAttackAnimationActiveEnded_Implementation()
 {
-	// Do nothing
+	// Do nothing, this exists purely to avoid having to cast up to a melee weapon
 }
 
 //************************************
@@ -341,6 +345,7 @@ void ABaseWeapon::NotifyAttackAnimationActiveEnded_Implementation()
 void ABaseWeapon::NotifyAttackAnimationEnded()
 {
 	WaitingForAttackEnd = false;
+	OnAttackFinished();
 	DetermineWeaponState();
 }
 
@@ -682,6 +687,7 @@ bool ABaseWeapon::ServerHandleAttacking_Validate()
 //************************************
 void ABaseWeapon::ServerHandleAttacking_Implementation()
 {
+	// #MI_TODO: THIS NEEDS TO BE EDITED TO ACCOUNT FOR WEAPONS THAT SELECTIVELY USE AMMO!
 	const bool bShouldUpdateAmmo = (CurrentAmmoInClip > 0 && CanFire());
 
 	HandleAttacking();
