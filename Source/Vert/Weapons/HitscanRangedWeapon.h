@@ -49,7 +49,7 @@ struct FInstantWeaponData
 };
 
 // A weapon where the damage impact occurs instantly upon firing
-UCLASS(Abstract)
+UCLASS(Abstract, Blueprintable)
 class AHitscanRangedWeapon : public ARangedWeapon
 {
 	GENERATED_UCLASS_BODY()
@@ -83,7 +83,7 @@ protected:
 	void SimulateInstantHit(const FVector& Origin, int32 RandomSeed, float ReticleSpread); /** called in network play to do the cosmetic fx  */
 	void SpawnImpactEffects(const FHitResult& Impact); /** spawn effects for impact */
 	void SpawnTrailEffect(const FVector& EndPoint); /** spawn trail effect */
-	virtual bool FireWeapon_Implementation() override; /** [local] weapon specific fire implementation */
+	virtual bool AttackWithWeapon_Implementation() override; /** [local] weapon specific fire implementation */
 
 	UFUNCTION()
 	void OnRep_HitNotify();

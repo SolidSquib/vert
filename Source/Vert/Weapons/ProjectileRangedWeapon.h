@@ -41,7 +41,7 @@ struct FProjectileWeaponData
 };
 
 // A weapon that fires a visible projectile
-UCLASS(Abstract)
+UCLASS(Abstract, Blueprintable)
 class AProjectileRangedWeapon : public ARangedWeapon
 {
 	GENERATED_UCLASS_BODY()
@@ -55,7 +55,7 @@ public:
 	void ApplyWeaponConfig(FProjectileWeaponData& Data); /** apply config on projectile */
 
 protected:
-	virtual bool FireWeapon_Implementation() override; /** [local] weapon specific fire implementation */
+	virtual bool AttackWithWeapon_Implementation() override; /** [local] weapon specific fire implementation */
 
 	/** spawn projectile on server */
 	UFUNCTION(BlueprintCallable, reliable, server, WithValidation)

@@ -94,9 +94,8 @@ bool UCharacterInteractionComponent::HoldInteractive(AInteractive* interactive, 
 		{
 			mHeldWeapon = weapon;
 
+			mHeldWeapon->OnPickup(mCharacterOwner.Get()); // #NETWORK: could cause issues online...
 			Delegate_OnPickupInteractive.Broadcast(mHeldInteractive, mHeldInteractive->Instigator != nullptr);
-
-			mHeldWeapon->OnPickup(mCharacterOwner.Get());
 		}
 
 		mInteractionState = EInteractionState::HoldingItem;
@@ -155,7 +154,7 @@ bool UCharacterInteractionComponent::AttemptAttack()
 		mWantsToAttack = true;
 		if (mHeldWeapon)
 		{
-			mHeldWeapon->StartFire();
+			mHeldWeapon->StartAttacking();
 			return true;
 		}
 	}	
@@ -170,7 +169,7 @@ void UCharacterInteractionComponent::StopAttacking()
 		mWantsToAttack = false;
 		if (mHeldWeapon)
 		{
-			mHeldWeapon->StopFire();
+			mHeldWeapon->StopAttacking();
 		}
 	}	
 }

@@ -84,6 +84,7 @@ protected:
 	void DropLedge();
 
 	virtual void DrawDebugInfo() override;
+	virtual void BeginPlay() override;
 
 	UFUNCTION()
 	void OnBeginOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult);

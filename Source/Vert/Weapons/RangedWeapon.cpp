@@ -28,9 +28,9 @@ void ARangedWeapon::OnBurstFinished()
 	mCurrentFiringSpread = 0.0f;
 }
 
-void ARangedWeapon::SimulateWeaponFire()
+void ARangedWeapon::ClientSimulateWeaponAttack_Implementation()
 {
-	Super::SimulateWeaponFire();
+	Super::ClientSimulateWeaponAttack_Implementation();
 
 	if (MuzzleFX)
 	{
@@ -41,8 +41,10 @@ void ARangedWeapon::SimulateWeaponFire()
 	}
 }
 
-void ARangedWeapon::StopSimulatingWeaponFire()
+void ARangedWeapon::ClientStopSimulateWeaponAttack_Implementation()
 {
+	Super::ClientStopSimulateWeaponAttack_Implementation();
+
 	if (LoopedMuzzleFX)
 	{
 		if (MuzzlePSC != NULL)
@@ -56,8 +58,6 @@ void ARangedWeapon::StopSimulatingWeaponFire()
 			MuzzlePSCSecondary = NULL;
 		}
 	}
-
-	Super::StopSimulatingWeaponFire();
 }
 
 FVector ARangedWeapon::GetMuzzleLocation() const

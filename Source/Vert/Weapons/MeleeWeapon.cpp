@@ -7,10 +7,6 @@ DECLARE_LOG_CATEGORY_CLASS(LogVertMeleeWeapon, Log, All);
 
 AMeleeWeapon::AMeleeWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	WeaponMesh->SetCollisionObjectType(ECC_WorldDynamic);
-	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	WeaponMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
-
 	bReplicates = true;
 }
 
@@ -18,19 +14,16 @@ AMeleeWeapon::AMeleeWeapon(const FObjectInitializer& ObjectInitializer) : Super(
 void AMeleeWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-
-	WeaponMesh->OnComponentBeginOverlap.AddDynamic(this, &AMeleeWeapon::OnWeaponBeginOverlap);
-	WeaponMesh->OnComponentEndOverlap.AddDynamic(this, &AMeleeWeapon::OnWeaponEndOverlap);
 }
 
-void AMeleeWeapon::SimulateWeaponFire()
+void AMeleeWeapon::ClientSimulateWeaponAttack_Implementation()
 {
-	Super::SimulateWeaponFire();
+	Super::ClientSimulateWeaponAttack_Implementation();
 }
 
-void AMeleeWeapon::StopSimulatingWeaponFire()
+void AMeleeWeapon::ClientStopSimulateWeaponAttack_Implementation()
 {
-	Super::StopSimulatingWeaponFire();
+	Super::ClientStopSimulateWeaponAttack_Implementation();
 
 	if (ArcPSC != NULL)
 	{
@@ -39,20 +32,31 @@ void AMeleeWeapon::StopSimulatingWeaponFire()
 	}
 }
 
-bool AMeleeWeapon::FireWeapon_Implementation()
+bool AMeleeWeapon::AttackWithWeapon_Implementation()
 {
-	// Handled in animgraph
-	OnMeleeAttack.Broadcast(mDidHit ? mComboDepth++ : (mComboDepth = 0));
 	mDidHit = false;
 
-	return true;
+	if (mTraceHit)
+	{
+		for (FName socket : ScanSockets)
+		{
+			FVector start;
+			FQuat rotation;
+			WeaponMesh->GetSocketWorldLocationAndRotation(socket, start, rotation);
+			FVector direction = rotation.Vector().GetSafeNormal();
+
+			FHitResult hit = WeaponTrace(start, direction*MeleeTraceRange);
+		}
+
+		OnMeleeAttack.Broadcast(mDidHit ? mComboDepth++ : (mComboDepth = 0));
+	}
+
+	return mAttackDone;
 }
 
-void AMeleeWeapon::NotifyAttackBegin()
+void AMeleeWeapon::NotifyAttackAnimationActiveStarted_Implementation()
 {
-	WeaponMesh->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
-	WeaponMesh->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	mTraceHit = true;
 
 	if (AttackStartFX)
 	{
@@ -68,9 +72,9 @@ void AMeleeWeapon::NotifyAttackBegin()
 	}
 }
 
-void AMeleeWeapon::NotifyAttackEnd()
+void AMeleeWeapon::NotifyAttackAnimationActiveEnded_Implementation()
 {
-	WeaponMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+	mTraceHit = false;
 
 	if (AttackEndFX)
 	{
@@ -82,25 +86,6 @@ void AMeleeWeapon::NotifyAttackEnd()
 		ArcPSC->DeactivateSystem();
 		ArcPSC = NULL;
 	}
-}
 
-void AMeleeWeapon::OnWeaponBeginOverlap_Implementation(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult)
-{
-	mDidHit = true;
-
-	if (otherActor)
-	{
-		FPointDamageEvent PointDmg;
-		PointDmg.DamageTypeClass = WeaponConfig.DamageType;
-		PointDmg.HitInfo = sweepResult;
-		PointDmg.ShotDirection = otherActor->GetActorLocation() - GetActorLocation();
-		PointDmg.Damage = WeaponConfig.BaseDamage;
-
-		otherActor->TakeDamage(PointDmg.Damage, PointDmg, MyPawn->Controller, this);
-	}
-}
-
-void AMeleeWeapon::OnWeaponEndOverlap_Implementation(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex)
-{
-	
+	mAttackDone = true;
 }

@@ -488,20 +488,18 @@ void AVertCharacter::ActionDropDown()
 //************************************
 void AVertCharacter::ActionGrappleShoot()
 {
-	switch (UsingGamepad())
+	if (UsingGamepad())
 	{
-	case true:
 		if (!mGamepadOnStandby)
 		{
 			mGamepadOnStandby = true;
 			GetWorld()->GetTimerManager().SetTimer(mTimerHandle, this, &AVertCharacter::ExecuteActionGrappleShoot, 0.01f, false);
 			GetWorld()->GetTimerManager().SetTimer(mGamepadGrappleDelay, this, &AVertCharacter::EndGamepadStandby, 0.1f, false);
 		}
-		break;
-
-	case false:
+	}
+	else
+	{
 		ExecuteActionGrappleShoot();
-		break;
 	}
 }
 

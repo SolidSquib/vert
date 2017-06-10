@@ -8,7 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMeleeAttackExecute, int32, comboDepth);
 
-UCLASS()
+UCLASS(Abstract, Blueprintable)
 class VERT_API AMeleeWeapon : public ABaseWeapon
 {
 	GENERATED_UCLASS_BODY()
@@ -23,6 +23,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 	FName FXSocketBottom = NAME_None;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitScanning")
+	TArray<FName> ScanSockets;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitScanning")
+	float MeleeTraceRange = 100.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 	UParticleSystem* AttackStartFX = nullptr;
@@ -41,24 +47,16 @@ protected:
 
 protected:	
 	virtual void BeginPlay() override;
-	virtual void SimulateWeaponFire() override;
-	virtual void StopSimulatingWeaponFire() override;
-	virtual bool FireWeapon_Implementation() override;
-
-	UFUNCTION(BlueprintCallable, Category = "Attack|Notify")
-	void NotifyAttackBegin();
-
-	UFUNCTION(BlueprintCallable, Category = "Attack|Notify")
-	void NotifyAttackEnd();
-
-	UFUNCTION(BlueprintNativeEvent, Category = Attack)
-	void OnWeaponEndOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex);
-
-	UFUNCTION(BlueprintNativeEvent, Category = Attack)
-	void OnWeaponBeginOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult);
+	virtual void ClientSimulateWeaponAttack_Implementation() override;
+	virtual void ClientStopSimulateWeaponAttack_Implementation() override;
+	virtual bool AttackWithWeapon_Implementation() override;
+	virtual void NotifyAttackAnimationActiveStarted_Implementation() override;
+	virtual void NotifyAttackAnimationActiveEnded_Implementation() override;
 
 protected:
 	float mLastHitTime = 0.f;
 	int32 mComboDepth = 0;
 	bool mDidHit = false;
+	bool mTraceHit = false;
+	bool mAttackDone = false;
 };

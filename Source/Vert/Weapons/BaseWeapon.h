@@ -28,7 +28,7 @@ enum class EWeaponState : uint8
 	Equipping,
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnWeaponStateChangedDelegate, ABaseWeapon*, weapon, EWeaponState, state, EWeaponAnimationMode, anim);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnWeaponStateChangedDelegate, ABaseWeapon*, weapon, EWeaponState, state, UAnimSequence*, anim);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponFiredWithRecoil, float, recoilAmount);
 
 UENUM(BlueprintType)
@@ -45,7 +45,7 @@ struct FWeaponAnim
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	EWeaponAnimationMode PlayerAnim;
+	UAnimSequence* PlayerAnim;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	UAnimMontage* WeaponAnim = nullptr;
@@ -58,11 +58,11 @@ struct FWeaponData
 
 	/** inifite ammo for reloads */
 	UPROPERTY(EditDefaultsOnly, Category = Ammo)
-	bool bInfiniteAmmo;
+	bool InfiniteAmmo;
 
 	/** infinite ammo in clip, no reload required */
 	UPROPERTY(EditDefaultsOnly, Category = Ammo)
-	bool bInfiniteClip;
+	bool InfiniteClip;
 
 	/** max ammo */
 	UPROPERTY(EditDefaultsOnly, Category = Ammo)
@@ -75,9 +75,6 @@ struct FWeaponData
 	/** initial clips */
 	UPROPERTY(EditDefaultsOnly, Category = Ammo)
 	int32 InitialClips;
-	
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-	float KnockbackMagnitude;
 
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	int32 BaseDamage;
@@ -89,11 +86,7 @@ struct FWeaponData
 	/** time between two consecutive shots */
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	float TimeBetweenShots;
-
-	/** failsafe reload duration if weapon doesn't have any animation for it */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-	float NoAnimReloadDuration;
-
+	
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	EFiringMode FiringMode;
 
@@ -103,22 +96,20 @@ struct FWeaponData
 	/** defaults */
 	FWeaponData()
 	{
-		bInfiniteAmmo = false;
-		bInfiniteClip = false;
+		InfiniteAmmo = false;
+		InfiniteClip = false;
 		MaxAmmo = 100;
 		AmmoPerClip = 20;
 		InitialClips = 4;
-		KnockbackMagnitude = 1000.f;
 		BaseDamage = 5;
 		DamageType = UDamageType::StaticClass();
 		TimeBetweenShots = 0.2f;
-		NoAnimReloadDuration = 1.0f;
 		FiringMode = EFiringMode::Automatic;
 		BurstNumberOfShots = 3;
 	}
 };
 
-UCLASS(Abstract, Blueprintable)
+UCLASS(Abstract)
 class ABaseWeapon : public AInteractive
 {
 	GENERATED_UCLASS_BODY()
@@ -180,29 +171,32 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = Animation)
 	FWeaponAnim IdleAnim;
-
-	/** is fire sound looped? */
-	UPROPERTY(EditDefaultsOnly, Category = Sound)
-	uint32 bLoopedFireSound : 1;
 	
-	/** is fire animation playing? */
-	uint32 bPlayingFireAnim : 1;
+	/* Mainly for testing purposes, ignores the wait for an animation to notify after euip begin or reload begin */
+	UPROPERTY(EditDefaultsOnly, Category = "Animation|Overrides")
+	uint32 OverrideAnimCompleteNotify : 1;
+
+	/* Whether we should block all user input for this weapon whilst an attack animation is playing */
+	UPROPERTY(EditDefaultsOnly, Category = "Animation|Overrides")
+	uint32 UseAnimsForAttackStartAndEnd : 1;
+
+	uint32 WaitingForAttackEnd : 1;
 
 	/** is weapon currently equipped? */
-	uint32 bIsEquipped : 1;
+	uint32 IsEquipped : 1;
 
 	/** is weapon fire active? */
-	uint32 bWantsToFire : 1;
+	uint32 WantsToFire : 1;
 
 	/** is reload animation playing? */
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_Reload)
-	uint32 bPendingReload : 1;
+	uint32 PendingReload : 1;
 
 	/** is equip animation playing? */
-	uint32 bPendingEquip : 1;
+	uint32 PendingEquip : 1;
 
 	/** weapon is refiring */
-	uint32 bRefiring : 1;
+	uint32 Refiring : 1;
 
 	/** current total ammo */
 	UPROPERTY(Transient, Replicated)
@@ -227,7 +221,7 @@ public:
 	void SetOwningPawn(AVertCharacter* AVertCharacter); /** set the weapon's owning pawn */
 	float GetEquipStartedTime() const; /** gets last time when this weapon was switched to */
 	float GetEquipDuration() const; /** gets the duration of equipping weapon*/
-	bool IsEquipped() const; /** check if it's currently equipped */
+	bool IsWeaponEquipped() const; /** check if it's currently equipped */
 	bool IsAttachedToPawn() const; /** check if mesh is already attached */
 	bool CanFire() const; /** check if weapon can fire */
 	bool CanReload() const; /** check if weapon can be reloaded */
@@ -237,15 +231,13 @@ public:
 	int32 GetAmmoPerClip() const; /** get clip size */
 	int32 GetMaxAmmo() const; /** get max ammo amount */
 
-	virtual void OnEquip();	/** weapon is being equipped by owner pawn */
-	virtual void OnUnEquip(); /** weapon is holstered by owner pawn */
 	virtual void OnPickup(AVertCharacter* NewOwner); /** [server] weapon was added to pawn's inventory */
 	virtual void OnDrop(); /** [server] weapon was removed from pawn's inventory */
 	virtual void Interact(const TWeakObjectPtr<class UCharacterInteractionComponent>& instigator) final;
 	virtual void PostInitializeComponents() override;
 	virtual void Destroyed() override;
-	virtual void StartFire(); /** [local + server] start weapon fire */
-	virtual void StopFire(); /** [local + server] stop weapon fire */
+	virtual void StartAttacking(); /** [local + server] start weapon fire */
+	virtual void StopAttacking(); /** [local + server] stop weapon fire */
 	virtual void StartReload(bool bFromReplication = false); /** [all] start weapon reload */
 	virtual void StopReload(); /** [local + server] interrupt weapon reload */
 	virtual void ReloadWeapon(); /** [server] performs actual reload */
@@ -259,48 +251,90 @@ public:
 	class AVertCharacter* GetPawnOwner() const;
 
 	UFUNCTION(BlueprintCallable, Category = "WeaponStats")
-	FORCEINLINE float GetKnockbackMagnitude() const { return WeaponConfig.KnockbackMagnitude; }
-
-	UFUNCTION(BlueprintCallable, Category = "WeaponStats")
 	FORCEINLINE int32 GetBaseDamage() const { return WeaponConfig.BaseDamage; }
+	
+	UFUNCTION(BlueprintCallable, Category = "AnimationNotifies")
+	FORCEINLINE bool IsAttackAnimationFinished() const { return !WaitingForAttackEnd; }
+
+	/* [LOCAL} animation notify to tell us it's alright to leave the Equipping state */
+	UFUNCTION(BlueprintCallable, Category = "AnimationNotifies")
+	void NotifyEquipAnimationEnded();
+
+	/* [LOCAL} animation notify to tell us it's alright to leave the Reloading state */
+	UFUNCTION(BlueprintCallable, Category = "AnimationNotifies")
+	void NotifyReloadAnimationEnded();
+
+	/* [LOCAL} animation notify to tell us it's alright to leave the Attacking state */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AnimationNotifies")
+	void NotifyAttackAnimationActiveStarted();
+
+	/* [LOCAL} animation notify to tell us it's alright to leave the Attacking state */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AnimationNotifies")
+	void NotifyAttackAnimationActiveEnded();
+
+	/* [LOCAL} animation notify to tell us it's alright to leave the Attacking state */
+	UFUNCTION(BlueprintCallable, Category = "AnimationNotifies")
+	void NotifyAttackAnimationEnded();
 
 protected:
-	EWeaponAnimationMode GetPlayerAnimForState(EWeaponState state);
-	void HandleFiring(); /** [local + server] handle weapon fire */
+	UAnimSequence* GetPlayerAnimForState(EWeaponState state);
+	void SimulateWeaponAttack(); /** Called in network play to do the cosmetic fx for firing */
+	void StopSimulatingWeaponAttack(); /** Called in network play to stop cosmetic fx (e.g. for a looping shot). */
+	void HandleAttacking(); /** [local + server] handle weapon fire */
 	void SetWeaponState(EWeaponState NewState); /** update weapon state */
 	void DetermineWeaponState(); /** determine current weapon state */
 	void AttachMeshToPawn(); /** attaches weapon mesh to pawn's mesh */
 	void DetachMeshFromPawn(); /** detaches weapon mesh from pawn */
 	UAudioComponent* PlayWeaponSound(USoundCue* Sound); /** play weapon sounds */
-	float PlayWeaponAnimation(const FWeaponAnim& Animation); /** play weapon animations */
+	void PlayWeaponAnimation(const FWeaponAnim& Animation); /** play weapon animations */
 	void StopWeaponAnimation(const FWeaponAnim& Animation); /** stop playing weapon animations */
-	FHitResult WeaponTrace(const FVector& TraceFrom, const FVector& TraceTo) const; /** find hit */
-	
-	virtual void SimulateWeaponFire(); /** Called in network play to do the cosmetic fx for firing */
-	virtual void StopSimulatingWeaponFire(); /** Called in network play to stop cosmetic fx (e.g. for a looping shot). */
+
 	virtual void OnBurstStarted(); /** [local + server] firing started */
 	virtual void OnBurstFinished(); /** [local + server] firing finished */
+	
+	UFUNCTION(BlueprintNativeEvent, Category = "FX")
+	void ClientSimulateWeaponAttack();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "FX")
+	void ClientStopSimulateWeaponAttack();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
 	void WeaponInteract(UCharacterInteractionComponent* interactionComponent, AVertCharacter* character);
 	
+	/** [local] weapon specific fire implementation */
 	UFUNCTION(BlueprintNativeEvent, Category = "Attack")
-	bool FireWeapon(); /** [local] weapon specific fire implementation */
+	bool AttackWithWeapon();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
 	void ThrowWeapon();
 
-	UFUNCTION(reliable, server, WithValidation)
-	void ServerStartFire();
+	/* [LOCAL] Called when a weapon has been equipped. */
+	UFUNCTION(BlueprintImplementableEvent)
+	void WeaponReadyFromPickup();
+
+	/* [LOCAL] Called at the end of a burst, after a semi-auto shot, or when the weapon is out of ammo. */
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnAttackFinished();
+
+	/** find hit */
+	UFUNCTION(BlueprintCallable, Category = "Hit Detection")
+	FHitResult WeaponTrace(const FVector& TraceFrom, const FVector& TraceTo) const;
 
 	UFUNCTION(reliable, server, WithValidation)
-	void ServerStopFire();
+	void ServerStartAttacking();
+
+	UFUNCTION(reliable, server, WithValidation)
+	void ServerStopAttacking();
 
 	UFUNCTION(reliable, server, WithValidation)
 	void ServerStartReload();
 
 	UFUNCTION(reliable, server, WithValidation)
 	void ServerStopReload();
+
+	/** [server] fire & update ammo */
+	UFUNCTION(reliable, server, WithValidation)
+	void ServerHandleAttacking();
 
 	UFUNCTION()
 	void OnRep_MyPawn();
@@ -310,11 +344,7 @@ protected:
 
 	UFUNCTION()
 	void OnRep_Reload();
-
-	/** [server] fire & update ammo */
-	UFUNCTION(reliable, server, WithValidation)
-	void ServerHandleFiring();	
-
+	
 protected:
 	float mLastFireTime; /** time of last successful weapon fire */
 	float mEquipStartedTime; /** last time when this weapon was switched to */

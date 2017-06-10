@@ -20,6 +20,8 @@ public:
 public:
 	TWeakObjectPtr<AVertPlayerCameraActor> GetStartingCamera();
 
+	virtual void Tick(float DeltaTime) override;
+
 	UFUNCTION(BlueprintCallable, Category = "ActiveCamera")
 	void SetActiveCamera(AVertPlayerCameraActor* newCamera, float transitionTime);
 
@@ -28,4 +30,7 @@ protected:
 
 protected:
 	TWeakObjectPtr<AVertPlayerCameraActor> mActiveCamera = nullptr;
+
+private:
+	bool mPlayerCameraSet = false;
 };
