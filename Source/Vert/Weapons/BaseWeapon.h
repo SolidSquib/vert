@@ -256,6 +256,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AnimationNotifies")
 	FORCEINLINE bool IsAttackAnimationFinished() const { return !WaitingForAttackEnd; }
 
+	/* Broadcasts the OnWeaponFiredWithRecoil delegate with a custom recoil amount; to be used in cases where more custom recoil behaviour is required. */
+	UFUNCTION(BlueprintCallable, Category = "Delegates")
+	void BroadcastOnWeaponFiredWithRecoil(float recoilAmount) { Delegate_OnWeaponFiredWithRecoil.Broadcast(recoilAmount); }
+
 	/* [LOCAL} animation notify to tell us it's alright to leave the Equipping state */
 	UFUNCTION(BlueprintCallable, Category = "AnimationNotifies")
 	void NotifyEquipAnimationEnded();
