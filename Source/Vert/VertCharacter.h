@@ -209,6 +209,12 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
 	void Character_OnWeaponFiredWithRecoilExecuted(float recoilAmount);
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnLedgeTransition(ELedgeTransition transition);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnLedgeGrabbed(const FHitResult& forwardHit, const FHitResult& downwardHit);
+
 private:
 	void SetRagdollPhysics();
 

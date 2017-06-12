@@ -113,6 +113,17 @@ void AVertCharacter::BeginPlay()
 		DashingComponent->OnDashEnd.Add(onDashEnd);
 	}
 
+	if (ClimbingComponent)
+	{
+		FScriptDelegate onLedgeTransition;
+		onLedgeTransition.BindUFunction(this, TEXT("Character_OnLedgeTransition"));
+		ClimbingComponent->OnLedgeTransition.Add(onLedgeTransition);
+
+		FScriptDelegate onLedgeGrabbed;
+		onLedgeGrabbed.BindUFunction(this, TEXT("Character_OnLedgeGrabbed"));
+		ClimbingComponent->OnLedgeGrabbed.Add(onLedgeGrabbed);
+	}
+
 	mOnWeaponStateChangedDelegate.BindUFunction(this, TEXT("Character_OnWeaponStateChangeExecuted"));
 	mOnWeaponFiredWithRecoilDelegate.BindUFunction(this, TEXT("Character_OnWeaponFiredWithRecoilExecuted"));
 
