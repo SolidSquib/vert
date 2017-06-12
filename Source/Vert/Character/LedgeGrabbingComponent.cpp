@@ -20,7 +20,7 @@ ULedgeGrabbingComponent::ULedgeGrabbingComponent()
 	SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
 	CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 
-	TraceChannel = ECC_SphereTracer;
+	TraceChannel = ECC_LedgeTracer;
 }
 
 // Called every frame
