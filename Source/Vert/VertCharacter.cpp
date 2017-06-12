@@ -2,7 +2,6 @@
 
 #include "VertCharacter.h"
 #include "Vert.h"
-#include "PaperFlipbookComponent.h"
 #include "ContainerAllocationPolicies.h"
 
 DEFINE_LOG_CATEGORY(LogVertCharacter);

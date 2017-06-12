@@ -9,16 +9,12 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"Engine",
-				"Paper2D"
+				"Engine"
 			]
 		}
 	],
 	"Plugins": [
-		{
-			"Name": "Paper2D",
-			"Enabled": true
-		}
+		
 	],
 	"TargetPlatforms": [
 		"AllDesktop",
