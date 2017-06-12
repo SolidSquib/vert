@@ -86,16 +86,26 @@ void ABaseWeapon::NotifyEquipAnimationEnded()
 //************************************
 // Method:    OnPickup
 // FullName:  ABaseWeapon::OnPickup
-// Access:    virtual public 
+// Access:    public 
 // Returns:   void
 // Qualifier:
 // Parameter: AVertCharacter * NewOwner
 //************************************
-void ABaseWeapon::OnPickup(AVertCharacter* NewOwner)
+void ABaseWeapon::Pickup(AVertCharacter* NewOwner)
 {
 	SetOwningPawn(NewOwner);
 	AttachMeshToPawn();
+}
 
+//************************************
+// Method:    StartEquipping
+// FullName:  ABaseWeapon::StartEquipping
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//************************************
+void ABaseWeapon::StartEquipping()
+{
 	PendingEquip = true;
 	DetermineWeaponState();
 
@@ -112,8 +122,6 @@ void ABaseWeapon::OnPickup(AVertCharacter* NewOwner)
 	{
 		NotifyEquipAnimationEnded();
 	}
-
-	DetermineWeaponState();
 }
 
 //************************************
@@ -1014,7 +1022,7 @@ void ABaseWeapon::OnRep_MyPawn()
 {
 	if (MyPawn)
 	{
-		OnPickup(MyPawn);
+		Pickup(MyPawn);
 	}
 	else
 	{

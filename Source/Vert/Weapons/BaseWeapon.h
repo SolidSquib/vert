@@ -235,7 +235,8 @@ public:
 	int32 GetAmmoPerClip() const; /** get clip size */
 	int32 GetMaxAmmo() const; /** get max ammo amount */
 
-	virtual void OnPickup(AVertCharacter* NewOwner); /** [server] weapon was added to pawn's inventory */
+	void Pickup(AVertCharacter* NewOwner); /** [server] weapon was added to pawn's inventory */
+	virtual void StartEquipping();
 	virtual void OnDrop(); /** [server] weapon was removed from pawn's inventory */
 	virtual void Interact(const TWeakObjectPtr<class UCharacterInteractionComponent>& instigator) final;
 	virtual void PostInitializeComponents() override;

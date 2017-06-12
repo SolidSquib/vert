@@ -94,8 +94,10 @@ bool UCharacterInteractionComponent::HoldInteractive(AInteractive* interactive, 
 		{
 			mHeldWeapon = weapon;
 
-			mHeldWeapon->OnPickup(mCharacterOwner.Get()); // #NETWORK: could cause issues online...
+			mHeldWeapon->Pickup(mCharacterOwner.Get()); // #NETWORK: could cause issues online...
 			Delegate_OnPickupInteractive.Broadcast(mHeldInteractive, mHeldInteractive->Instigator != nullptr);
+
+			mHeldWeapon->StartEquipping();
 		}
 
 		mInteractionState = EInteractionState::HoldingItem;
