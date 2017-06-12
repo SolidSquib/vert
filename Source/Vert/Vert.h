@@ -23,7 +23,6 @@
 
 // Components
 #include "CableComponent.h"
-#include "PaperFlipbookComponent.h"
 
 // Actors
 #include "VertCharacter.h"
