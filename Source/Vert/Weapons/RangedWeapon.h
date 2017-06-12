@@ -4,7 +4,6 @@
 
 #include "GameFramework/Actor.h"
 #include "Interactives/Interactive.h"
-#include "PaperFlipbook.h"
 #include "RangedWeapon.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRangedWeapon, Log, All);

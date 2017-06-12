@@ -93,6 +93,9 @@ struct FWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat, Meta = (EditCondition = "FiringMode == EFiringMode::Burst"))
 	int32 BurstNumberOfShots;
 
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat, Meta = (EditCondition = "FiringMode == EFiringMode::Burst"))
+	float BurstTimeBetweenShots;
+
 	/** defaults */
 	FWeaponData()
 	{
@@ -106,6 +109,7 @@ struct FWeaponData
 		TimeBetweenShots = 0.2f;
 		FiringMode = EFiringMode::Automatic;
 		BurstNumberOfShots = 3;
+		BurstTimeBetweenShots = 0.2f;
 	}
 };
 
@@ -292,6 +296,7 @@ protected:
 	UAudioComponent* PlayWeaponSound(USoundCue* Sound); /** play weapon sounds */
 	void PlayWeaponAnimation(const FWeaponAnim& Animation); /** play weapon animations */
 	void StopWeaponAnimation(const FWeaponAnim& Animation); /** stop playing weapon animations */
+	bool WeaponNotAutomatic() const;
 
 	virtual void OnBurstStarted(); /** [local + server] firing started */
 	virtual void OnBurstFinished(); /** [local + server] firing finished */
@@ -350,6 +355,7 @@ protected:
 	void OnRep_Reload();
 	
 protected:
+	bool mAttackSpent = false;
 	float mLastFireTime; /** time of last successful weapon fire */
 	float mEquipStartedTime; /** last time when this weapon was switched to */
 	float mEquipDuration; /** how much time weapon needs to be equipped */
@@ -358,4 +364,5 @@ protected:
 	FTimerHandle mTimerHandle_StopReload;
 	FTimerHandle mTimerHandle_ReloadWeapon;
 	FTimerHandle mTimerHandle_HandleFiring;
+	FTimerHandle mTimerHandle_NonAutoTriggerDelay;
 };

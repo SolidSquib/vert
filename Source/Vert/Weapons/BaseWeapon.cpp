@@ -96,16 +96,21 @@ void ABaseWeapon::OnPickup(AVertCharacter* NewOwner)
 	SetOwningPawn(NewOwner);
 	AttachMeshToPawn();
 
+	PendingEquip = true;
+	DetermineWeaponState();
+
 	if (!OverrideAnimCompleteNotify)
 	{
-		PendingEquip = true;
-
 		if (MyPawn && MyPawn->IsLocallyControlled())
 		{
 			PlayWeaponSound(EquipSound);
 		}
 
 		PlayWeaponAnimation(EquipAnim);
+	}
+	else
+	{
+		NotifyEquipAnimationEnded();
 	}
 
 	DetermineWeaponState();
@@ -304,9 +309,22 @@ void ABaseWeapon::StopAttacking()
 		ServerStopAttacking();
 	}
 
-	if (WantsToFire && (WeaponConfig.FiringMode != EFiringMode::Burst || BurstCounter >= WeaponConfig.BurstNumberOfShots || GetCurrentAmmoInClip() <= 0))
+	if (WantsToFire/* && (WeaponConfig.FiringMode != EFiringMode::Burst || BurstCounter >= WeaponConfig.BurstNumberOfShots || GetCurrentAmmoInClip() <= 0)*/)
 	{
 		WantsToFire = false;
+		const float GameTime = GetWorld()->GetTimeSeconds();
+		if (mLastFireTime > 0 && WeaponConfig.TimeBetweenShots > 0.0f &&
+			mLastFireTime + WeaponConfig.TimeBetweenShots > GameTime)
+		{
+			GetWorldTimerManager().SetTimer(mTimerHandle_NonAutoTriggerDelay, [this](void) {
+				mAttackSpent = false;
+			}, mLastFireTime + WeaponConfig.TimeBetweenShots - GameTime, false);
+		}
+		else
+		{
+			mAttackSpent = false;
+		}
+
 		DetermineWeaponState();
 	}
 }
@@ -366,16 +384,22 @@ void ABaseWeapon::StartReload(bool bFromReplication)
 
 	if (bFromReplication || CanReload())
 	{
+		PendingReload = true;
+		DetermineWeaponState();
+
 		if (!OverrideAnimCompleteNotify)
 		{
-			PendingReload = true;
 			PlayWeaponAnimation(ReloadAnim);
 
 			if (MyPawn && MyPawn->IsLocallyControlled())
 			{
 				PlayWeaponSound(ReloadSound);
 			}
-		}		
+		}
+		else
+		{
+			NotifyReloadAnimationEnded();
+		}
 
 		DetermineWeaponState();
 	}
@@ -556,6 +580,8 @@ bool ABaseWeapon::CanReload() const
 	bool bGotAmmo = (CurrentAmmoInClip < WeaponConfig.AmmoPerClip) && (CurrentAmmo - CurrentAmmoInClip > 0 || HasInfiniteClip());
 	bool bStateOKToReload = ((mCurrentState == EWeaponState::Idle) || (mCurrentState == EWeaponState::Firing));
 	
+	UE_LOG(LogTemp, Warning, TEXT("bCanReload: %s | bGotAmmo: %s | bStateOKToReload: %s"), bCanReload ? TEXT("true") : TEXT("false"), bGotAmmo ? TEXT("true") : TEXT("false"), bStateOKToReload ? TEXT("true") : TEXT("false"))
+
 	return ((bCanReload == true) && (bGotAmmo == true) && (bStateOKToReload == true));
 }
 
@@ -573,7 +599,7 @@ bool ABaseWeapon::CanReload() const
 //************************************
 void ABaseWeapon::GiveAmmo(int AddAmount)
 {
-	const int32 MissingAmmo = FMath::Max(0, WeaponConfig.MaxAmmo - CurrentAmmo);
+	const int32 MissingAmmo = FMath::Max(0, GetMaxAmmo() - CurrentAmmo);
 	AddAmount = FMath::Min(AddAmount, MissingAmmo);
 	CurrentAmmo += AddAmount;
 
@@ -613,7 +639,7 @@ void ABaseWeapon::UseAmmo()
 //************************************
 void ABaseWeapon::HandleAttacking()
 {
-	if ((CurrentAmmoInClip > 0 || HasInfiniteClip() || HasInfiniteAmmo()) && CanFire() && ((WeaponConfig.FiringMode == EFiringMode::SemiAutomatic && BurstCounter == 0) || (WeaponConfig.FiringMode == EFiringMode::Burst && BurstCounter < WeaponConfig.BurstNumberOfShots)))
+	if (!mAttackSpent && (CurrentAmmoInClip > 0 || HasInfiniteClip() || HasInfiniteAmmo()) && CanFire() && (WeaponConfig.FiringMode == EFiringMode::Automatic || (WeaponConfig.FiringMode == EFiringMode::SemiAutomatic && BurstCounter == 0) || (WeaponConfig.FiringMode == EFiringMode::Burst && BurstCounter < WeaponConfig.BurstNumberOfShots)))
 	{
 		SimulateWeaponAttack();
 		
@@ -644,6 +670,11 @@ void ABaseWeapon::HandleAttacking()
 		if (BurstCounter > 0)
 		{
 			OnBurstFinished();
+
+			if (WeaponConfig.FiringMode == EFiringMode::SemiAutomatic || WeaponConfig.FiringMode == EFiringMode::Burst)
+			{
+				mAttackSpent = true;
+			}
 		}
 	}
 
@@ -655,15 +686,18 @@ void ABaseWeapon::HandleAttacking()
 			ServerHandleAttacking();
 		}
 
+		float desiredTimeBetweenShots = (WeaponConfig.FiringMode == EFiringMode::Burst) ? WeaponConfig.BurstTimeBetweenShots : WeaponConfig.TimeBetweenShots;
+
 		// setup refire timer
-		Refiring = (mCurrentState == EWeaponState::Firing && WeaponConfig.TimeBetweenShots > 0.0f);
+		Refiring = (mCurrentState == EWeaponState::Firing && desiredTimeBetweenShots > 0.0f);
 		if (Refiring)
 		{
-			GetWorldTimerManager().SetTimer(mTimerHandle_HandleFiring, this, &ABaseWeapon::HandleAttacking, WeaponConfig.TimeBetweenShots, false);
+			GetWorldTimerManager().SetTimer(mTimerHandle_HandleFiring, this, &ABaseWeapon::HandleAttacking, desiredTimeBetweenShots, false);
 		}
 	}
 
-	mLastFireTime = GetWorld()->GetTimeSeconds();
+	if(!mAttackSpent)
+		mLastFireTime = GetWorld()->GetTimeSeconds();
 }
 
 //************************************
@@ -776,6 +810,7 @@ void ABaseWeapon::SetWeaponState(EWeaponState NewState)
 	}
 	
 	mCurrentState = NewState;
+	UE_LOG(LogTemp, Warning, TEXT("New state: %s"), *UVertUtilities::GetEnumValueToString(TEXT("EWeaponState"), mCurrentState));
 
 	if (PrevState != NewState)
 	{
@@ -809,6 +844,7 @@ void ABaseWeapon::DetermineWeaponState()
 			}
 			else
 			{
+				UE_LOG(LogTemp, Warning, TEXT("RELADGREGIN STATE"));
 				NewState = EWeaponState::Reloading;
 			}
 		}
@@ -835,15 +871,18 @@ void ABaseWeapon::DetermineWeaponState()
 void ABaseWeapon::OnBurstStarted()
 {
 	// start firing, can be delayed to satisfy TimeBetweenShots
-	const float GameTime = GetWorld()->GetTimeSeconds();
-	if (mLastFireTime > 0 && WeaponConfig.TimeBetweenShots > 0.0f &&
-		mLastFireTime + WeaponConfig.TimeBetweenShots > GameTime)
+	if (!WeaponNotAutomatic() || !mAttackSpent)
 	{
-		GetWorldTimerManager().SetTimer(mTimerHandle_HandleFiring, this, &ABaseWeapon::HandleAttacking, mLastFireTime + WeaponConfig.TimeBetweenShots - GameTime, false);
-	}
-	else
-	{
-		HandleAttacking();
+		const float GameTime = GetWorld()->GetTimeSeconds();
+		if (mLastFireTime > 0 && WeaponConfig.TimeBetweenShots > 0.0f &&
+			mLastFireTime + WeaponConfig.TimeBetweenShots > GameTime)
+		{
+			GetWorldTimerManager().SetTimer(mTimerHandle_HandleFiring, this, &ABaseWeapon::HandleAttacking, mLastFireTime + WeaponConfig.TimeBetweenShots - GameTime, false);
+		}
+		else
+		{
+			HandleAttacking();
+		}
 	}
 }
 
@@ -1146,7 +1185,7 @@ int32 ABaseWeapon::GetAmmoPerClip() const
 
 int32 ABaseWeapon::GetMaxAmmo() const
 {
-	return WeaponConfig.MaxAmmo;
+	return WeaponConfig.AmmoPerClip * WeaponConfig.InitialClips;
 }
 
 bool ABaseWeapon::HasInfiniteAmmo() const
@@ -1169,4 +1208,9 @@ float ABaseWeapon::GetEquipStartedTime() const
 float ABaseWeapon::GetEquipDuration() const
 {
 	return mEquipDuration;
+}
+
+bool ABaseWeapon::WeaponNotAutomatic() const
+{
+	return WeaponConfig.FiringMode != EFiringMode::Automatic;
 }
