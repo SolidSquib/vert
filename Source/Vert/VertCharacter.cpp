@@ -2,7 +2,6 @@
 
 #include "VertCharacter.h"
 #include "Vert.h"
-#include "PaperFlipbookComponent.h"
 #include "ContainerAllocationPolicies.h"
 
 DEFINE_LOG_CATEGORY(LogVertCharacter);
@@ -112,6 +111,17 @@ void AVertCharacter::BeginPlay()
 		FScriptDelegate onDashEnd;
 		onDashEnd.BindUFunction(this, TEXT("Character_OnDashEnded"));
 		DashingComponent->OnDashEnd.Add(onDashEnd);
+	}
+
+	if (ClimbingComponent)
+	{
+		FScriptDelegate onLedgeTransition;
+		onLedgeTransition.BindUFunction(this, TEXT("Character_OnLedgeTransition"));
+		ClimbingComponent->OnLedgeTransition.Add(onLedgeTransition);
+
+		FScriptDelegate onLedgeGrabbed;
+		onLedgeGrabbed.BindUFunction(this, TEXT("Character_OnLedgeGrabbed"));
+		ClimbingComponent->OnLedgeGrabbed.Add(onLedgeGrabbed);
 	}
 
 	mOnWeaponStateChangedDelegate.BindUFunction(this, TEXT("Character_OnWeaponStateChangeExecuted"));

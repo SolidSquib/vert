@@ -93,6 +93,9 @@ struct FWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat, Meta = (EditCondition = "FiringMode == EFiringMode::Burst"))
 	int32 BurstNumberOfShots;
 
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat, Meta = (EditCondition = "FiringMode == EFiringMode::Burst"))
+	float BurstTimeBetweenShots;
+
 	/** defaults */
 	FWeaponData()
 	{
@@ -106,6 +109,7 @@ struct FWeaponData
 		TimeBetweenShots = 0.2f;
 		FiringMode = EFiringMode::Automatic;
 		BurstNumberOfShots = 3;
+		BurstTimeBetweenShots = 0.2f;
 	}
 };
 
@@ -231,7 +235,8 @@ public:
 	int32 GetAmmoPerClip() const; /** get clip size */
 	int32 GetMaxAmmo() const; /** get max ammo amount */
 
-	virtual void OnPickup(AVertCharacter* NewOwner); /** [server] weapon was added to pawn's inventory */
+	void Pickup(AVertCharacter* NewOwner); /** [server] weapon was added to pawn's inventory */
+	virtual void StartEquipping();
 	virtual void OnDrop(); /** [server] weapon was removed from pawn's inventory */
 	virtual void Interact(const TWeakObjectPtr<class UCharacterInteractionComponent>& instigator) final;
 	virtual void PostInitializeComponents() override;
@@ -292,6 +297,7 @@ protected:
 	UAudioComponent* PlayWeaponSound(USoundCue* Sound); /** play weapon sounds */
 	void PlayWeaponAnimation(const FWeaponAnim& Animation); /** play weapon animations */
 	void StopWeaponAnimation(const FWeaponAnim& Animation); /** stop playing weapon animations */
+	bool WeaponNotAutomatic() const;
 
 	virtual void OnBurstStarted(); /** [local + server] firing started */
 	virtual void OnBurstFinished(); /** [local + server] firing finished */
@@ -319,6 +325,12 @@ protected:
 	/* [LOCAL] Called at the end of a burst, after a semi-auto shot, or when the weapon is out of ammo. */
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnAttackFinished();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnStartAttacking();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnStopAttacking();
 
 	/** find hit */
 	UFUNCTION(BlueprintCallable, Category = "Hit Detection")
@@ -350,6 +362,7 @@ protected:
 	void OnRep_Reload();
 	
 protected:
+	bool mAttackSpent = false;
 	float mLastFireTime; /** time of last successful weapon fire */
 	float mEquipStartedTime; /** last time when this weapon was switched to */
 	float mEquipDuration; /** how much time weapon needs to be equipped */
@@ -358,4 +371,5 @@ protected:
 	FTimerHandle mTimerHandle_StopReload;
 	FTimerHandle mTimerHandle_ReloadWeapon;
 	FTimerHandle mTimerHandle_HandleFiring;
+	FTimerHandle mTimerHandle_NonAutoTriggerDelay;
 };

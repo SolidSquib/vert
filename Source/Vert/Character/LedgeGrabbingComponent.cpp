@@ -16,7 +16,7 @@ ULedgeGrabbingComponent::ULedgeGrabbingComponent()
 	bGenerateOverlapEvents = true;
 	SetCollisionObjectType(ECC_SphereTracer);
 	SetCollisionResponseToAllChannels(ECR_Ignore);
-	SetCollisionResponseToChannel(ECC_LedgeTracer, ECR_Block);
+	//SetCollisionResponseToChannel(ECC_LedgeTracer, ECR_Block);
 	SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
 	CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 

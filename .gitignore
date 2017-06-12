@@ -1,4 +1,5 @@
 /*.db
+*.pdb
 /Binaries/Win64/*.pdb
 /Binaries/Win64/*.hotreload
 /Binaries/Win64/*.modules
@@ -18,3 +19,6 @@
 *Vert-*.pdb
 *Vert-*.dll
 /Content/Level/MountainLevel_Alpha_V3_BuiltData.uasset
+/Plugins/Wwise/Intermediate
+/vert_WwiseProject/.cache
+/vert_WwiseProject/*.validationcache
