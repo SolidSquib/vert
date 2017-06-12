@@ -579,8 +579,6 @@ bool ABaseWeapon::CanReload() const
 	bool bCanReload = (!MyPawn || MyPawn->CanReload());
 	bool bGotAmmo = (CurrentAmmoInClip < WeaponConfig.AmmoPerClip) && (CurrentAmmo - CurrentAmmoInClip > 0 || HasInfiniteClip());
 	bool bStateOKToReload = ((mCurrentState == EWeaponState::Idle) || (mCurrentState == EWeaponState::Firing));
-	
-	UE_LOG(LogTemp, Warning, TEXT("bCanReload: %s | bGotAmmo: %s | bStateOKToReload: %s"), bCanReload ? TEXT("true") : TEXT("false"), bGotAmmo ? TEXT("true") : TEXT("false"), bStateOKToReload ? TEXT("true") : TEXT("false"))
 
 	return ((bCanReload == true) && (bGotAmmo == true) && (bStateOKToReload == true));
 }
@@ -810,7 +808,6 @@ void ABaseWeapon::SetWeaponState(EWeaponState NewState)
 	}
 	
 	mCurrentState = NewState;
-	UE_LOG(LogTemp, Warning, TEXT("New state: %s"), *UVertUtilities::GetEnumValueToString(TEXT("EWeaponState"), mCurrentState));
 
 	if (PrevState != NewState)
 	{
@@ -844,7 +841,6 @@ void ABaseWeapon::DetermineWeaponState()
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("RELADGREGIN STATE"));
 				NewState = EWeaponState::Reloading;
 			}
 		}
