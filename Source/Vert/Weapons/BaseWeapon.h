@@ -326,6 +326,12 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnAttackFinished();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnStartAttacking();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnStopAttacking();
+
 	/** find hit */
 	UFUNCTION(BlueprintCallable, Category = "Hit Detection")
 	FHitResult WeaponTrace(const FVector& TraceFrom, const FVector& TraceTo) const;
