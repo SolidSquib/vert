@@ -68,6 +68,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock", Meta = (EditCondition = "!LockX || !LockY || !LockZ"))
 	float SplineFreedom = 0.f;
 
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = Spline)
+	float AutoSplineSpeed = 0.1f;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = Spline)
+	bool IsAutoSpline = true;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spline)
 	int SplineIterationMax = 10;
 

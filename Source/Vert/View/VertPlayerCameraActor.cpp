@@ -76,6 +76,12 @@ void AVertPlayerCameraActor::Tick(float DeltaTime)
 		if (mHasReachedEnd&&StopAtEnd)
 		{
 			zoomTarget = MakePositionVectorForSpline(CameraSpline->GetLocationAtTime(1.f, ESplineCoordinateSpace::World, ConstantVelocity));
+			
+		}		
+		else if (IsAutoSpline)
+		{
+			mSplineCurrentTime = FMath::FInterpConstantTo(mSplineCurrentTime, 1.f, DeltaTime, AutoSplineSpeed);
+			zoomTarget = MakePositionVectorForSpline(CameraSpline->GetLocationAtTime(mSplineCurrentTime, ESplineCoordinateSpace::World, ConstantVelocity));
 		}
 		else
 		{
