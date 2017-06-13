@@ -106,6 +106,7 @@ private:
 	bool mClimbingLedge = false;
 	bool mTransitioning = false;
 	bool mLerping = false;
+	int32 mNumOverlaps = 0;
 	FVector mLerpTarget = FVector::ZeroVector;
 	FVector mLastGrabLedgeNormal = FVector::ZeroVector;
 	FVector mLastLedgeHeight = FVector::ZeroVector;
