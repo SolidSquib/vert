@@ -8,28 +8,28 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRangedWeapon, Log, All);
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FRangedWeaponSpreadConfig
 {
 	GENERATED_USTRUCT_BODY()
 		
 	/** base weapon spread (degrees) */
-	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Accuracy)
 	float WeaponSpread;
 
 	/** targeting spread modifier */
-	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Accuracy)
 	float MovingSpreadMod;
 
 	/** continuous firing: spread increment */
-	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Accuracy)
 	float FiringSpreadIncrement;
 
 	/** continuous firing: max increment */
-	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Accuracy)
 	float FiringSpreadMax;
 
-	UPROPERTY(EditDefaultsOnly, Category = Recoil)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Recoil)
 	float RecoilAmount;
 
 	/** defaults */

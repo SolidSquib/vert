@@ -1208,16 +1208,6 @@ bool ABaseWeapon::HasInfiniteClip() const
 	return WeaponConfig.InfiniteClip || (MyPC && MyPC->HasInfiniteClip());
 }
 
-float ABaseWeapon::GetEquipStartedTime() const
-{
-	return mEquipStartedTime;
-}
-
-float ABaseWeapon::GetEquipDuration() const
-{
-	return mEquipDuration;
-}
-
 bool ABaseWeapon::WeaponNotAutomatic() const
 {
 	return WeaponConfig.FiringMode != EFiringMode::Automatic;

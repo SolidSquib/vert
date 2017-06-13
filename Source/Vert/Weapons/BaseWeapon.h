@@ -51,7 +51,7 @@ struct FWeaponAnim
 	UAnimMontage* WeaponAnim = nullptr;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FWeaponData
 {
 	GENERATED_USTRUCT_BODY()
@@ -364,8 +364,6 @@ protected:
 protected:
 	bool mAttackSpent = false;
 	float mLastFireTime; /** time of last successful weapon fire */
-	float mEquipStartedTime; /** last time when this weapon was switched to */
-	float mEquipDuration; /** how much time weapon needs to be equipped */
 	EWeaponState mCurrentState; /** current weapon state */
 	FTimerHandle mTimerHandle_OnEquipFinished;
 	FTimerHandle mTimerHandle_StopReload;
