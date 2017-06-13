@@ -301,6 +301,8 @@ void ABaseWeapon::StartAttacking()
 		WantsToFire = true;
 		DetermineWeaponState();
 	}
+
+	OnStartAttacking();
 }
 
 //************************************
@@ -317,7 +319,7 @@ void ABaseWeapon::StopAttacking()
 		ServerStopAttacking();
 	}
 
-	if (WantsToFire/* && (WeaponConfig.FiringMode != EFiringMode::Burst || BurstCounter >= WeaponConfig.BurstNumberOfShots || GetCurrentAmmoInClip() <= 0)*/)
+	if (WantsToFire)
 	{
 		WantsToFire = false;
 		const float GameTime = GetWorld()->GetTimeSeconds();
@@ -335,6 +337,8 @@ void ABaseWeapon::StopAttacking()
 
 		DetermineWeaponState();
 	}
+
+	OnStopAttacking();
 }
 
 //************************************
