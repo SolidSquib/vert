@@ -32,7 +32,10 @@ public:
 	FOnLedgeTransitionDelegate OnLedgeTransition;
 
 	UPROPERTY(BlueprintAssignable)
-		FOnLedgeGrabbedDelegate OnLedgeGrabbed;
+	FOnLedgeGrabbedDelegate OnLedgeGrabbed;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	struct FVertTimer InputDelayTimer;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LedgeDetection")
@@ -43,6 +46,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Range")
 	FName HipSocket = NAME_None;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Range")
+	float GrabHeightOffset = 0.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Range")
 	float HipHeightThreshold = -50.f;
@@ -92,8 +98,12 @@ protected:
 	UFUNCTION()
 	void OnEndOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex);
 
+	UFUNCTION()
+	void StopLerping();
+
 private:
-	bool InGrabbingRange(const FVector& ledgeHeight);
+	bool ShouldGrabLedge(const FVector& ledgeHeight) const;
+	bool InGrabbingRange(const FVector& ledgeHeight) const;
 	bool PerformLedgeTrace(const FVector& start, const FVector& end, FHitResult& hit);
 	bool TraceForForwardLedge(FHitResult& hit);
 	bool TraceForUpwardLedge(FHitResult& hit);
