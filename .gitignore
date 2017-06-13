@@ -22,3 +22,5 @@
 /Plugins/Wwise/Intermediate
 /vert_WwiseProject/.cache
 /vert_WwiseProject/*.validationcache
+/Plugins/Wwise
+/Plugins.7z

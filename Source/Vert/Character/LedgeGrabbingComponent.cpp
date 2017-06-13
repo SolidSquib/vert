@@ -32,12 +32,12 @@ void ULedgeGrabbingComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	{
 		LerpToLedge(DeltaTime);
 	}
-	else if (Enable && mCanTrace && !mClimbingLedge)
+	else if (Enable && mCanTrace)
 	{
 		FHitResult hitV;
 		FHitResult hitH;
 
-		if (TraceForUpwardLedge(hitV) && TraceForForwardLedge(hitH) && InGrabbingRange(hitV.ImpactPoint))
+		if (TraceForUpwardLedge(hitV) && TraceForForwardLedge(hitH) && InGrabbingRange(hitV.ImpactPoint) && !mClimbingLedge)
 		{
 			GrabLedge(hitH, hitV);
 		}
@@ -74,7 +74,7 @@ void ULedgeGrabbingComponent::LerpToLedge(float deltaTime)
 	mCharacterOwner->SetActorLocation(FMath::VInterpConstantTo(mCharacterOwner->GetActorLocation(), mLerpTarget, deltaTime, 1000.f));
 	FVector diff = mLerpTarget - mCharacterOwner->GetActorLocation();
 
-	if (FMath::Abs(diff.X) < SMALL_NUMBER && FMath::Abs(diff.Y) < SMALL_NUMBER && FMath::Abs(diff.Z) < SMALL_NUMBER)
+	if (FMath::Abs(diff.X) < KINDA_SMALL_NUMBER && FMath::Abs(diff.Y) < KINDA_SMALL_NUMBER && FMath::Abs(diff.Z) < KINDA_SMALL_NUMBER)
 	{
 		mLerping = false;
 		mLerpTarget = FVector::ZeroVector;
@@ -96,6 +96,7 @@ void ULedgeGrabbingComponent::LerpToLedge(float deltaTime)
 //************************************
 void ULedgeGrabbingComponent::OnBeginOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool fromSweep, const FHitResult& sweepResult)
 {
+	mNumOverlaps++;
 	mCanTrace = true;
 	PrimaryComponentTick.SetTickFunctionEnable(true);
 }
@@ -113,8 +114,11 @@ void ULedgeGrabbingComponent::OnBeginOverlap(UPrimitiveComponent* overlappedComp
 //************************************
 void ULedgeGrabbingComponent::OnEndOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex)
 {
-	mCanTrace = false;
-	PrimaryComponentTick.SetTickFunctionEnable(false);
+	if (--mNumOverlaps <= 0)
+	{
+		mCanTrace = false;
+		PrimaryComponentTick.SetTickFunctionEnable(false);
+	}
 }
 
 //************************************
@@ -287,6 +291,9 @@ void ULedgeGrabbingComponent::DropLedge()
 		mCharacterOwner->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 		mClimbingLedge = false;
 	}
+	else {
+		UE_LOG(LogLedgeGrabbingComponent, Warning, TEXT("%s can't drop ledge while not climbing, check call."), *GetName());
+	}
 }
 
 //************************************
@@ -303,6 +310,15 @@ void ULedgeGrabbingComponent::TransitionLedge(ELedgeTransition transition)
 	{
 		OnLedgeTransition.Broadcast(transition);
 		DropLedge();
+	}
+	else {
+		if (mLerping) {
+			FVector diff = mLerpTarget - mCharacterOwner->GetActorLocation();
+			UE_LOG(LogLedgeGrabbingComponent, Error, TEXT("%s is still lerping, remaining distance = [%f, %f, %f]"), *GetName(), FMath::Abs(diff.X), FMath::Abs(diff.Y), FMath::Abs(diff.Z));
+		}
+		else {
+			UE_LOG(LogLedgeGrabbingComponent, Warning, TEXT("%s transition from ledge while not climbing, check call."), *GetName());
+		}	
 	}
 }
 
