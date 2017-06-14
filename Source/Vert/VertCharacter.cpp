@@ -348,14 +348,62 @@ void AVertCharacter::FellOutOfWorld(const class UDamageType& dmgType)
 // Access:    virtual public 
 // Returns:   void
 // Qualifier:
-// Parameter: float DamageTaken
-// Parameter: const FDamageEvent & DamageEvent
-// Parameter: APawn * PawnInstigator
-// Parameter: AActor * DamageCauser
+// Parameter: float damageTaken
+// Parameter: const FDamageEvent & damageEvent
+// Parameter: APawn * pawnInstigator
+// Parameter: AActor * damageCauser
 //************************************
-void AVertCharacter::ApplyDamageMomentum(float DamageTaken, const FDamageEvent& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser)
+void AVertCharacter::ApplyDamageMomentum(float damageTaken, const FDamageEvent& damageEvent, APawn* pawnInstigator, AActor* damageCauser)
 {
-	Super::ApplyDamageMomentum(DamageTaken, DamageEvent, PawnInstigator, DamageCauser);
+	const UDamageType* const dmgTypeCDO = damageEvent.DamageTypeClass->GetDefaultObject<UDamageType>();
+	AVertGameMode* gameMode = GetWorld()->GetAuthGameMode<AVertGameMode>();
+
+	float knockbackAmount = 0.f;
+	float hitstunTime = 0.f;
+
+	if (ABaseWeapon* weapon = Cast<ABaseWeapon>(damageCauser))
+	{
+		static constexpr float scHitstun_Multiplier = 0.4f;
+		static constexpr float scMass_Modifier = 1.4f;
+
+		knockbackAmount = ((((((HealthComponent->GetCurrentDamageModifier() / 10) + ((HealthComponent->GetCurrentDamageModifier() * damageTaken) / 10)) * (200 / (GetCharacterMovement()->Mass + 100)) * scMass_Modifier) + 18) * weapon->GetKnockbackScaling()) + weapon->GetBaseKnockback()) * gameMode->GetDamageRatio();
+		hitstunTime = FMath::Max(0.f, knockbackAmount * scHitstun_Multiplier);
+		UE_LOG(LogVertCharacter, Log, TEXT("Knockback amount: %f"), knockbackAmount);
+		UE_LOG(LogVertCharacter, Log, TEXT("Knockback hitstun frames: %i"), FMath::FloorToInt(hitstunTime));
+	}
+
+	float const impulseScale = dmgTypeCDO->DamageImpulse * knockbackAmount;
+
+	if ((impulseScale > 3.f) && (GetCharacterMovement() != NULL))
+	{
+		FHitResult hitInfo;
+		FVector impulseDir;
+		damageEvent.GetBestHitInfo(this, pawnInstigator, hitInfo, impulseDir);
+		
+		// Add a slight upwards rotation to the impulse direction if the character is on the floor
+		// This allows the character to get launched without friction meddling (could try temporarily altering friction instead like in DashingComponent)
+		if (IsGrounded())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("impulse direction [%f, %f, %f]"), impulseDir.X, impulseDir.Y, impulseDir.Z);
+			impulseDir = gameMode->GetAmmendedLaunchAngle(impulseDir, knockbackAmount);
+			UE_LOG(LogTemp, Warning, TEXT("rotated impulse direction [%f, %f, %f]"), impulseDir.X, impulseDir.Y, impulseDir.Z);
+		}
+
+		FVector impulse = impulseDir * impulseScale;
+		const bool massIndependentImpulse = !dmgTypeCDO->bScaleMomentumByMass;
+
+		// Limit Z momentum added if already going up faster than jump (to avoid blowing character way up into the sky)
+		{
+			FVector massScaledImpulse = impulse;
+			if (!massIndependentImpulse && GetCharacterMovement()->Mass > SMALL_NUMBER)
+			{
+				massScaledImpulse = massScaledImpulse / GetCharacterMovement()->Mass;
+			}
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("impulse [%f, %f, %f]"), impulse.X, impulse.Y, impulse.Z);
+		GetCharacterMovement()->AddImpulse(impulse, massIndependentImpulse);
+	}
 }
 
 //************************************

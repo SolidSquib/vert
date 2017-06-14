@@ -33,6 +33,7 @@ AVertPlayerCameraActor::AVertPlayerCameraActor()
 
 	// Prevent all automatic rotation behavior on the camera, character, and camera component
 	CameraBoom->bAbsoluteRotation = true;
+
 }
 
 void AVertPlayerCameraActor::ActivateCamera()
@@ -57,6 +58,7 @@ void AVertPlayerCameraActor::BeginPlay()
 
 	mActiveGameMode = GetWorld()->GetAuthGameMode<AVertGameMode>();
 
+
 	SetupDebugNumbers();
 }
 
@@ -76,6 +78,14 @@ void AVertPlayerCameraActor::Tick(float DeltaTime)
 		if (mHasReachedEnd&&StopAtEnd)
 		{
 			zoomTarget = MakePositionVectorForSpline(CameraSpline->GetLocationAtTime(1.f, ESplineCoordinateSpace::World, ConstantVelocity));
+			
+		}		
+		else if (IsAutoSpline)
+		{
+			float SplineLength = CameraSpline->GetSplineLength();
+			float SpeedOverLength = AutoSplineSpeed / SplineLength;
+			mSplineCurrentTime = FMath::FInterpConstantTo(mSplineCurrentTime, 1.f, DeltaTime,(SpeedOverLength));
+			zoomTarget = MakePositionVectorForSpline(CameraSpline->GetLocationAtTime(mSplineCurrentTime, ESplineCoordinateSpace::World, ConstantVelocity));
 		}
 		else
 		{
@@ -376,11 +386,24 @@ FVector AVertPlayerCameraActor::MakePositionVectorForSpline(const FVector& desir
 	if (LockX&&LockY&&LockZ)
 		return desiredSplineLocation;
 
-	FVector targetVector = desiredSplineLocation + (mTargetLocation - desiredSplineLocation).GetClampedToMaxSize(SplineFreedom);
+	FVector diff = (mTargetLocation - desiredSplineLocation);
+	FVector targetVector = desiredSplineLocation;
 
-	if (LockX) targetVector.X = desiredSplineLocation.X;	
-	if (LockY) targetVector.Y = desiredSplineLocation.Y;
-	if (LockZ) targetVector.Z = desiredSplineLocation.Z;
+	if (!LockX)
+	{
+		FVector maxX(diff.X, 0, 0);
+		targetVector.X = desiredSplineLocation.X + maxX.GetClampedToMaxSize(SplineXFreedom).X;
+	}
+	if (!LockY)
+	{
+		FVector maxY(diff.Y, 0, 0);
+		targetVector.Y = desiredSplineLocation.Y + maxY.GetClampedToMaxSize(SplineYFreedom).Y;
+	}
+	if (!LockZ)
+	{
+		FVector maxZ(diff.Z, 0, 0);
+		targetVector.Z = desiredSplineLocation.Z + maxZ.GetClampedToMaxSize(SplineZFreedom).Z;
+	}
 
 	return targetVector;
 }
