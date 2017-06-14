@@ -4,6 +4,7 @@
 #include "Engine/VertPlayerState.h"
 #include "Weapons/VertDamageType.h"
 #include "UnrealNetwork.h"
+#include "VertGameMode.h"
 
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()
@@ -44,7 +45,7 @@ int32 UHealthComponent::DealDamage(float DamageTaken, const FDamageEvent& Damage
 	check(mCharacterOwner.IsValid());
 	
 	const AVertGameMode* Game = GetWorld()->GetAuthGameMode<AVertGameMode>();
-	DamageTaken = Game ? Game->ModifyDamage(DamageTaken, this, DamageEvent, PawnInstigator, DamageCauser) : 0.f;
+	DamageTaken = Game ? Game->ModifyDamage(DamageTaken, GetOwner(), DamageEvent, PawnInstigator->GetController(), DamageCauser) : 0.f;
 
 	PlayHit(DamageTaken, DamageEvent, PawnInstigator, DamageCauser);
 	mCharacterOwner->MakeNoise(1.0f, PawnInstigator ? PawnInstigator : mCharacterOwner.Get());
