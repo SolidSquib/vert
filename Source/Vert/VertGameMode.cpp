@@ -349,3 +349,15 @@ void AVertGameMode::OnControllerConnectionChange_Implementation(bool connected, 
 {
 	UE_LOG(LogVertGameMode, Log, TEXT("CONTROLLER CONNECTION CHANGE connected: %s, user: %i, controller: %i"), (connected) ? TEXT("true") : TEXT("false"), userID, controllerID);
 }
+
+FVector AVertGameMode::GetAmmendedLaunchAngle(const FVector& launchDirection, float knockback) const
+{
+	if (LaunchAngleCurve)
+	{
+		return launchDirection.RotateAngleAxis(LaunchAngleCurve->GetFloatValue(knockback), launchDirection.X > SMALL_NUMBER ? -FVector::RightVector : FVector::RightVector);
+	}
+	else
+	{
+		return FRotator(45.f, 0, launchDirection.Rotation().Yaw).Vector();
+	}
+}

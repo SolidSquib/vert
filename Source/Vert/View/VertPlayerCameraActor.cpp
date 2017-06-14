@@ -382,11 +382,24 @@ FVector AVertPlayerCameraActor::MakePositionVectorForSpline(const FVector& desir
 	if (LockX&&LockY&&LockZ)
 		return desiredSplineLocation;
 
-	FVector targetVector = desiredSplineLocation + (mTargetLocation - desiredSplineLocation).GetClampedToMaxSize(SplineFreedom);
+	FVector diff = (mTargetLocation - desiredSplineLocation);
+	FVector targetVector = desiredSplineLocation;
 
-	if (LockX) targetVector.X = desiredSplineLocation.X;	
-	if (LockY) targetVector.Y = desiredSplineLocation.Y;
-	if (LockZ) targetVector.Z = desiredSplineLocation.Z;
+	if (!LockX)
+	{
+		FVector maxX(diff.X, 0, 0);
+		targetVector.X = desiredSplineLocation.X + maxX.GetClampedToMaxSize(SplineXFreedom).X;
+	}
+	if (!LockY)
+	{
+		FVector maxY(diff.Y, 0, 0);
+		targetVector.Y = desiredSplineLocation.Y + maxY.GetClampedToMaxSize(SplineYFreedom).Y;
+	}
+	if (!LockZ)
+	{
+		FVector maxZ(diff.Z, 0, 0);
+		targetVector.Z = desiredSplineLocation.Z + maxZ.GetClampedToMaxSize(SplineZFreedom).Z;
+	}
 
 	return targetVector;
 }

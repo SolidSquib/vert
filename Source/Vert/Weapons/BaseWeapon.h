@@ -96,6 +96,12 @@ struct FWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat, Meta = (EditCondition = "FiringMode == EFiringMode::Burst"))
 	float BurstTimeBetweenShots;
 
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+	float BaseKnockback;
+	
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+	float KnockbackScaling;
+
 	/** defaults */
 	FWeaponData()
 	{
@@ -110,6 +116,8 @@ struct FWeaponData
 		FiringMode = EFiringMode::Automatic;
 		BurstNumberOfShots = 3;
 		BurstTimeBetweenShots = 0.2f;
+		BaseKnockback = 10.f;
+		KnockbackScaling = 1.5f;
 	}
 };
 
@@ -284,6 +292,12 @@ public:
 	/* [LOCAL} animation notify to tell us it's alright to leave the Attacking state */
 	UFUNCTION(BlueprintCallable, Category = "AnimationNotifies")
 	void NotifyAttackAnimationEnded();
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE float GetBaseKnockback() const { return WeaponConfig.BaseKnockback; }
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE float GetKnockbackScaling() const { return WeaponConfig.KnockbackScaling; }
 
 protected:
 	UAnimSequence* GetPlayerAnimForState(EWeaponState state);

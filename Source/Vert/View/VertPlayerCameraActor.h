@@ -64,9 +64,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock")
 	bool LockZ = true;
 
-	// Set the freedom granted to the camera in any one direction
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock", Meta = (EditCondition = "!LockX || !LockY || !LockZ"))
-	float SplineFreedom = 0.f;
+	// Set the freedom granted to the camera in the X direction
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock", Meta = (EditCondition = "!LockX"))
+	float SplineXFreedom = 0.f;
+
+	// Set the freedom granted to the camera in the Y direction
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock", Meta = (EditCondition = "!LockY"))
+	float SplineYFreedom = 0.f;
+
+	// Set the freedom granted to the camera in the Z direction
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock", Meta = (EditCondition = "!LockZ"))
+	float SplineZFreedom = 0.f;
 
 	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = Spline)
 	float AutoSplineSpeed = 0.1f;

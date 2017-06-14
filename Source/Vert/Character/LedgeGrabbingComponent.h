@@ -13,6 +13,7 @@ enum class ELedgeTransition : uint8
 	JumpAway,
 	Launch,
 	Attack,
+	Damaged,
 	Drop
 };
 
@@ -78,7 +79,6 @@ public:
 	void TransitionLedge(ELedgeTransition transition);
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	virtual void PostInitProperties() override;
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetLedgeDirection(EAimFreedom freedom = EAimFreedom::Free) const;
@@ -107,7 +107,7 @@ private:
 	bool PerformLedgeTrace(const FVector& start, const FVector& end, FHitResult& hit);
 	bool TraceForForwardLedge(FHitResult& hit);
 	bool TraceForUpwardLedge(FHitResult& hit);
-	void GrabLedge(const FHitResult& forwardHit, const FHitResult& downwardHit);
+	void GrabLedge(const FHitResult& forwardHit, const FHitResult& downwardHit, bool freshGrab = true);
 	FVector GetHipLocation() const;
 	void LerpToLedge(float deltaTime);
 

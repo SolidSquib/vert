@@ -30,6 +30,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rules", meta = (UIMin = -1, UIMax = 100))
 	int32 NumLives = -1;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rules", meta = (UIMin = 0.1, UIMax = 10.0))
+	float DamageRatio = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rules", meta = (UIMin = 0.0, UIMax = 100.0))
+	UCurveFloat* LaunchAngleCurve;
+
 	/** scale for self instigated damage */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rules")
 	float DamageSelfScale = 1.f;
@@ -70,6 +76,12 @@ public:
 	UFUNCTION(exec)
 	void FinishMatch();
 
+	UFUNCTION(BlueprintCallable)
+	FVector GetAmmendedLaunchAngle(const FVector& launchDirection, float knockback) const;
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE float GetDamageRatio() const { return DamageRatio; }
+	
 protected:
 	virtual void DetermineMatchWinner();
 	virtual bool IsWinner(AVertPlayerState* playerState) const;
