@@ -32,3 +32,8 @@ int32 ASplineActor::GetNumberOfSplinePoints() const
 {
 	return Spline->GetNumberOfSplinePoints();
 }
+
+float ASplineActor::GetSplineLength()
+{
+	return Spline->GetSplineLength();
+}

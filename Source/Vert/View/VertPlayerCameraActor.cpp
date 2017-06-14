@@ -33,6 +33,7 @@ AVertPlayerCameraActor::AVertPlayerCameraActor()
 
 	// Prevent all automatic rotation behavior on the camera, character, and camera component
 	CameraBoom->bAbsoluteRotation = true;
+
 }
 
 void AVertPlayerCameraActor::ActivateCamera()
@@ -57,6 +58,7 @@ void AVertPlayerCameraActor::BeginPlay()
 
 	mActiveGameMode = GetWorld()->GetAuthGameMode<AVertGameMode>();
 
+
 	SetupDebugNumbers();
 }
 
@@ -80,7 +82,9 @@ void AVertPlayerCameraActor::Tick(float DeltaTime)
 		}		
 		else if (IsAutoSpline)
 		{
-			mSplineCurrentTime = FMath::FInterpConstantTo(mSplineCurrentTime, 1.f, DeltaTime, AutoSplineSpeed);
+			float SplineLength = CameraSpline->GetSplineLength();
+			float SpeedOverLength = AutoSplineSpeed / SplineLength;
+			mSplineCurrentTime = FMath::FInterpConstantTo(mSplineCurrentTime, 1.f, DeltaTime,(SpeedOverLength));
 			zoomTarget = MakePositionVectorForSpline(CameraSpline->GetLocationAtTime(mSplineCurrentTime, ESplineCoordinateSpace::World, ConstantVelocity));
 		}
 		else
