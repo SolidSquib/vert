@@ -599,29 +599,32 @@ void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 //************************************
 void AVertCharacter::ActionMoveRight(float Value)
 {
-	mAxisPositions.LeftX = Value;
-
-	if (ClimbingComponent->IsClimbingLedge())
+	if (CanMove())
 	{
-		static constexpr float direction_threshold = 0.25;
+		mAxisPositions.LeftX = Value;
 
-		if (FMath::Abs(Value) > KINDA_SMALL_NUMBER)
+		if (ClimbingComponent->IsClimbingLedge())
 		{
-			FVector direction = ClimbingComponent->GetLedgeDirection(EAimFreedom::Horizontal);
-			float dot = FVector::DotProduct(GetActorRotation().Vector(), direction);
-			if (dot > direction_threshold)
+			static constexpr float direction_threshold = 0.25;
+
+			if (FMath::Abs(Value) > KINDA_SMALL_NUMBER)
 			{
-				ClimbingComponent->TransitionLedge(ELedgeTransition::Climb);
+				FVector direction = ClimbingComponent->GetLedgeDirection(EAimFreedom::Horizontal);
+				float dot = FVector::DotProduct(GetActorRotation().Vector(), direction);
+				if (dot > direction_threshold)
+				{
+					ClimbingComponent->TransitionLedge(ELedgeTransition::Climb);
+				}
+				else if (dot < -direction_threshold)
+				{
+					ClimbingComponent->TransitionLedge(ELedgeTransition::JumpAway);
+				}
 			}
-			else if (dot < -direction_threshold)
-			{
-				ClimbingComponent->TransitionLedge(ELedgeTransition::JumpAway);
-			}
-		}		
-	}
-	else
-	{
-		AddMovementInput(FVector(1.f, 0.f, 0.f), Value);
+		}
+		else
+		{
+			AddMovementInput(FVector(1.f, 0.f, 0.f), Value);
+		}
 	}
 }
 
@@ -636,7 +639,8 @@ void AVertCharacter::ActionJump()
 {
 	if (ClimbingComponent->IsClimbingLedge())
 	{
-		ClimbingComponent->TransitionLedge(ELedgeTransition::Launch);
+		if(CanMove())
+			ClimbingComponent->TransitionLedge(ELedgeTransition::Launch);
 	}
 	else
 	{
@@ -654,9 +658,12 @@ void AVertCharacter::ActionJump()
 //************************************
 void AVertCharacter::ActionDropDown()
 {
-	if (ClimbingComponent->IsClimbingLedge())
+	if (CanMove())
 	{
-		ClimbingComponent->TransitionLedge(ELedgeTransition::Drop);
+		if (ClimbingComponent->IsClimbingLedge())
+		{
+			ClimbingComponent->TransitionLedge(ELedgeTransition::Drop);
+		}
 	}
 }
 
@@ -669,18 +676,21 @@ void AVertCharacter::ActionDropDown()
 //************************************
 void AVertCharacter::ActionGrappleShoot()
 {
-	if (UsingGamepad())
+	if (CanGrapple())
 	{
-		if (!mGamepadOnStandby)
+		if (UsingGamepad())
 		{
-			mGamepadOnStandby = true;
-			GetWorld()->GetTimerManager().SetTimer(mTimerHandle, this, &AVertCharacter::ExecuteActionGrappleShoot, 0.01f, false);
-			GetWorld()->GetTimerManager().SetTimer(mGamepadGrappleDelay, this, &AVertCharacter::EndGamepadStandby, 0.1f, false);
+			if (!mGamepadOnStandby)
+			{
+				mGamepadOnStandby = true;
+				GetWorld()->GetTimerManager().SetTimer(mTimerHandle, this, &AVertCharacter::ExecuteActionGrappleShoot, 0.01f, false);
+				GetWorld()->GetTimerManager().SetTimer(mGamepadGrappleDelay, this, &AVertCharacter::EndGamepadStandby, 0.1f, false);
+			}
 		}
-	}
-	else
-	{
-		ExecuteActionGrappleShoot();
+		else
+		{
+			ExecuteActionGrappleShoot();
+		}
 	}
 }
 
@@ -693,19 +703,22 @@ void AVertCharacter::ActionGrappleShoot()
 //************************************
 void AVertCharacter::ExecuteActionGrappleShoot()
 {
-	if (!GrapplingComponent->GetHookedPrimitive())
+	if (CanGrapple())
 	{
-		FVector aimDirection = UsingGamepad() ? GetAxisPostisions().GetPlayerRightThumbstickDirection() : GetAxisPostisions().GetPlayerMouseDirection();
-		if (GrapplingComponent->ExecuteGrapple(aimDirection))
+		if (!GrapplingComponent->GetHookedPrimitive())
 		{
-			Character_OnGrappleShootExecuted(aimDirection);
+			FVector aimDirection = UsingGamepad() ? GetAxisPostisions().GetPlayerRightThumbstickDirection() : GetAxisPostisions().GetPlayerMouseDirection();
+			if (GrapplingComponent->ExecuteGrapple(aimDirection))
+			{
+				Character_OnGrappleShootExecuted(aimDirection);
+			}
 		}
-	}
-	else
-	{
-		if (GrapplingComponent->StartPulling())
+		else
 		{
-			Character_OnGrapplePullExecuted(GrapplingComponent->GetLineDirection());
+			if (GrapplingComponent->StartPulling())
+			{
+				Character_OnGrapplePullExecuted(GrapplingComponent->GetLineDirection());
+			}
 		}
 	}
 }
@@ -719,22 +732,25 @@ void AVertCharacter::ExecuteActionGrappleShoot()
 //************************************
 void AVertCharacter::ActionDash()
 {
-	FVector direction;
+	if (CanDash())
+	{
+		FVector direction;
 
-	if (GrapplingComponent->IsGrappleDeployed())
-	{
-		if (DashingComponent->ExecuteGrappleDash(direction))
+		if (GrapplingComponent->IsGrappleDeployed())
 		{
-			Character_OnDashExecuted(direction, true);
+			if (DashingComponent->ExecuteGrappleDash(direction))
+			{
+				Character_OnDashExecuted(direction, true);
+			}
 		}
-	}
-	else
-	{
-		if (DashingComponent->ExecuteGroundDash(direction))
+		else
 		{
-			Character_OnDashExecuted(direction, false);
+			if (DashingComponent->ExecuteGroundDash(direction))
+			{
+				Character_OnDashExecuted(direction, false);
+			}
 		}
-	}
+	}	
 }
 
 //************************************
@@ -746,9 +762,12 @@ void AVertCharacter::ActionDash()
 //************************************
 void AVertCharacter::ActionInteract()
 {
-	if (AInteractive* interactive = InteractionComponent->AttemptInteract())
+	if (CanInteract())
 	{
-		Character_OnInteractExecuted(interactive);
+		if (AInteractive* interactive = InteractionComponent->AttemptInteract())
+		{
+			Character_OnInteractExecuted(interactive);
+		}
 	}
 }
 
@@ -761,9 +780,12 @@ void AVertCharacter::ActionInteract()
 //************************************
 void AVertCharacter::ActionAttack()
 {
-	if (InteractionComponent->AttemptAttack())
+	if (CanAttack())
 	{
-		Character_OnStartAttackExecuted(GetWeapon());
+		if (InteractionComponent->AttemptAttack())
+		{
+			Character_OnStartAttackExecuted(GetWeapon());
+		}
 	}
 }
 
