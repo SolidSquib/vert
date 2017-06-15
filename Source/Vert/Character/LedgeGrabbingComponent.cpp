@@ -343,6 +343,7 @@ void ULedgeGrabbingComponent::DropLedge()
 		UE_LOG(LogLedgeGrabbingComponent, Log, TEXT("%s dropping ledge."), *mCharacterOwner->GetName());
 		mCharacterOwner->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 		mClimbingLedge = false;
+		mTransitioning = false;
 	}
 	else {
 		UE_LOG(LogLedgeGrabbingComponent, Warning, TEXT("%s can't drop ledge while not climbing, check call."), *GetName());
@@ -386,6 +387,7 @@ void ULedgeGrabbingComponent::TransitionLedge(ELedgeTransition transition)
 			break;
 		}
 
+		mTransitioning = true;
 		OnLedgeTransition.Broadcast(transition);
 	}
 }
