@@ -30,9 +30,12 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnDropInteractiveDelegate Delegate_OnDropInteractive;
 
-public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact|Trace")
 	FVector LocalSphereTraceOffset = FVector::ZeroVector;
+
+	// default weapon to use when no level weapon is picked up
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapons")
+	TSubclassOf<ABaseWeapon> DefaultWeaponClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact|Trace")
 	float TraceRadius = 50.f;
@@ -77,6 +80,7 @@ private:
 
 private:
 	TWeakObjectPtr<AVertCharacter> mCharacterOwner = nullptr;
+	TWeakObjectPtr<ABaseWeapon> mDefaultWeapon = nullptr;
 	AInteractive* mHeldInteractive = nullptr;
 	ABaseWeapon* mHeldWeapon = nullptr;
 	EInteractionState mInteractionState = EInteractionState::Free;

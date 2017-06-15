@@ -53,6 +53,9 @@ protected:
 	virtual void NotifyAttackAnimationActiveStarted_Implementation() override;
 	virtual void NotifyAttackAnimationActiveEnded_Implementation() override;
 
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void MeleeAttackWithWeapon();
+
 protected:
 	float mLastHitTime = 0.f;
 	int32 mComboDepth = 0;

@@ -121,7 +121,7 @@ void AVertCharacter::BeginPlay()
 
 		FScriptDelegate onLedgeGrabbed;
 		onLedgeGrabbed.BindUFunction(this, TEXT("Character_OnLedgeGrabbed"));
-		ClimbingComponent->OnLedgeGrabbed.Add(onLedgeGrabbed);
+		ClimbingComponent->HoldingLedge.Add(onLedgeGrabbed);
 	}
 
 	mOnWeaponStateChangedDelegate.BindUFunction(this, TEXT("Character_OnWeaponStateChangeExecuted"));
@@ -415,7 +415,9 @@ void AVertCharacter::ApplyDamageMomentum(float damageTaken, const FDamageEvent& 
 //************************************
 void AVertCharacter::ApplyDamageHitstun(int32 hitstunFrames)
 {
-	float hitStunTime = hitstunFrames * (1 / 60);
+	float hitStunTime = static_cast<float>(hitstunFrames) * (1.f / 60.f);
+
+	UE_LOG(LogTemp, Warning, TEXT("Hitstun timer = %f"), hitStunTime);
 
 	FTimerManager& timerMan = GetWorld()->GetTimerManager();
 	if (timerMan.IsTimerActive(mHitStunTimer))
@@ -555,8 +557,13 @@ bool AVertCharacter::IsInHitstun() const
 //************************************
 bool AVertCharacter::CanJumpInternal_Implementation() const
 {
+	if (ClimbingComponent->IsLaunchingFromLedge())
+	{
+		return true;
+	}
+
 	// Manipulate JumpMaxCount to allow for extra jumps in given situations
-	return (Super::CanJumpInternal_Implementation() || CanWallJump()) && !IsInHitstun() && !ClimbingComponent->IsTransitioning();;
+	return (Super::CanJumpInternal_Implementation() || CanWallJump()) && !IsInHitstun() && !ClimbingComponent->IsTransitioning();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -613,11 +620,11 @@ void AVertCharacter::ActionMoveRight(float Value)
 				float dot = FVector::DotProduct(GetActorRotation().Vector(), direction);
 				if (dot > direction_threshold)
 				{
-					ClimbingComponent->TransitionLedge(ELedgeTransition::Climb);
+					ClimbingComponent->TransitionLedge(ELedgeTransition::ClimbUpLedge);
 				}
 				else if (dot < -direction_threshold)
 				{
-					ClimbingComponent->TransitionLedge(ELedgeTransition::JumpAway);
+					ClimbingComponent->TransitionLedge(ELedgeTransition::JumpAwayFromGrabbedLedge);
 				}
 			}
 		}
@@ -640,7 +647,7 @@ void AVertCharacter::ActionJump()
 	if (ClimbingComponent->IsClimbingLedge())
 	{
 		if(CanMove())
-			ClimbingComponent->TransitionLedge(ELedgeTransition::Launch);
+			ClimbingComponent->TransitionLedge(ELedgeTransition::LaunchFromGrabbedLedge);
 	}
 	else
 	{
@@ -662,7 +669,7 @@ void AVertCharacter::ActionDropDown()
 	{
 		if (ClimbingComponent->IsClimbingLedge())
 		{
-			ClimbingComponent->TransitionLedge(ELedgeTransition::Drop);
+			ClimbingComponent->TransitionLedge(ELedgeTransition::DropFromGrabbedLedge);
 		}
 	}
 }
@@ -1098,5 +1105,10 @@ void AVertCharacter::MouseMove(float value)
 //************************************
 const bool AVertCharacter::UsingGamepad() const
 {
-	return GetPlayerController()->UsingGamepad();
+	if (AVertPlayerController* pc = GetPlayerController())
+	{
+		return pc->UsingGamepad();
+	}
+
+	return true;
 }

@@ -31,6 +31,33 @@ void UCharacterInteractionComponent::BeginPlay()
 	{
 		UE_LOG(LogCharacterInteractionComponent, Error, TEXT("Unable to find parent AVertCharacter"));
 	}
+
+	// Attempt to create the hook
+	if (mCharacterOwner.IsValid() && DefaultWeaponClass != nullptr)
+	{
+		if (UWorld* world = GetWorld())
+		{
+			//Setup spawn parameters for the actor.
+			FActorSpawnParameters spawnParameters;
+			spawnParameters.Owner = GetOwner();
+			spawnParameters.Instigator = mCharacterOwner.Get();
+			spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+			//Spawn the actor.
+			ABaseWeapon* spawnedWeapon = world->SpawnActor<ABaseWeapon>(DefaultWeaponClass, spawnParameters);
+
+			//Assert that the actor exists.
+			check(spawnedWeapon);
+
+			if (spawnedWeapon)
+			{
+				mDefaultWeapon = spawnedWeapon;
+				mDefaultWeapon->Pickup(mCharacterOwner.Get());
+				mDefaultWeapon->StartEquipping();
+			}
+		}
+	}
+	else { UE_LOG(LogCharacterInteractionComponent, Error, TEXT("[%s] was unable to spawn default weapon."), *GetName()); }
 }
 
 // Called every frame
@@ -89,6 +116,8 @@ bool UCharacterInteractionComponent::HoldInteractive(AInteractive* interactive, 
 
 	if (interactive && !mHeldInteractive && !mHeldWeapon)
 	{
+		StopAttacking();
+
 		mHeldInteractive = interactive;
 		if (ABaseWeapon* weapon = Cast<ABaseWeapon>(interactive))
 		{
@@ -159,6 +188,11 @@ bool UCharacterInteractionComponent::AttemptAttack()
 			mHeldWeapon->StartAttacking();
 			return true;
 		}
+		else if (mDefaultWeapon.IsValid())
+		{
+			mDefaultWeapon->StartAttacking();
+			return true;
+		}
 	}	
 
 	return false;
@@ -172,6 +206,10 @@ void UCharacterInteractionComponent::StopAttacking()
 		if (mHeldWeapon)
 		{
 			mHeldWeapon->StopAttacking();
+		}
+		else if (mDefaultWeapon.IsValid())
+		{
+			mDefaultWeapon->StopAttacking();
 		}
 	}	
 }

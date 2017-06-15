@@ -133,6 +133,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
 	FORCEINLINE UVertCharacterMovementComponent* GetVertCharacterMovement() const { if (UVertCharacterMovementComponent* movement = Cast<UVertCharacterMovementComponent>(GetCharacterMovement())) { return movement; } return nullptr; }
 
+	UFUNCTION(BlueprintCallable, Category = "Climbing")
+	FORCEINLINE ULedgeGrabbingComponent* GetClimbingComponent() const { return ClimbingComponent; }
+
 	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
 	FORCEINLINE bool IsGrounded() const { return !IsJumpProvidingForce() && !GetCharacterMovement()->IsFalling(); }
 

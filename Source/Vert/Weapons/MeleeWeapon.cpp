@@ -34,8 +34,6 @@ void AMeleeWeapon::ClientStopSimulateWeaponAttack_Implementation()
 
 bool AMeleeWeapon::AttackWithWeapon_Implementation()
 {
-	mDidHit = false;
-
 	if (mTraceHit)
 	{
 		for (FName socket : ScanSockets)
@@ -46,12 +44,19 @@ bool AMeleeWeapon::AttackWithWeapon_Implementation()
 			FVector direction = rotation.Vector().GetSafeNormal();
 
 			FHitResult hit = WeaponTrace(start, direction*MeleeTraceRange);
+			if (hit.bBlockingHit)
+				mComboDepth += 1;
 		}
 
-		OnMeleeAttack.Broadcast(mDidHit ? mComboDepth++ : (mComboDepth = 0));
+		MeleeAttackWithWeapon();
 	}
 
 	return mAttackDone;
+}
+
+void AMeleeWeapon::MeleeAttackWithWeapon_Implementation()
+{
+	OnMeleeAttack.Broadcast(mComboDepth);
 }
 
 void AMeleeWeapon::NotifyAttackAnimationActiveStarted_Implementation()

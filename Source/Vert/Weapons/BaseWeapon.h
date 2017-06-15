@@ -39,15 +39,15 @@ enum class EFiringMode : uint8
 	Burst
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FWeaponAnim
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	UAnimSequence* PlayerAnim;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	UAnimMontage* WeaponAnim = nullptr;
 };
 
@@ -166,7 +166,7 @@ protected:
 	USoundCue* ReloadSound;
 
 	/** reload animations */
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation)
 	FWeaponAnim ReloadAnim;
 
 	/** equip sound */
@@ -174,14 +174,14 @@ protected:
 	USoundCue* EquipSound;
 
 	/** equip animations */
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation)
 	FWeaponAnim EquipAnim;
 
 	/** fire animations */
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation)
 	FWeaponAnim FireAnim;
 
-	UPROPERTY(EditDefaultsOnly, Category = Animation)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation)
 	FWeaponAnim IdleAnim;
 	
 	/* Mainly for testing purposes, ignores the wait for an animation to notify after euip begin or reload begin */
