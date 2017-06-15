@@ -14,7 +14,8 @@ enum class ELedgeTransition : uint8
 	Launch,
 	Attack,
 	Damaged,
-	Drop
+	Drop,
+	NONE
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLedgeTransitionDelegate, ELedgeTransition, transition);
@@ -85,6 +86,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool IsClimbingLedge() const { return mClimbingLedge; }
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool IsTransitioning() const { return mTransitioning; }
 
 	UFUNCTION(BlueprintCallable)
 	void DropLedge();

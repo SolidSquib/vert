@@ -370,6 +370,7 @@ void AVertCharacter::ApplyDamageMomentum(float damageTaken, const FDamageEvent& 
 		hitstunTime = FMath::Max(0.f, knockbackAmount * scHitstun_Multiplier);
 		UE_LOG(LogVertCharacter, Log, TEXT("Knockback amount: %f"), knockbackAmount);
 		UE_LOG(LogVertCharacter, Log, TEXT("Knockback hitstun frames: %i"), FMath::FloorToInt(hitstunTime));
+		ApplyDamageHitstun(FMath::FloorToInt(hitstunTime));
 	}
 
 	float const impulseScale = dmgTypeCDO->DamageImpulse * knockbackAmount;
@@ -384,9 +385,7 @@ void AVertCharacter::ApplyDamageMomentum(float damageTaken, const FDamageEvent& 
 		// This allows the character to get launched without friction meddling (could try temporarily altering friction instead like in DashingComponent)
 		if (IsGrounded())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("impulse direction [%f, %f, %f]"), impulseDir.X, impulseDir.Y, impulseDir.Z);
 			impulseDir = gameMode->GetAmmendedLaunchAngle(impulseDir, knockbackAmount);
-			UE_LOG(LogTemp, Warning, TEXT("rotated impulse direction [%f, %f, %f]"), impulseDir.X, impulseDir.Y, impulseDir.Z);
 		}
 
 		FVector impulse = impulseDir * impulseScale;
@@ -401,9 +400,31 @@ void AVertCharacter::ApplyDamageMomentum(float damageTaken, const FDamageEvent& 
 			}
 		}
 
-		UE_LOG(LogTemp, Warning, TEXT("impulse [%f, %f, %f]"), impulse.X, impulse.Y, impulse.Z);
 		GetCharacterMovement()->AddImpulse(impulse, massIndependentImpulse);
 	}
+}
+
+
+//************************************
+// Method:    ApplyDamageHitstun
+// FullName:  AVertCharacter::ApplyDamageHitstun
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+// Parameter: int32 hitstunFrames
+//************************************
+void AVertCharacter::ApplyDamageHitstun(int32 hitstunFrames)
+{
+	float hitStunTime = hitstunFrames * (1 / 60);
+
+	FTimerManager& timerMan = GetWorld()->GetTimerManager();
+	if (timerMan.IsTimerActive(mHitStunTimer))
+	{
+		timerMan.ClearTimer(mHitStunTimer);
+	}
+
+	// Always prioritize the latest hit
+	timerMan.SetTimer(mHitStunTimer, hitStunTime, false);
 }
 
 //************************************
@@ -428,7 +449,7 @@ void AVertCharacter::StopAttacking()
 //************************************
 bool AVertCharacter::CanFire() const
 {
-	return HealthComponent->IsAlive();
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
 }
 
 //************************************
@@ -440,7 +461,7 @@ bool AVertCharacter::CanFire() const
 //************************************
 bool AVertCharacter::CanReload() const
 {
-	return true;
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
 }
 
 //************************************
@@ -452,7 +473,7 @@ bool AVertCharacter::CanReload() const
 //************************************
 bool AVertCharacter::CanGrapple() const
 {
-	return true;
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
 }
 
 //************************************
@@ -464,7 +485,7 @@ bool AVertCharacter::CanGrapple() const
 //************************************
 bool AVertCharacter::CanDash() const
 {
-	return true;
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
 }
 
 //************************************
@@ -476,7 +497,31 @@ bool AVertCharacter::CanDash() const
 //************************************
 bool AVertCharacter::CanMove() const
 {
-	return true;
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
+}
+
+//************************************
+// Method:    CanAttack
+// FullName:  AVertCharacter::CanAttack
+// Access:    public 
+// Returns:   bool
+// Qualifier: const
+//************************************
+bool AVertCharacter::CanAttack() const
+{
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
+}
+
+//************************************
+// Method:    CanInteract
+// FullName:  AVertCharacter::CanInteract
+// Access:    public 
+// Returns:   bool
+// Qualifier: const
+//************************************
+bool AVertCharacter::CanInteract() const
+{
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
 }
 
 //************************************
@@ -496,6 +541,11 @@ bool AVertCharacter::CanWallJump() const
 	return false;
 }
 
+bool AVertCharacter::IsInHitstun() const
+{
+	return GetWorldTimerManager().IsTimerActive(mHitStunTimer);
+}
+
 //************************************
 // Method:    CanJumpInternal_Implementation
 // FullName:  AVertCharacter::CanJumpInternal_Implementation
@@ -506,7 +556,7 @@ bool AVertCharacter::CanWallJump() const
 bool AVertCharacter::CanJumpInternal_Implementation() const
 {
 	// Manipulate JumpMaxCount to allow for extra jumps in given situations
-	return Super::CanJumpInternal_Implementation() || CanWallJump();
+	return (Super::CanJumpInternal_Implementation() || CanWallJump()) && !IsInHitstun() && !ClimbingComponent->IsTransitioning();;
 }
 
 //////////////////////////////////////////////////////////////////////////
