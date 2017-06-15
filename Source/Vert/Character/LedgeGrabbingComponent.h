@@ -86,9 +86,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool IsClimbingLedge() const { return mClimbingLedge; }
 
-protected:
+	UFUNCTION(BlueprintCallable)
 	void DropLedge();
 
+protected:
 	virtual void DrawDebugInfo() override;
 	virtual void BeginPlay() override;
 

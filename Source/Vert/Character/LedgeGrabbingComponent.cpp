@@ -363,8 +363,30 @@ void ULedgeGrabbingComponent::TransitionLedge(ELedgeTransition transition)
 	{
 		mLerping = false;
 		InputDelayTimer.Reset();
+
+		switch (transition)
+		{
+		case ELedgeTransition::Climb:
+			// Root motion animation, wait for notify to finish.
+			break;
+		case ELedgeTransition::JumpAway:
+			
+			break;
+		case ELedgeTransition::Launch:
+			mCharacterOwner->Jump();
+			DropLedge();
+			break;
+		case ELedgeTransition::Attack:
+			// Root motion animation + attack at end
+			break;
+		case ELedgeTransition::Damaged: // intentionally fall through
+			// Hitstun and Drop
+		case ELedgeTransition::Drop:
+			DropLedge();
+			break;
+		}
+
 		OnLedgeTransition.Broadcast(transition);
-		DropLedge();
 	}
 }
 

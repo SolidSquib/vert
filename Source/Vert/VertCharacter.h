@@ -91,7 +91,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Controls)
 	bool DisableInputWhenDashingOrGrappling;
-
+	
 public:
 	AVertCharacter(const class FObjectInitializer& ObjectInitializer);
 
@@ -134,7 +134,7 @@ public:
 	FORCEINLINE UVertCharacterMovementComponent* GetVertCharacterMovement() const { if (UVertCharacterMovementComponent* movement = Cast<UVertCharacterMovementComponent>(GetCharacterMovement())) { return movement; } return nullptr; }
 
 	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
-	FORCEINLINE bool IsGrounded() const { return !GetCharacterMovement()->IsFlying() && !GetCharacterMovement()->IsFalling(); }
+	FORCEINLINE bool IsGrounded() const { return !IsJumpProvidingForce() && !GetCharacterMovement()->IsFalling(); }
 
 	UFUNCTION(BlueprintCallable, Category = "Weapons")
 	FORCEINLINE class ABaseWeapon* GetWeapon() const { return InteractionComponent->GetHeldWeapon(); }
@@ -144,6 +144,18 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Weapons")
 	bool CanReload() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Grappling")
+	bool CanGrapple() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Dashing")
+	bool CanDash() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool CanMove() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Jump")
+	bool CanWallJump() const;
 
 protected:
 	void ActionMoveRight(float Value);
@@ -161,6 +173,7 @@ protected:
 	void UpdateCharacter();
 	void UpdateTeamColours(UMaterialInstanceDynamic* useMIDs);
 
+	virtual bool CanJumpInternal_Implementation() const override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 	
 	UFUNCTION(BlueprintCallable, Category = "Player Controller")
