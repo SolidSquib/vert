@@ -13,6 +13,7 @@ enum class ELedgeTransition : uint8
 	JumpAway,
 	Launch,
 	Attack,
+	Damaged,
 	Drop
 };
 
@@ -32,7 +33,10 @@ public:
 	FOnLedgeTransitionDelegate OnLedgeTransition;
 
 	UPROPERTY(BlueprintAssignable)
-		FOnLedgeGrabbedDelegate OnLedgeGrabbed;
+	FOnLedgeGrabbedDelegate OnLedgeGrabbed;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	struct FVertTimer InputDelayTimer;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LedgeDetection")
@@ -43,6 +47,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Range")
 	FName HipSocket = NAME_None;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Range")
+	float GrabHeightOffset = 0.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Range")
 	float HipHeightThreshold = -50.f;
@@ -72,7 +79,6 @@ public:
 	void TransitionLedge(ELedgeTransition transition);
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	virtual void PostInitProperties() override;
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetLedgeDirection(EAimFreedom freedom = EAimFreedom::Free) const;
@@ -80,9 +86,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool IsClimbingLedge() const { return mClimbingLedge; }
 
-protected:
+	UFUNCTION(BlueprintCallable)
 	void DropLedge();
 
+protected:
 	virtual void DrawDebugInfo() override;
 	virtual void BeginPlay() override;
 
@@ -92,12 +99,16 @@ protected:
 	UFUNCTION()
 	void OnEndOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex);
 
+	UFUNCTION()
+	void StopLerping();
+
 private:
-	bool InGrabbingRange(const FVector& ledgeHeight);
+	bool ShouldGrabLedge(const FVector& ledgeHeight) const;
+	bool InGrabbingRange(const FVector& ledgeHeight) const;
 	bool PerformLedgeTrace(const FVector& start, const FVector& end, FHitResult& hit);
 	bool TraceForForwardLedge(FHitResult& hit);
 	bool TraceForUpwardLedge(FHitResult& hit);
-	void GrabLedge(const FHitResult& forwardHit, const FHitResult& downwardHit);
+	void GrabLedge(const FHitResult& forwardHit, const FHitResult& downwardHit, bool freshGrab = true);
 	FVector GetHipLocation() const;
 	void LerpToLedge(float deltaTime);
 

@@ -4,6 +4,7 @@
 #include "Engine/VertPlayerState.h"
 #include "Weapons/VertDamageType.h"
 #include "UnrealNetwork.h"
+#include "VertGameMode.h"
 
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()
@@ -12,7 +13,7 @@ UHealthComponent::UHealthComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	DamageModifier = 1.f;
+	DamageModifier = 0.f;
 }
 
 void UHealthComponent::BeginPlay()
@@ -43,10 +44,8 @@ int32 UHealthComponent::DealDamage(float DamageTaken, const FDamageEvent& Damage
 {
 	check(mCharacterOwner.IsValid());
 	
-	// #MI_TODO: setup damage types (resistences etc)
-	// or modify based on game rules:
-	// AVertGameMode* const Game = GetWorld()->GetAuthGameMode<AVertGameMode>();
-	// Damage = Game ? Game->ModifyDamage(Damage, this, DamageEvent, EventInstigator, DamageCauser) : 0.f;
+	const AVertGameMode* Game = GetWorld()->GetAuthGameMode<AVertGameMode>();
+	DamageTaken = Game ? Game->ModifyDamage(DamageTaken, GetOwner(), DamageEvent, PawnInstigator->GetController(), DamageCauser) : 0.f;
 
 	PlayHit(DamageTaken, DamageEvent, PawnInstigator, DamageCauser);
 	mCharacterOwner->MakeNoise(1.0f, PawnInstigator ? PawnInstigator : mCharacterOwner.Get());
@@ -88,15 +87,28 @@ void UHealthComponent::SetDamageTaken(int32 totalDamage)
 	if (!timerMan.IsTimerActive(mUpdateShownDamageTakenTimer))
 	{
 		timerMan.SetTimer(mUpdateShownDamageTakenTimer, [this, &timerMan]() -> void {
-			mShownDamageTakenFloat = FMath::FInterpConstantTo(mShownDamageTakenFloat, mDamageTaken, GetWorld()->GetDeltaSeconds(), DamageApplicationRate);
+			mShownDamageTakenFloat = FMath::FInterpTo(mShownDamageTakenFloat, mDamageTaken, GetWorld()->GetDeltaSeconds(), DamageApplicationRate);
 			mShownDamageTaken = FMath::FloorToInt(mShownDamageTakenFloat);
+
+			SetPlayerStateDamageTaken();
+
 			if (mShownDamageTaken == mDamageTaken)
 			{
 				timerMan.ClearTimer(mUpdateShownDamageTakenTimer);
 			}
 		}, 1 / 60.f, true, 0.f);
 	}
+}
 
+//************************************
+// Method:    SetPlayerStateDamageTaken
+// FullName:  UHealthComponent::SetPlayerStateDamageTaken
+// Access:    private 
+// Returns:   void
+// Qualifier:
+//************************************
+void UHealthComponent::SetPlayerStateDamageTaken()
+{
 	if (mCharacterOwner.IsValid() && mCharacterOwner->PlayerState)
 	{
 		AVertPlayerState* playerState = Cast<AVertPlayerState>(mCharacterOwner->PlayerState);

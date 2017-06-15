@@ -27,8 +27,6 @@ bool AHitscanRangedWeapon::AttackWithWeapon_Implementation()
 	const FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
 	ProcessInstantHit(Impact, StartTrace, ShootDir, randomSeed, currentSpread);
 
-	//DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Green, false, 2.f);
-
 	mCurrentFiringSpread = FMath::Min(SpreadConfig.FiringSpreadMax, mCurrentFiringSpread + SpreadConfig.FiringSpreadIncrement);
 
 	Delegate_OnWeaponFiredWithRecoil.Broadcast(SpreadConfig.RecoilAmount);

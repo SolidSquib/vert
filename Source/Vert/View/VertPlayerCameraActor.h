@@ -64,9 +64,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock")
 	bool LockZ = true;
 
-	// Set the freedom granted to the camera in any one direction
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock", Meta = (EditCondition = "!LockX || !LockY || !LockZ"))
-	float SplineFreedom = 0.f;
+	// Set the freedom granted to the camera in the X direction
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock", Meta = (EditCondition = "!LockX"))
+	float SplineXFreedom = 0.f;
+
+	// Set the freedom granted to the camera in the Y direction
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock", Meta = (EditCondition = "!LockY"))
+	float SplineYFreedom = 0.f;
+
+	// Set the freedom granted to the camera in the Z direction
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline|AxisLock", Meta = (EditCondition = "!LockZ"))
+	float SplineZFreedom = 0.f;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = Spline)
+	float AutoSplineSpeed = 0.1f;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = Spline)
+	bool IsAutoSpline = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spline)
 	int SplineIterationMax = 10;
@@ -117,6 +131,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable, Category = "CameraSpline")
+	void SetCameraSplineSpeed(float newSpeed);
+
 private:
 	// Debug functions
 	void SetupDebugNumbers();
@@ -139,5 +156,6 @@ private:
 	TWeakObjectPtr<class AVertGameMode> mActiveGameMode = nullptr;
 	float mSplineDesiredTime;
 	float mSplineCurrentTime;
+	float mActualSplineSpeed = 0.f;
 	bool mHasReachedEnd = false;
 };

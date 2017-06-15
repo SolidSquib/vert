@@ -22,6 +22,7 @@ public:
 	FVector GetRightVectorAtTime(float time, ESplineCoordinateSpace::Type coords, bool constantVelocity);
 	FVector GetDirectionAtTime(float time, ESplineCoordinateSpace::Type coords, bool constantVelocity);
 	int32 GetNumberOfSplinePoints() const;
+	float GetSplineLength();
 
 public:
 	ASplineActor();

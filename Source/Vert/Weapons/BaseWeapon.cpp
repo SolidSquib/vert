@@ -990,6 +990,8 @@ FHitResult ABaseWeapon::WeaponTrace(const FVector& StartTrace, const FVector& En
 	FHitResult Hit(ForceInit);
 	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, ECC_WeaponTrace, TraceParams);
 
+	UE_LOG(LogTemp, Warning, TEXT("hit actor: %s"), Hit.Actor.IsValid() ? *Hit.Actor->GetName() : TEXT("Null"));
+
 	return Hit;
 }
 

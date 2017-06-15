@@ -81,6 +81,7 @@ protected:
 
 private:
 	void SetDamageTaken(int32 totalDamage);
+	void SetPlayerStateDamageTaken();
 	void LaunchCharacter(const FDamageEvent& damageEvent, const ABaseWeapon* damageCauser);
 
 private:
