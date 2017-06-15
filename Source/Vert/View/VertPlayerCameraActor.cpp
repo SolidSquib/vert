@@ -58,6 +58,11 @@ void AVertPlayerCameraActor::BeginPlay()
 
 	mActiveGameMode = GetWorld()->GetAuthGameMode<AVertGameMode>();
 
+	// calculate the actual movement speed based on the spline's length
+	if (CameraSpline)
+	{
+		SetCameraSplineSpeed(AutoSplineSpeed);
+	}
 
 	SetupDebugNumbers();
 }
@@ -80,11 +85,9 @@ void AVertPlayerCameraActor::Tick(float DeltaTime)
 			zoomTarget = MakePositionVectorForSpline(CameraSpline->GetLocationAtTime(1.f, ESplineCoordinateSpace::World, ConstantVelocity));
 			
 		}		
-		else if (IsAutoSpline)
+		else if (IsAutoSpline) // Automatically move the camera along a spline according to the speed.
 		{
-			float SplineLength = CameraSpline->GetSplineLength();
-			float SpeedOverLength = AutoSplineSpeed / SplineLength;
-			mSplineCurrentTime = FMath::FInterpConstantTo(mSplineCurrentTime, 1.f, DeltaTime,(SpeedOverLength));
+			mSplineCurrentTime = FMath::FInterpConstantTo(mSplineCurrentTime, 1.f, DeltaTime, mActualSplineSpeed);
 			zoomTarget = MakePositionVectorForSpline(CameraSpline->GetLocationAtTime(mSplineCurrentTime, ESplineCoordinateSpace::World, ConstantVelocity));
 		}
 		else
@@ -467,4 +470,17 @@ void AVertPlayerCameraActor::UpdateCamera(float DeltaTime, const FVector& camera
 		CameraComponent->SetWorldRotation(newRotator);
 	}
 	SetActorLocation(cameraDesiredLocation);
+}
+
+//************************************
+// Method:    SetCameraSplineSpeed
+// FullName:  AVertPlayerCameraActor::SetCameraSplineSpeed
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: float newSpeed
+//************************************
+void AVertPlayerCameraActor::SetCameraSplineSpeed(float newSpeed)
+{
+	mActualSplineSpeed = newSpeed / CameraSpline->GetSplineLength();
 }

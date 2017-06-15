@@ -20,13 +20,25 @@ void UVertCharacterMovementComponent::AddGrappleLineForce(const FVector& desired
 
 bool UVertCharacterMovementComponent::DoJump(bool replayingMoves)
 {
-	bool result =  Super::DoJump(replayingMoves);
-	
-	// if false because of charactermovement limitations, allow it when we are latched (wall jump)
-	if (!result && mIsGrappleLatched && CharacterOwner && !CharacterOwner->CanJump())
-		result = true;
+	if (mCharacterOwner.IsValid() && mCharacterOwner->CanJump())
+	{
+		// Don't jump if we can't move up/down.
+		if (!bConstrainToPlane || FMath::Abs(PlaneConstraintNormal.Z) != 1.f)
+		{
+			float zVelocity = JumpZVelocity;
 
-	return result;
+			if (mCharacterOwner->CanWallJump())
+			{
+
+			}
+
+			Velocity.Z = JumpZVelocity;
+			SetMovementMode(MOVE_Falling);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void UVertCharacterMovementComponent::BeginPlay()

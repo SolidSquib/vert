@@ -343,6 +343,7 @@ void ULedgeGrabbingComponent::DropLedge()
 		UE_LOG(LogLedgeGrabbingComponent, Log, TEXT("%s dropping ledge."), *mCharacterOwner->GetName());
 		mCharacterOwner->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 		mClimbingLedge = false;
+		mTransitioning = false;
 	}
 	else {
 		UE_LOG(LogLedgeGrabbingComponent, Warning, TEXT("%s can't drop ledge while not climbing, check call."), *GetName());
@@ -363,8 +364,31 @@ void ULedgeGrabbingComponent::TransitionLedge(ELedgeTransition transition)
 	{
 		mLerping = false;
 		InputDelayTimer.Reset();
+
+		switch (transition)
+		{
+		case ELedgeTransition::Climb:
+			// Root motion animation, wait for notify to finish.
+			break;
+		case ELedgeTransition::JumpAway:
+			
+			break;
+		case ELedgeTransition::Launch:
+			mCharacterOwner->Jump();
+			DropLedge();
+			break;
+		case ELedgeTransition::Attack:
+			// Root motion animation + attack at end
+			break;
+		case ELedgeTransition::Damaged: // intentionally fall through
+			// Hitstun and Drop
+		case ELedgeTransition::Drop:
+			DropLedge();
+			break;
+		}
+
+		mTransitioning = true;
 		OnLedgeTransition.Broadcast(transition);
-		DropLedge();
 	}
 }
 

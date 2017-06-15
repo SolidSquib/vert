@@ -87,15 +87,28 @@ void UHealthComponent::SetDamageTaken(int32 totalDamage)
 	if (!timerMan.IsTimerActive(mUpdateShownDamageTakenTimer))
 	{
 		timerMan.SetTimer(mUpdateShownDamageTakenTimer, [this, &timerMan]() -> void {
-			mShownDamageTakenFloat = FMath::FInterpConstantTo(mShownDamageTakenFloat, mDamageTaken, GetWorld()->GetDeltaSeconds(), DamageApplicationRate);
+			mShownDamageTakenFloat = FMath::FInterpTo(mShownDamageTakenFloat, mDamageTaken, GetWorld()->GetDeltaSeconds(), DamageApplicationRate);
 			mShownDamageTaken = FMath::FloorToInt(mShownDamageTakenFloat);
+
+			SetPlayerStateDamageTaken();
+
 			if (mShownDamageTaken == mDamageTaken)
 			{
 				timerMan.ClearTimer(mUpdateShownDamageTakenTimer);
 			}
 		}, 1 / 60.f, true, 0.f);
 	}
+}
 
+//************************************
+// Method:    SetPlayerStateDamageTaken
+// FullName:  UHealthComponent::SetPlayerStateDamageTaken
+// Access:    private 
+// Returns:   void
+// Qualifier:
+//************************************
+void UHealthComponent::SetPlayerStateDamageTaken()
+{
 	if (mCharacterOwner.IsValid() && mCharacterOwner->PlayerState)
 	{
 		AVertPlayerState* playerState = Cast<AVertPlayerState>(mCharacterOwner->PlayerState);

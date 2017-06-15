@@ -443,6 +443,72 @@ bool AVertCharacter::CanReload() const
 	return true;
 }
 
+//************************************
+// Method:    CanGrapple
+// FullName:  AVertCharacter::CanGrapple
+// Access:    public 
+// Returns:   bool
+// Qualifier: const
+//************************************
+bool AVertCharacter::CanGrapple() const
+{
+	return true;
+}
+
+//************************************
+// Method:    CanDash
+// FullName:  AVertCharacter::CanDash
+// Access:    public 
+// Returns:   bool
+// Qualifier: const
+//************************************
+bool AVertCharacter::CanDash() const
+{
+	return true;
+}
+
+//************************************
+// Method:    CanMove
+// FullName:  AVertCharacter::CanMove
+// Access:    public 
+// Returns:   bool
+// Qualifier: const
+//************************************
+bool AVertCharacter::CanMove() const
+{
+	return true;
+}
+
+//************************************
+// Method:    CanWallJump
+// FullName:  AVertCharacter::CanWallJump
+// Access:    public 
+// Returns:   bool
+// Qualifier: const
+//************************************
+bool AVertCharacter::CanWallJump() const
+{
+	if (!IsGrounded())
+	{
+		return false;
+	}
+
+	return false;
+}
+
+//************************************
+// Method:    CanJumpInternal_Implementation
+// FullName:  AVertCharacter::CanJumpInternal_Implementation
+// Access:    virtual protected 
+// Returns:   bool
+// Qualifier: const
+//************************************
+bool AVertCharacter::CanJumpInternal_Implementation() const
+{
+	// Manipulate JumpMaxCount to allow for extra jumps in given situations
+	return Super::CanJumpInternal_Implementation() || CanWallJump();
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -529,6 +595,13 @@ void AVertCharacter::ActionJump()
 	}	
 }
 
+//************************************
+// Method:    ActionDropDown
+// FullName:  AVertCharacter::ActionDropDown
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertCharacter::ActionDropDown()
 {
 	if (ClimbingComponent->IsClimbingLedge())
@@ -662,6 +735,7 @@ void AVertCharacter::PrintDebugInfo()
 		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Is Flying: %s"), GetCharacterMovement()->IsFlying() ? TEXT("true") : TEXT("false")));
 		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Is Falling: %s"), GetCharacterMovement()->IsFalling() ? TEXT("true") : TEXT("false")));
 		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Using Gamepad: %s"), UsingGamepad() ? TEXT("true") : TEXT("false")));
+		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Is Grounded: %s"), IsGrounded() ? TEXT("true") : TEXT("false")));
 	}
 
 	if (ShowDebug.Dash.Enabled)

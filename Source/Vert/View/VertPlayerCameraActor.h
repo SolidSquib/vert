@@ -131,6 +131,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable, Category = "CameraSpline")
+	void SetCameraSplineSpeed(float newSpeed);
+
 private:
 	// Debug functions
 	void SetupDebugNumbers();
@@ -153,5 +156,6 @@ private:
 	TWeakObjectPtr<class AVertGameMode> mActiveGameMode = nullptr;
 	float mSplineDesiredTime;
 	float mSplineCurrentTime;
+	float mActualSplineSpeed = 0.f;
 	bool mHasReachedEnd = false;
 };
