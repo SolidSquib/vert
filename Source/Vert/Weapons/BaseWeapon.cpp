@@ -26,7 +26,7 @@ ABaseWeapon::ABaseWeapon(const FObjectInitializer& ObjectInitializer) : Super(Ob
 	PendingEquip = false;
 	OverrideAnimCompleteNotify = false;
 	WaitingForAttackEnd = false;
-	mCurrentState = EWeaponState::Idle;
+	mCurrentState = EWeaponState::CombatIdle;
 
 	CurrentAmmo = 0;
 	CurrentAmmoInClip = 0;
@@ -575,7 +575,7 @@ void ABaseWeapon::ClientStartReload_Implementation()
 bool ABaseWeapon::CanFire() const
 {
 	bool bCanFire = MyPawn && MyPawn->CanFire();
-	bool bStateOKToFire = ((mCurrentState == EWeaponState::Idle) || (mCurrentState == EWeaponState::Firing));
+	bool bStateOKToFire = ((mCurrentState == EWeaponState::CombatIdle) || (mCurrentState == EWeaponState::Firing));
 	return ((bCanFire == true) && (bStateOKToFire == true) && (PendingReload == false));
 }
 
@@ -590,7 +590,7 @@ bool ABaseWeapon::CanReload() const
 {
 	bool bCanReload = (!MyPawn || MyPawn->CanReload());
 	bool bGotAmmo = (CurrentAmmoInClip < WeaponConfig.AmmoPerClip) && (CurrentAmmo - CurrentAmmoInClip > 0 || HasInfiniteClip());
-	bool bStateOKToReload = ((mCurrentState == EWeaponState::Idle) || (mCurrentState == EWeaponState::Firing));
+	bool bStateOKToReload = ((mCurrentState == EWeaponState::CombatIdle) || (mCurrentState == EWeaponState::Firing));
 
 	return ((bCanReload == true) && (bGotAmmo == true) && (bStateOKToReload == true));
 }
@@ -659,7 +659,7 @@ void ABaseWeapon::HandleAttacking()
 			// Allows for charging weapons etc.
 			if (AttackWithWeapon())
 			{
-				PlayWeaponAnimation(FireAnim);
+				PlayWeaponAnimation(AttackAnim);
 				PlayWeaponSound(FireSound);
 
 				UseAmmo();
@@ -793,12 +793,12 @@ UAnimSequence* ABaseWeapon::GetPlayerAnimForState(EWeaponState state)
 	case EWeaponState::Equipping:
 		return EquipAnim.PlayerAnim;
 	case EWeaponState::Firing:
-		return FireAnim.PlayerAnim;
+		return AttackAnim.PlayerAnim;
 	case EWeaponState::Reloading:
 		return ReloadAnim.PlayerAnim;
-	case EWeaponState::Idle:
+	case EWeaponState::CombatIdle:
 	default:
-		return IdleAnim.PlayerAnim;
+		return CombatIdleAnim.PlayerAnim;
 	}
 }
 
@@ -841,7 +841,7 @@ void ABaseWeapon::SetWeaponState(EWeaponState NewState)
 //************************************
 void ABaseWeapon::DetermineWeaponState()
 {
-	EWeaponState NewState = EWeaponState::Idle;
+	EWeaponState NewState = EWeaponState::CombatIdle;
 
 	if (IsEquipped)
 	{

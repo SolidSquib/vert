@@ -22,7 +22,7 @@ enum class EWeaponAnimationMode : uint8
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
 {
-	Idle,
+	CombatIdle,
 	Firing,
 	Reloading,
 	Equipping,
@@ -179,10 +179,10 @@ protected:
 
 	/** fire animations */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation)
-	FWeaponAnim FireAnim;
+	FWeaponAnim AttackAnim;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation)
-	FWeaponAnim IdleAnim;
+	FWeaponAnim CombatIdleAnim;
 	
 	/* Mainly for testing purposes, ignores the wait for an animation to notify after euip begin or reload begin */
 	UPROPERTY(EditDefaultsOnly, Category = "Animation|Overrides")
