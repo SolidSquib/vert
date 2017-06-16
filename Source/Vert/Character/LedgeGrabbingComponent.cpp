@@ -135,7 +135,6 @@ void ULedgeGrabbingComponent::OnEndOverlap(UPrimitiveComponent* overlappedComp, 
 void ULedgeGrabbingComponent::StopLerping()
 {
 	mTransitioning = false;
-	mLerpTarget = FVector::ZeroVector;
 }
 
 //************************************
@@ -282,7 +281,6 @@ bool ULedgeGrabbingComponent::TraceForUpwardLedge(FHitResult& hit)
 //************************************
 void ULedgeGrabbingComponent::GrabLedge(const FHitResult& forwardHit, const FHitResult& downwardHit, bool freshGrab /*= true*/)
 {
-	UE_LOG(LogLedgeGrabbingComponent, Log, TEXT("%s grabbing ledge."), *mCharacterOwner->GetName());
 	mLastLedgeHeight = downwardHit.ImpactPoint;
 	
 	float radius = mCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleRadius();
@@ -303,12 +301,13 @@ void ULedgeGrabbingComponent::GrabLedge(const FHitResult& forwardHit, const FHit
 
 	mLastGrabLedgeNormal = targetRotation.Vector().GetSafeNormal();
 
-	OnLedgeGrabbed.Broadcast(forwardHit, downwardHit);
+	HoldingLedge.Broadcast(forwardHit, downwardHit);
 
 	mClimbingLedge = true;
 
 	if (freshGrab)
 	{
+		OnLedgeTransition.Broadcast(ELedgeTransition::GrabLedge);
 		mLerping = true;
 		mTransitioning = true;
 		InputDelayTimer.Start();
@@ -367,28 +366,54 @@ void ULedgeGrabbingComponent::TransitionLedge(ELedgeTransition transition)
 
 		switch (transition)
 		{
-		case ELedgeTransition::Climb:
+		case ELedgeTransition::ClimbUpLedge:
 			// Root motion animation, wait for notify to finish.
-			break;
-		case ELedgeTransition::JumpAway:
-			
-			break;
-		case ELedgeTransition::Launch:
-			mCharacterOwner->Jump();
 			DropLedge();
 			break;
-		case ELedgeTransition::Attack:
-			// Root motion animation + attack at end
+		case ELedgeTransition::JumpAwayFromGrabbedLedge:
+			DropLedge();
 			break;
-		case ELedgeTransition::Damaged: // intentionally fall through
+		case ELedgeTransition::LaunchFromGrabbedLedge:
+			mLaunchingFromLedge = true;
+			mCharacterOwner->Jump();
+
+			GetWorld()->GetTimerManager().SetTimer(mLaunchingTimerHandle, [this]() -> void {
+				UE_LOG(LogTemp, Warning, TEXT("Launch Ended"));
+				mLaunchingFromLedge = false;
+				mCharacterOwner->StopJumping();
+			}, mCharacterOwner->GetJumpMaxHoldTime(), false);
+			
+			DropLedge();
+			break;
+		case ELedgeTransition::AttackFromGrabbedLedge:
+			// Root motion animation + attack at end
+			DropLedge();
+			break;
+		case ELedgeTransition::DamagedOnGrabbedLedge: // intentionally fall through
 			// Hitstun and Drop
-		case ELedgeTransition::Drop:
+		case ELedgeTransition::DropFromGrabbedLedge:
 			DropLedge();
 			break;
 		}
 
-		mTransitioning = true;
+		//mTransitioning = true;
 		OnLedgeTransition.Broadcast(transition);
+	}
+}
+
+//************************************
+// Method:    CancelLaunchFromLedge
+// FullName:  ULedgeGrabbingComponent::CancelLaunchFromLedge
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void ULedgeGrabbingComponent::CancelLaunchFromLedge()
+{
+	mLaunchingFromLedge = false;
+	if (GetWorld()->GetTimerManager().IsTimerActive(mLaunchingTimerHandle))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(mLaunchingTimerHandle);
 	}
 }
 

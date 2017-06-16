@@ -133,6 +133,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
 	FORCEINLINE UVertCharacterMovementComponent* GetVertCharacterMovement() const { if (UVertCharacterMovementComponent* movement = Cast<UVertCharacterMovementComponent>(GetCharacterMovement())) { return movement; } return nullptr; }
 
+	UFUNCTION(BlueprintCallable, Category = "Climbing")
+	FORCEINLINE ULedgeGrabbingComponent* GetClimbingComponent() const { return ClimbingComponent; }
+
 	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
 	FORCEINLINE bool IsGrounded() const { return !IsJumpProvidingForce() && !GetCharacterMovement()->IsFalling(); }
 
@@ -157,6 +160,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Jump")
 	bool CanWallJump() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Jump")
+	bool CanAttack() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Jump")
+	bool CanInteract() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Hitstun")
+	bool IsInHitstun() const;
+
 protected:
 	void ActionMoveRight(float Value);
 	void ActionGrappleShoot();
@@ -173,6 +185,7 @@ protected:
 	void UpdateCharacter();
 	void UpdateTeamColours(UMaterialInstanceDynamic* useMIDs);
 
+	virtual void ApplyDamageHitstun(int32 hitstunFrames);
 	virtual bool CanJumpInternal_Implementation() const override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 	
@@ -241,6 +254,7 @@ protected:
 	FAxisPositions mAxisPositions;
 	FTimerHandle mTimerHandle;
 	FTimerHandle mGamepadGrappleDelay;
+	FTimerHandle mHitStunTimer;
 	bool mGamepadOnStandby = false;
 	bool mIsDying = false;
 

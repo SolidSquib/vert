@@ -31,8 +31,12 @@ bool UVertCharacterMovementComponent::DoJump(bool replayingMoves)
 			{
 
 			}
+			else if (mCharacterOwner->GetClimbingComponent()->IsClimbingLedge())
+			{
 
-			Velocity.Z = JumpZVelocity;
+			}
+
+			Velocity.Z = zVelocity;
 			SetMovementMode(MOVE_Falling);
 			return true;
 		}

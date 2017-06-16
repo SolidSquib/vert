@@ -9,12 +9,14 @@
 UENUM()
 enum class ELedgeTransition : uint8 
 {
-	Climb,
-	JumpAway,
-	Launch,
-	Attack,
-	Damaged,
-	Drop
+	GrabLedge,
+	ClimbUpLedge,
+	JumpAwayFromGrabbedLedge,
+	LaunchFromGrabbedLedge,
+	AttackFromGrabbedLedge,
+	DamagedOnGrabbedLedge,
+	DropFromGrabbedLedge,
+	NONE
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLedgeTransitionDelegate, ELedgeTransition, transition);
@@ -33,7 +35,7 @@ public:
 	FOnLedgeTransitionDelegate OnLedgeTransition;
 
 	UPROPERTY(BlueprintAssignable)
-	FOnLedgeGrabbedDelegate OnLedgeGrabbed;
+	FOnLedgeGrabbedDelegate HoldingLedge;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	struct FVertTimer InputDelayTimer;
@@ -84,7 +86,16 @@ public:
 	FVector GetLedgeDirection(EAimFreedom freedom = EAimFreedom::Free) const;
 
 	UFUNCTION(BlueprintCallable)
+	void CancelLaunchFromLedge();
+
+	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool IsClimbingLedge() const { return mClimbingLedge; }
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool IsLaunchingFromLedge() const { return mLaunchingFromLedge; }
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool IsTransitioning() const { return mTransitioning; }
 
 	UFUNCTION(BlueprintCallable)
 	void DropLedge();
@@ -117,9 +128,11 @@ private:
 	bool mClimbingLedge = false;
 	bool mTransitioning = false;
 	bool mLerping = false;
+	bool mLaunchingFromLedge = false;
 	int32 mNumOverlaps = 0;
 	FVector mLerpTarget = FVector::ZeroVector;
 	FVector mLastGrabLedgeNormal = FVector::ZeroVector;
 	FVector mLastLedgeHeight = FVector::ZeroVector;
 	TWeakObjectPtr<class ACharacter> mCharacterOwner = nullptr;
+	FTimerHandle mLaunchingTimerHandle;
 };
