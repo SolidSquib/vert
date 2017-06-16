@@ -209,6 +209,9 @@ protected:
 	void Character_OnGrapplePullExecuted(const FVector& direction);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnGrappleBeginReturn();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
 	void Character_OnDashExecuted(const FVector& direction, bool isGrappled);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")

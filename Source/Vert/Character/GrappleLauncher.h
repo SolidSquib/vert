@@ -96,6 +96,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Grappling")
 	FHookEventDelegate OnHookReleased;
 
+	UPROPERTY(BlueprintAssignable, Category = "Grappling")
+	FHookEventDelegate OnHookBeginReturn;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
 	class USkeletalMeshComponent* HookMesh;
