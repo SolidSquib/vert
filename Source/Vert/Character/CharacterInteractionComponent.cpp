@@ -160,14 +160,7 @@ void UCharacterInteractionComponent::ThrowInteractive(UPrimitiveComponent* body,
 	{
 		if (mHeldWeapon)
 		{
-			mHeldWeapon->OnDrop();
-
-			if (body)
-			{
-				body->SetSimulatePhysics(true);
-				body->AddImpulse(impulse);
-				body->AddAngularImpulse(radialImpulse);
-			}			
+			mHeldWeapon->OnDrop();		
 		}
 
 		Delegate_OnDropInteractive.Broadcast(mHeldInteractive, true);

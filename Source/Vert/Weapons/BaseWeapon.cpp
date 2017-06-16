@@ -93,6 +93,11 @@ void ABaseWeapon::NotifyEquipAnimationEnded()
 //************************************
 void ABaseWeapon::Pickup(AVertCharacter* NewOwner)
 {
+	if (WeaponMesh && WeaponMesh->IsSimulatingPhysics())
+	{
+		WeaponMesh->SetSimulatePhysics(false);
+	}
+
 	SetOwningPawn(NewOwner);
 	AttachMeshToPawn();
 }
@@ -270,8 +275,22 @@ void ABaseWeapon::ThrowWeapon_Implementation()
 	{
 		FVector launchDirection = UVertUtilities::SnapVectorToAngle(character->GetAxisPostisions().GetPlayerLeftThumbstickDirection(), 45.f);
 
-		character->GetInteractionComponent()->ThrowInteractive(WeaponMesh, launchDirection*100000.f, FVector(1.f, 0, 0) * 5000.f);
-		EnableInteractionDetection();
+		static constexpr float scLaunch_Magnitude_Linear = 10000.f;
+		static constexpr float scLaunch_Magnitude_Radial = 10000.f;
+
+		if (WeaponMesh)
+		{
+			const FVector impulse = launchDirection*scLaunch_Magnitude_Linear;
+			const FVector radialImpulse = FVector::RightVector*scLaunch_Magnitude_Linear;
+
+			character->GetInteractionComponent()->ThrowInteractive(WeaponMesh, impulse, radialImpulse);
+
+			WeaponMesh->SetSimulatePhysics(true);
+			WeaponMesh->AddImpulse(impulse);
+			WeaponMesh->AddAngularImpulse(radialImpulse);
+
+			EnableInteractionDetection();
+		}		
 
 		UE_LOG(LogVertBaseWeapon, Log, TEXT("Weapon %s thrown by player %s"), *GetName(), *character->GetName());
 	}

@@ -77,8 +77,6 @@ void AVertCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	UpdateCharacter();
-
 #if !UE_BUILD_SHIPPING
 	PrintDebugInfo();
 #endif
@@ -632,6 +630,8 @@ void AVertCharacter::ActionMoveRight(float Value)
 		{
 			AddMovementInput(FVector(1.f, 0.f, 0.f), Value);
 		}
+
+		UpdateCharacter();
 	}
 }
 
@@ -757,6 +757,8 @@ void AVertCharacter::ActionDash()
 				Character_OnDashExecuted(direction, false);
 			}
 		}
+
+		UpdateCharacter();
 	}	
 }
 
@@ -923,16 +925,16 @@ bool AVertCharacter::IsMoving()
 void AVertCharacter::UpdateCharacter()
 {
 	// Now setup the rotation of the controller based on the direction we are travelling
-	const FVector PlayerVelocity = GetVelocity();
-	float TravelDirection = PlayerVelocity.X;
+	const FVector PlayerDirection = GetAxisPostisions().GetPlayerLeftThumbstick();
+
 	// Set the rotation so that the character faces his direction of travel.
 	if (Controller != nullptr)
 	{
-		if (TravelDirection < 0.0f)
+		if (PlayerDirection.X < 0.0f)
 		{
 			Controller->SetControlRotation(FRotator(0.0, 180.0f, 0.0f));
 		}
-		else if (TravelDirection > 0.0f)
+		else if (PlayerDirection.X > 0.0f)
 		{
 			Controller->SetControlRotation(FRotator(0.0f, 0.0f, 0.0f));
 		}
@@ -1023,6 +1025,8 @@ void AVertCharacter::SetRagdollPhysics()
 	{
 		SetLifeSpan(10.0f);
 	}
+
+	mIsRagdolling = bInRagdoll;
 }
 
 //************************************

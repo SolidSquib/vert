@@ -136,6 +136,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Climbing")
 	FORCEINLINE ULedgeGrabbingComponent* GetClimbingComponent() const { return ClimbingComponent; }
 
+	UFUNCTION(BlueprintCallable, Category = "Ragdoll")
+	FORCEINLINE bool IsRagdolling() const { return mIsRagdolling; }
+
 	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
 	FORCEINLINE bool IsGrounded() const { return !IsJumpProvidingForce() && !GetCharacterMovement()->IsFalling(); }
 
@@ -257,6 +260,7 @@ protected:
 	FTimerHandle mHitStunTimer;
 	bool mGamepadOnStandby = false;
 	bool mIsDying = false;
+	bool mIsRagdolling = false;
 
 	FScriptDelegate mOnWeaponStateChangedDelegate;
 	FScriptDelegate mOnWeaponFiredWithRecoilDelegate;
