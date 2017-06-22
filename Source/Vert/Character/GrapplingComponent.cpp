@@ -44,6 +44,13 @@ void UGrapplingComponent::BeginPlay()
 
 	mRemainingGrapples = MaxGrapples;
 	mRechargeTimer.BindAlarm(this, TEXT("OnGrappleRechargeTimerFinished"));
+
+	if (mGrappleHook.IsValid() && mCharacterOwner.IsValid())
+	{
+		FScriptDelegate onBeginReturn;
+		onBeginReturn.BindUFunction(mCharacterOwner.Get(), TEXT("Character_OnGrappleBeginReturn"));
+		mGrappleHook->OnHookBeginReturn.Add(onBeginReturn);
+	}
 }
 
 

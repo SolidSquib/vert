@@ -53,7 +53,7 @@ void AHitscanRangedWeapon::ServerNotifyHit_Implementation(const FHitResult& Impa
 		const float ViewDotHitDir = FVector::DotProduct(Instigator->GetViewRotation().Vector(), ViewDir);
 		if (ViewDotHitDir > InstantConfig.AllowedViewDotHitDir - WeaponAngleDot)
 		{
-			if (mCurrentState != EWeaponState::CombatIdle)
+			if (mCurrentState != EWeaponState::CombatIdle && mCurrentState != EWeaponState::PassiveIdle)
 			{
 				if (Impact.GetActor() == NULL)
 				{

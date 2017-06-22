@@ -140,8 +140,10 @@ bool AGrappleLauncher::StartPulling() const
 //************************************
 void AGrappleLauncher::ResetGrapple()
 {
-	if(mGrappleHook.IsValid())
+	if (mGrappleHook.IsValid())
+	{
 		mGrappleHook->ResetHook();
+	}		
 }
 
 AVertCharacter* AGrappleLauncher::GetCharacterOwner() const
@@ -362,6 +364,7 @@ void AGrappleHook::StartReeling()
 	{
 		mGrappleState = EGrappleState::HookReturning;
 		DeactivateHookCollision();
+		OnHookBeginReturn.Broadcast();
 	}
 }
 
