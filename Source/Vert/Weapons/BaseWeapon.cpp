@@ -26,7 +26,7 @@ ABaseWeapon::ABaseWeapon(const FObjectInitializer& ObjectInitializer) : Super(Ob
 	PendingEquip = false;
 	OverrideAnimCompleteNotify = false;
 	WaitingForAttackEnd = false;
-	mCurrentState = EWeaponState::CombatIdle;
+	mCurrentState = EWeaponState::PassiveIdle;
 
 	CurrentAmmo = 0;
 	CurrentAmmoInClip = 0;
@@ -354,6 +354,13 @@ void ABaseWeapon::StopAttacking()
 			mAttackSpent = false;
 		}
 
+		static constexpr float scCombatIdleTime = 4.f;
+
+		mCombatIdle = true;
+		GetWorldTimerManager().SetTimer(mTimerHandle_CombatIdle, [this](void) {
+			mCombatIdle = false;
+			DetermineWeaponState();
+		}, scCombatIdleTime, false);
 		DetermineWeaponState();
 	}
 
@@ -594,7 +601,7 @@ void ABaseWeapon::ClientStartReload_Implementation()
 bool ABaseWeapon::CanFire() const
 {
 	bool bCanFire = MyPawn && MyPawn->CanFire();
-	bool bStateOKToFire = ((mCurrentState == EWeaponState::CombatIdle) || (mCurrentState == EWeaponState::Firing));
+	bool bStateOKToFire = ((mCurrentState == EWeaponState::CombatIdle) || (mCurrentState == EWeaponState::PassiveIdle) || (mCurrentState == EWeaponState::Firing));
 	return ((bCanFire == true) && (bStateOKToFire == true) && (PendingReload == false));
 }
 
@@ -609,7 +616,7 @@ bool ABaseWeapon::CanReload() const
 {
 	bool bCanReload = (!MyPawn || MyPawn->CanReload());
 	bool bGotAmmo = (CurrentAmmoInClip < WeaponConfig.AmmoPerClip) && (CurrentAmmo - CurrentAmmoInClip > 0 || HasInfiniteClip());
-	bool bStateOKToReload = ((mCurrentState == EWeaponState::CombatIdle) || (mCurrentState == EWeaponState::Firing));
+	bool bStateOKToReload = ((mCurrentState == EWeaponState::CombatIdle) || (mCurrentState == EWeaponState::PassiveIdle) || (mCurrentState == EWeaponState::Firing));
 
 	return ((bCanReload == true) && (bGotAmmo == true) && (bStateOKToReload == true));
 }
@@ -815,6 +822,8 @@ UAnimSequence* ABaseWeapon::GetPlayerAnimForState(EWeaponState state)
 		return AttackAnim.PlayerAnim;
 	case EWeaponState::Reloading:
 		return ReloadAnim.PlayerAnim;
+	case EWeaponState::PassiveIdle:
+		return PassiveIdleAnim.PlayerAnim;
 	case EWeaponState::CombatIdle:
 	default:
 		return CombatIdleAnim.PlayerAnim;
@@ -860,7 +869,7 @@ void ABaseWeapon::SetWeaponState(EWeaponState NewState)
 //************************************
 void ABaseWeapon::DetermineWeaponState()
 {
-	EWeaponState NewState = EWeaponState::CombatIdle;
+	EWeaponState NewState = (mCombatIdle) ? EWeaponState::CombatIdle : EWeaponState::PassiveIdle;
 
 	if (IsEquipped)
 	{
