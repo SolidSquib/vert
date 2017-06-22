@@ -338,6 +338,8 @@ bool AVertCharacter::Die(float KillingDamage, const FDamageEvent& DamageEvent, c
 void AVertCharacter::FellOutOfWorld(const class UDamageType& dmgType)
 {
 	Die(HealthComponent->GetCurrentDamageModifier(), FDamageEvent(dmgType.GetClass()), NULL, NULL);
+
+	Super::FellOutOfWorld(dmgType);
 }
 
 //************************************
