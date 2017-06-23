@@ -17,6 +17,9 @@ public:
 	virtual void Interact(const TWeakObjectPtr<class UCharacterInteractionComponent>& instigator) PURE_VIRTUAL(AInteractive::Interact, );
 
 protected:
+	UFUNCTION(BlueprintCallable)
 	void DisableInteractionDetection();
+
+	UFUNCTION(BlueprintCallable)
 	void EnableInteractionDetection();
 };

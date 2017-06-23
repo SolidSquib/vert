@@ -11,6 +11,13 @@ AProjectileRangedWeapon::AProjectileRangedWeapon(const FObjectInitializer& Objec
 //////////////////////////////////////////////////////////////////////////
 // Weapon usage
 
+//************************************
+// Method:    AttackWithWeapon_Implementation
+// FullName:  AProjectileRangedWeapon::AttackWithWeapon_Implementation
+// Access:    virtual protected 
+// Returns:   bool
+// Qualifier:
+//************************************
 bool AProjectileRangedWeapon::AttackWithWeapon_Implementation()
 {
 	int32 randomSeed;
@@ -28,11 +35,29 @@ bool AProjectileRangedWeapon::AttackWithWeapon_Implementation()
 	return true;
 }
 
+//************************************
+// Method:    ServerFireProjectile_Validate
+// FullName:  AProjectileRangedWeapon::ServerFireProjectile_Validate
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+// Parameter: FVector Origin
+// Parameter: FVector_NetQuantizeNormal ShootDir
+//************************************
 bool AProjectileRangedWeapon::ServerFireProjectile_Validate(FVector Origin, FVector_NetQuantizeNormal ShootDir)
 {
 	return true;
 }
 
+//************************************
+// Method:    ServerFireProjectile_Implementation
+// FullName:  AProjectileRangedWeapon::ServerFireProjectile_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: FVector Origin
+// Parameter: FVector_NetQuantizeNormal ShootDir
+//************************************
 void AProjectileRangedWeapon::ServerFireProjectile_Implementation(FVector Origin, FVector_NetQuantizeNormal ShootDir)
 {
 	FTransform SpawnTM(ShootDir.Rotation(), Origin);
@@ -47,7 +72,27 @@ void AProjectileRangedWeapon::ServerFireProjectile_Implementation(FVector Origin
 	}
 }
 
+//************************************
+// Method:    ApplyWeaponConfig
+// FullName:  AProjectileRangedWeapon::ApplyWeaponConfig
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: FProjectileWeaponData & Data
+//************************************
 void AProjectileRangedWeapon::ApplyWeaponConfig(FProjectileWeaponData& Data)
 {
 	Data = ProjectileConfig;
+}
+
+//************************************
+// Method:    GetWeaponType_Implementation
+// FullName:  AProjectileRangedWeapon::GetWeaponType_Implementation
+// Access:    virtual protected 
+// Returns:   UClass*
+// Qualifier: const
+//************************************
+UClass* AProjectileRangedWeapon::GetWeaponType_Implementation() const
+{
+	return AProjectileRangedWeapon::StaticClass();
 }

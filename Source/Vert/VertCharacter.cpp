@@ -96,12 +96,15 @@ void AVertCharacter::BeginPlay()
 	if (InteractionComponent)
 	{
 		FScriptDelegate onPickup;
-		onPickup.BindUFunction(this, TEXT("OnPickupInteractive"));
+		onPickup.BindUFunction(this, TEXT("OnPickupInteractiveInternal"));
 		InteractionComponent->Delegate_OnPickupInteractive.Add(onPickup);
 
 		FScriptDelegate onDrop;
-		onDrop.BindUFunction(this, TEXT("OnDropInteractive"));
+		onDrop.BindUFunction(this, TEXT("OnDropInteractiveInternal"));
 		InteractionComponent->Delegate_OnDropInteractive.Add(onDrop);
+
+		if(InteractionComponent->GetDefaultWeapon().IsValid())
+			OnPickupInteractiveInternal(InteractionComponent->GetDefaultWeapon().Get(), false);
 	}
 
 	if (DashingComponent)
@@ -338,6 +341,8 @@ bool AVertCharacter::Die(float KillingDamage, const FDamageEvent& DamageEvent, c
 void AVertCharacter::FellOutOfWorld(const class UDamageType& dmgType)
 {
 	Die(HealthComponent->GetCurrentDamageModifier(), FDamageEvent(dmgType.GetClass()), NULL, NULL);
+
+	Super::FellOutOfWorld(dmgType);
 }
 
 //************************************
@@ -793,7 +798,7 @@ void AVertCharacter::ActionAttack()
 	{
 		if (InteractionComponent->AttemptAttack())
 		{
-			Character_OnStartAttackExecuted(GetWeapon());
+			Character_OnStartAttackExecuted(GetCurrentWeapon());
 		}
 	}
 }
@@ -950,12 +955,19 @@ void AVertCharacter::UpdateCharacter()
 // Parameter: AInteractive * interactive
 // Parameter: bool wasCaught
 //************************************
-void AVertCharacter::OnPickupInteractive(AInteractive* interactive, bool wasCaught)
+void AVertCharacter::OnPickupInteractiveInternal(AInteractive* interactive, bool wasCaught)
 {
 	if (ABaseWeapon* weapon = Cast<ABaseWeapon>(interactive))
 	{
 		weapon->Delegate_OnWeaponFiredWithRecoil.Add(mOnWeaponFiredWithRecoilDelegate);
 		weapon->Delegate_OnWeaponStateChanged.Add(mOnWeaponStateChangedDelegate);
+
+		mCurrentWeapon = weapon;
+		if (InteractionComponent->GetDefaultWeapon().IsValid())
+		{
+			InteractionComponent->GetDefaultWeapon()->Delegate_OnWeaponFiredWithRecoil.Remove(mOnWeaponFiredWithRecoilDelegate);
+			InteractionComponent->GetDefaultWeapon()->Delegate_OnWeaponStateChanged.Remove(mOnWeaponStateChangedDelegate);
+		}
 	}
 
 	Character_OnPickupNewInteractive(interactive, wasCaught);
@@ -970,12 +982,19 @@ void AVertCharacter::OnPickupInteractive(AInteractive* interactive, bool wasCaug
 // Parameter: AInteractive * interactive
 // Parameter: bool wasThrown
 //************************************
-void AVertCharacter::OnDropInteractive(AInteractive* interactive, bool wasThrown)
+void AVertCharacter::OnDropInteractiveInternal(AInteractive* interactive, bool wasThrown)
 {
 	if (ABaseWeapon* weapon = Cast<ABaseWeapon>(interactive))
 	{
 		weapon->Delegate_OnWeaponFiredWithRecoil.Remove(mOnWeaponFiredWithRecoilDelegate);
 		weapon->Delegate_OnWeaponStateChanged.Remove(mOnWeaponStateChangedDelegate);
+
+		mCurrentWeapon = InteractionComponent->GetDefaultWeapon();
+		if (mCurrentWeapon.IsValid())
+		{
+			mCurrentWeapon->Delegate_OnWeaponFiredWithRecoil.Add(mOnWeaponFiredWithRecoilDelegate);
+			mCurrentWeapon->Delegate_OnWeaponStateChanged.Add(mOnWeaponStateChangedDelegate);
+		}		
 	}
 
 	Character_OnDropCurrentInteractive(interactive, wasThrown);

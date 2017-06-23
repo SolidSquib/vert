@@ -14,6 +14,13 @@ AHitscanRangedWeapon::AHitscanRangedWeapon(const FObjectInitializer& ObjectIniti
 //////////////////////////////////////////////////////////////////////////
 // Weapon usage
 
+//************************************
+// Method:    AttackWithWeapon_Implementation
+// FullName:  AHitscanRangedWeapon::AttackWithWeapon_Implementation
+// Access:    virtual protected 
+// Returns:   bool
+// Qualifier:
+//************************************
 bool AHitscanRangedWeapon::AttackWithWeapon_Implementation()
 {
 	int32 randomSeed;
@@ -34,11 +41,33 @@ bool AHitscanRangedWeapon::AttackWithWeapon_Implementation()
 	return true;
 }
 
+//************************************
+// Method:    ServerNotifyHit_Validate
+// FullName:  AHitscanRangedWeapon::ServerNotifyHit_Validate
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+// Parameter: const FHitResult & Impact
+// Parameter: FVector_NetQuantizeNormal ShootDir
+// Parameter: int32 RandomSeed
+// Parameter: float ReticleSpread
+//************************************
 bool AHitscanRangedWeapon::ServerNotifyHit_Validate(const FHitResult& Impact, FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread)
 {
 	return true;
 }
 
+//************************************
+// Method:    ServerNotifyHit_Implementation
+// FullName:  AHitscanRangedWeapon::ServerNotifyHit_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: const FHitResult & Impact
+// Parameter: FVector_NetQuantizeNormal ShootDir
+// Parameter: int32 RandomSeed
+// Parameter: float ReticleSpread
+//************************************
 void AHitscanRangedWeapon::ServerNotifyHit_Implementation(const FHitResult& Impact, FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread)
 {
 	const float WeaponAngleDot = FMath::Abs(FMath::Sin(ReticleSpread * PI / 180.f));
@@ -53,7 +82,7 @@ void AHitscanRangedWeapon::ServerNotifyHit_Implementation(const FHitResult& Impa
 		const float ViewDotHitDir = FVector::DotProduct(Instigator->GetViewRotation().Vector(), ViewDir);
 		if (ViewDotHitDir > InstantConfig.AllowedViewDotHitDir - WeaponAngleDot)
 		{
-			if (mCurrentState != EWeaponState::CombatIdle)
+			if (mCurrentState != EWeaponState::CombatIdle && mCurrentState != EWeaponState::PassiveIdle)
 			{
 				if (Impact.GetActor() == NULL)
 				{
@@ -110,11 +139,31 @@ void AHitscanRangedWeapon::ServerNotifyHit_Implementation(const FHitResult& Impa
 	}
 }
 
+//************************************
+// Method:    ServerNotifyMiss_Validate
+// FullName:  AHitscanRangedWeapon::ServerNotifyMiss_Validate
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+// Parameter: FVector_NetQuantizeNormal ShootDir
+// Parameter: int32 RandomSeed
+// Parameter: float ReticleSpread
+//************************************
 bool AHitscanRangedWeapon::ServerNotifyMiss_Validate(FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread)
 {
 	return true;
 }
 
+//************************************
+// Method:    ServerNotifyMiss_Implementation
+// FullName:  AHitscanRangedWeapon::ServerNotifyMiss_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: FVector_NetQuantizeNormal ShootDir
+// Parameter: int32 RandomSeed
+// Parameter: float ReticleSpread
+//************************************
 void AHitscanRangedWeapon::ServerNotifyMiss_Implementation(FVector_NetQuantizeNormal ShootDir, int32 RandomSeed, float ReticleSpread)
 {
 	const FVector Origin = GetMuzzleLocation();
@@ -132,6 +181,18 @@ void AHitscanRangedWeapon::ServerNotifyMiss_Implementation(FVector_NetQuantizeNo
 	}
 }
 
+//************************************
+// Method:    ProcessInstantHit
+// FullName:  AHitscanRangedWeapon::ProcessInstantHit
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const FHitResult & Impact
+// Parameter: const FVector & Origin
+// Parameter: const FVector & ShootDir
+// Parameter: int32 RandomSeed
+// Parameter: float ReticleSpread
+//************************************
 void AHitscanRangedWeapon::ProcessInstantHit(const FHitResult& Impact, const FVector& Origin, const FVector& ShootDir, int32 RandomSeed, float ReticleSpread)
 {
 	if (MyPawn && MyPawn->IsLocallyControlled() && GetNetMode() == NM_Client)
@@ -161,6 +222,18 @@ void AHitscanRangedWeapon::ProcessInstantHit(const FHitResult& Impact, const FVe
 	ProcessInstantHit_Confirmed(Impact, Origin, ShootDir, RandomSeed, ReticleSpread);
 }
 
+//************************************
+// Method:    ProcessInstantHit_Confirmed
+// FullName:  AHitscanRangedWeapon::ProcessInstantHit_Confirmed
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const FHitResult & Impact
+// Parameter: const FVector & Origin
+// Parameter: const FVector & ShootDir
+// Parameter: int32 RandomSeed
+// Parameter: float ReticleSpread
+//************************************
 void AHitscanRangedWeapon::ProcessInstantHit_Confirmed(const FHitResult& Impact, const FVector& Origin, const FVector& ShootDir, int32 RandomSeed, float ReticleSpread)
 {
 	// handle damage
@@ -188,6 +261,14 @@ void AHitscanRangedWeapon::ProcessInstantHit_Confirmed(const FHitResult& Impact,
 	}
 }
 
+//************************************
+// Method:    ShouldDealDamage
+// FullName:  AHitscanRangedWeapon::ShouldDealDamage
+// Access:    protected 
+// Returns:   bool
+// Qualifier: const
+// Parameter: AActor * TestActor
+//************************************
 bool AHitscanRangedWeapon::ShouldDealDamage(AActor* TestActor) const
 {
 	// if we're an actor on the server, or the actor's role is authoritative, we should register damage
@@ -204,6 +285,15 @@ bool AHitscanRangedWeapon::ShouldDealDamage(AActor* TestActor) const
 	return false;
 }
 
+//************************************
+// Method:    DealDamage
+// FullName:  AHitscanRangedWeapon::DealDamage
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const FHitResult & Impact
+// Parameter: const FVector & ShootDir
+//************************************
 void AHitscanRangedWeapon::DealDamage(const FHitResult& Impact, const FVector& ShootDir)
 {
 	FPointDamageEvent PointDmg;
@@ -218,11 +308,28 @@ void AHitscanRangedWeapon::DealDamage(const FHitResult& Impact, const FVector& S
 //////////////////////////////////////////////////////////////////////////
 // Replication & effects
 
+//************************************
+// Method:    OnRep_HitNotify
+// FullName:  AHitscanRangedWeapon::OnRep_HitNotify
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AHitscanRangedWeapon::OnRep_HitNotify()
 {
 	SimulateInstantHit(HitNotify.Origin, HitNotify.RandomSeed, HitNotify.ReticleSpread);
 }
 
+//************************************
+// Method:    SimulateInstantHit
+// FullName:  AHitscanRangedWeapon::SimulateInstantHit
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const FVector & ShotOrigin
+// Parameter: int32 RandomSeed
+// Parameter: float ReticleSpread
+//************************************
 void AHitscanRangedWeapon::SimulateInstantHit(const FVector& ShotOrigin, int32 RandomSeed, float ReticleSpread)
 {
 	FRandomStream WeaponRandomStream(RandomSeed);
@@ -245,6 +352,14 @@ void AHitscanRangedWeapon::SimulateInstantHit(const FVector& ShotOrigin, int32 R
 	}
 }
 
+//************************************
+// Method:    SpawnImpactEffects
+// FullName:  AHitscanRangedWeapon::SpawnImpactEffects
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const FHitResult & Impact
+//************************************
 void AHitscanRangedWeapon::SpawnImpactEffects(const FHitResult& Impact)
 {
 	if (ImpactTemplate && Impact.bBlockingHit)
@@ -270,6 +385,14 @@ void AHitscanRangedWeapon::SpawnImpactEffects(const FHitResult& Impact)
 	}
 }
 
+//************************************
+// Method:    SpawnTrailEffect
+// FullName:  AHitscanRangedWeapon::SpawnTrailEffect
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const FVector & EndPoint
+//************************************
 void AHitscanRangedWeapon::SpawnTrailEffect(const FVector& EndPoint)
 {
 	if (TrailFX)
@@ -284,9 +407,29 @@ void AHitscanRangedWeapon::SpawnTrailEffect(const FVector& EndPoint)
 	}
 }
 
+//************************************
+// Method:    GetLifetimeReplicatedProps
+// FullName:  AHitscanRangedWeapon::GetLifetimeReplicatedProps
+// Access:    public 
+// Returns:   void
+// Qualifier: const
+// Parameter: TArray< FLifetimeProperty > & OutLifetimeProps
+//************************************
 void AHitscanRangedWeapon::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(AHitscanRangedWeapon, HitNotify, COND_SkipOwner);
+}
+
+//************************************
+// Method:    GetWeaponType_Implementation
+// FullName:  AHitscanRangedWeapon::GetWeaponType_Implementation
+// Access:    virtual protected 
+// Returns:   UClass*
+// Qualifier: const
+//************************************
+UClass* AHitscanRangedWeapon::GetWeaponType_Implementation() const
+{
+	return AHitscanRangedWeapon::StaticClass();
 }

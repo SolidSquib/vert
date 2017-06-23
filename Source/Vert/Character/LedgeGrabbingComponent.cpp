@@ -53,8 +53,8 @@ void ULedgeGrabbingComponent::BeginPlay()
 		InputDelayTimer.BindAlarm(this, TEXT("StopLerping"));
 		InputDelayTimer.Reset();
 
-		OnComponentBeginOverlap.AddDynamic(this, &ULedgeGrabbingComponent::OnBeginOverlap);
-		OnComponentEndOverlap.AddDynamic(this, &ULedgeGrabbingComponent::OnEndOverlap);
+		OnComponentBeginOverlap.AddUniqueDynamic(this, &ULedgeGrabbingComponent::OnBeginOverlap);
+		OnComponentEndOverlap.AddUniqueDynamic(this, &ULedgeGrabbingComponent::OnEndOverlap);
 	}
 	else { UE_LOG(LogLedgeGrabbingComponent, Error, TEXT("[%s] not attached to ACharacter, functionality may be dimished and crashes may occur."), *GetName()); }
 }

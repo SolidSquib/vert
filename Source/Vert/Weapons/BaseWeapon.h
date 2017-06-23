@@ -22,6 +22,7 @@ enum class EWeaponAnimationMode : uint8
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
 {
+	PassiveIdle,
 	CombatIdle,
 	Firing,
 	Reloading,
@@ -181,6 +182,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation)
 	FWeaponAnim AttackAnim;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
+	FWeaponAnim PassiveIdleAnim;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation)
 	FWeaponAnim CombatIdleAnim;
 	
@@ -329,6 +333,10 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Attack")
 	bool AttackWithWeapon();
 
+	/* Utility function to determine the base type of this weapon */
+	UFUNCTION(BlueprintNativeEvent, Category = "WeaponType")
+	UClass* GetWeaponType() const;
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
 	void ThrowWeapon();
 
@@ -377,6 +385,7 @@ protected:
 	
 protected:
 	bool mAttackSpent = false;
+	bool mCombatIdle = false;
 	float mLastFireTime; /** time of last successful weapon fire */
 	EWeaponState mCurrentState; /** current weapon state */
 	FTimerHandle mTimerHandle_OnEquipFinished;
@@ -384,4 +393,5 @@ protected:
 	FTimerHandle mTimerHandle_ReloadWeapon;
 	FTimerHandle mTimerHandle_HandleFiring;
 	FTimerHandle mTimerHandle_NonAutoTriggerDelay;
+	FTimerHandle mTimerHandle_CombatIdle;
 };
