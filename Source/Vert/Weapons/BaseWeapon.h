@@ -333,6 +333,10 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Attack")
 	bool AttackWithWeapon();
 
+	/* Utility function to determine the base type of this weapon */
+	UFUNCTION(BlueprintNativeEvent, Category = "WeaponType")
+	UClass* GetWeaponType() const;
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
 	void ThrowWeapon();
 

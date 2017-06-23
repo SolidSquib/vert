@@ -83,7 +83,9 @@ protected:
 	void SimulateInstantHit(const FVector& Origin, int32 RandomSeed, float ReticleSpread); /** called in network play to do the cosmetic fx  */
 	void SpawnImpactEffects(const FHitResult& Impact); /** spawn effects for impact */
 	void SpawnTrailEffect(const FVector& EndPoint); /** spawn trail effect */
+
 	virtual bool AttackWithWeapon_Implementation() override; /** [local] weapon specific fire implementation */
+	virtual UClass* GetWeaponType_Implementation() const override;
 
 	UFUNCTION()
 	void OnRep_HitNotify();

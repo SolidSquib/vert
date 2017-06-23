@@ -56,6 +56,7 @@ public:
 
 protected:
 	virtual bool AttackWithWeapon_Implementation() override; /** [local] weapon specific fire implementation */
+	virtual UClass* GetWeaponType_Implementation() const override;
 
 	/** spawn projectile on server */
 	UFUNCTION(BlueprintCallable, reliable, server, WithValidation)

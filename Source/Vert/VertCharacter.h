@@ -130,21 +130,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void StopAttacking();
 
-	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
-	FORCEINLINE UVertCharacterMovementComponent* GetVertCharacterMovement() const { if (UVertCharacterMovementComponent* movement = Cast<UVertCharacterMovementComponent>(GetCharacterMovement())) { return movement; } return nullptr; }
-
-	UFUNCTION(BlueprintCallable, Category = "Climbing")
-	FORCEINLINE ULedgeGrabbingComponent* GetClimbingComponent() const { return ClimbingComponent; }
-
-	UFUNCTION(BlueprintCallable, Category = "Ragdoll")
-	FORCEINLINE bool IsRagdolling() const { return mIsRagdolling; }
-
-	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
-	FORCEINLINE bool IsGrounded() const { return !IsJumpProvidingForce() && !GetCharacterMovement()->IsFalling(); }
-
-	UFUNCTION(BlueprintCallable, Category = "Weapons")
-	FORCEINLINE class ABaseWeapon* GetWeapon() const { return InteractionComponent->GetHeldWeapon(); }
-
 	UFUNCTION(BlueprintCallable, Category = "Weapons")
 	bool CanFire() const;
 
@@ -172,6 +157,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Hitstun")
 	bool IsInHitstun() const;
 
+	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
+	FORCEINLINE UVertCharacterMovementComponent* GetVertCharacterMovement() const { if (UVertCharacterMovementComponent* movement = Cast<UVertCharacterMovementComponent>(GetCharacterMovement())) { return movement; } return nullptr; }
+
+	UFUNCTION(BlueprintCallable, Category = "Climbing")
+	FORCEINLINE ULedgeGrabbingComponent* GetClimbingComponent() const { return ClimbingComponent; }
+
+	UFUNCTION(BlueprintCallable, Category = "Ragdoll")
+	FORCEINLINE bool IsRagdolling() const { return mIsRagdolling; }
+
+	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
+	FORCEINLINE bool IsGrounded() const { return !IsJumpProvidingForce() && !GetCharacterMovement()->IsFalling(); }
+
+	UFUNCTION(BlueprintCallable, Category = "Weapons")
+	FORCEINLINE class ABaseWeapon* GetCurrentWeapon() const { return (mCurrentWeapon.IsValid()) ? mCurrentWeapon.Get() : nullptr; }
+
 protected:
 	void ActionMoveRight(float Value);
 	void ActionGrappleShoot();
@@ -196,10 +196,10 @@ protected:
 	FORCEINLINE AVertPlayerController* GetPlayerController() const { if (AController* controller = GetController()) { if (AVertPlayerController* playerController = Cast<AVertPlayerController>(controller)) { return playerController; } } return nullptr; }
 
 	UFUNCTION()
-	void OnPickupInteractive(AInteractive* interactive, bool wasCaught);
+	void OnPickupInteractiveInternal(AInteractive* interactive, bool wasCaught);
 
 	UFUNCTION()
-	void OnDropInteractive(AInteractive* interactive, bool wasThrown);
+	void OnDropInteractiveInternal(AInteractive* interactive, bool wasThrown);
 
 	/// Blueprint Implementable functions //////////////////////////////////////////////////////////////////////////
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
@@ -257,6 +257,7 @@ private:
 	FORCEINLINE void EndGamepadStandby() { mGamepadOnStandby = false; }
 
 protected:
+	TWeakObjectPtr<ABaseWeapon> mCurrentWeapon = nullptr;
 	FAxisPositions mAxisPositions;
 	FTimerHandle mTimerHandle;
 	FTimerHandle mGamepadGrappleDelay;

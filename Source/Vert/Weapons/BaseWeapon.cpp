@@ -640,7 +640,7 @@ void ABaseWeapon::GiveAmmo(int AddAmount)
 	CurrentAmmo += AddAmount;
 
 	// start reload if clip was empty
-	if (GetCurrentAmmoInClip() <= 0 && CanReload() && MyPawn->GetWeapon() == this)
+	if (GetCurrentAmmoInClip() <= 0 && CanReload() && MyPawn->GetCurrentWeapon() == this)
 	{
 		ClientStartReload();
 	}
@@ -828,6 +828,18 @@ UAnimSequence* ABaseWeapon::GetPlayerAnimForState(EWeaponState state)
 	default:
 		return CombatIdleAnim.PlayerAnim;
 	}
+}
+
+//************************************
+// Method:    GetWeaponType
+// FullName:  ABaseWeapon::GetWeaponType
+// Access:    protected 
+// Returns:   UClass*
+// Qualifier: const
+//************************************
+UClass* ABaseWeapon::GetWeaponType_Implementation() const
+{
+	return ABaseWeapon::StaticClass();
 }
 
 //************************************
