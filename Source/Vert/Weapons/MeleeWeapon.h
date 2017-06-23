@@ -52,6 +52,7 @@ protected:
 	virtual bool AttackWithWeapon_Implementation() override;
 	virtual void NotifyAttackAnimationActiveStarted_Implementation() override;
 	virtual void NotifyAttackAnimationActiveEnded_Implementation() override;
+	virtual UClass* GetWeaponType_Implementation() const override;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void MeleeAttackWithWeapon();

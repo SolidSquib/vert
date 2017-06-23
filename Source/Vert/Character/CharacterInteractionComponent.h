@@ -65,6 +65,7 @@ public:
 
 	FORCEINLINE AInteractive* GetHeldInteractive() const { return mHeldInteractive; }
 	FORCEINLINE ABaseWeapon* GetHeldWeapon() const { return mHeldWeapon; }
+	FORCEINLINE TWeakObjectPtr<ABaseWeapon> GetDefaultWeapon() const { return mDefaultWeapon; }
 
 	UFUNCTION(BlueprintCallable, Category = "Interact|Character")
 	FORCEINLINE AVertCharacter* GetCharacterOwner() const { return mCharacterOwner.Get(); }

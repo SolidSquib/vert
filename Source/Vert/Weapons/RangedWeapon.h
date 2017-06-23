@@ -68,6 +68,9 @@ protected:
 	UPROPERTY(Transient)
 	UParticleSystemComponent* MuzzlePSCSecondary;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Config)
+	FWeaponAnim RecoilAnim;
+
 	/** is muzzle FX looped? */
 	UPROPERTY(EditDefaultsOnly, Category = Effects)
 	bool LoopedMuzzleFX;
@@ -87,11 +90,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Aim")
 	virtual FVector GetAdjustedAim() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Animation")
+	UAnimSequence* GetRecoilAnim() const;
+
 protected:	
 	virtual FVector GetShootDirectionAfterSpread(const FVector& aimDirection, int32& outRandomSeed, float& outCurrentSpread);
 	virtual void OnBurstFinished() override; /** [local + server] update spread on firing */
 	virtual void ClientSimulateWeaponAttack_Implementation() override;
 	virtual void ClientStopSimulateWeaponAttack_Implementation() override;
+	virtual UClass* GetWeaponType_Implementation() const override;
 
 protected:
 	float mCurrentFiringSpread;

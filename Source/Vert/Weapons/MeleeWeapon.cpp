@@ -16,11 +16,25 @@ void AMeleeWeapon::BeginPlay()
 	Super::BeginPlay();
 }
 
+//************************************
+// Method:    ClientSimulateWeaponAttack_Implementation
+// FullName:  AMeleeWeapon::ClientSimulateWeaponAttack_Implementation
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AMeleeWeapon::ClientSimulateWeaponAttack_Implementation()
 {
 	Super::ClientSimulateWeaponAttack_Implementation();
 }
 
+//************************************
+// Method:    ClientStopSimulateWeaponAttack_Implementation
+// FullName:  AMeleeWeapon::ClientStopSimulateWeaponAttack_Implementation
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AMeleeWeapon::ClientStopSimulateWeaponAttack_Implementation()
 {
 	Super::ClientStopSimulateWeaponAttack_Implementation();
@@ -32,6 +46,13 @@ void AMeleeWeapon::ClientStopSimulateWeaponAttack_Implementation()
 	}
 }
 
+//************************************
+// Method:    AttackWithWeapon_Implementation
+// FullName:  AMeleeWeapon::AttackWithWeapon_Implementation
+// Access:    virtual protected 
+// Returns:   bool
+// Qualifier:
+//************************************
 bool AMeleeWeapon::AttackWithWeapon_Implementation()
 {
 	if (mTraceHit)
@@ -54,11 +75,25 @@ bool AMeleeWeapon::AttackWithWeapon_Implementation()
 	return mAttackDone;
 }
 
+//************************************
+// Method:    MeleeAttackWithWeapon_Implementation
+// FullName:  AMeleeWeapon::MeleeAttackWithWeapon_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void AMeleeWeapon::MeleeAttackWithWeapon_Implementation()
 {
 	OnMeleeAttack.Broadcast(mComboDepth);
 }
 
+//************************************
+// Method:    NotifyAttackAnimationActiveStarted_Implementation
+// FullName:  AMeleeWeapon::NotifyAttackAnimationActiveStarted_Implementation
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AMeleeWeapon::NotifyAttackAnimationActiveStarted_Implementation()
 {
 	mTraceHit = true;
@@ -77,6 +112,13 @@ void AMeleeWeapon::NotifyAttackAnimationActiveStarted_Implementation()
 	}
 }
 
+//************************************
+// Method:    NotifyAttackAnimationActiveEnded_Implementation
+// FullName:  AMeleeWeapon::NotifyAttackAnimationActiveEnded_Implementation
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AMeleeWeapon::NotifyAttackAnimationActiveEnded_Implementation()
 {
 	mTraceHit = false;
@@ -93,4 +135,16 @@ void AMeleeWeapon::NotifyAttackAnimationActiveEnded_Implementation()
 	}
 
 	mAttackDone = true;
+}
+
+//************************************
+// Method:    GetWeaponType_Implementation
+// FullName:  AMeleeWeapon::GetWeaponType_Implementation
+// Access:    virtual protected 
+// Returns:   UClass*
+// Qualifier: const
+//************************************
+UClass* AMeleeWeapon::GetWeaponType_Implementation() const
+{
+	return AMeleeWeapon::StaticClass();
 }
