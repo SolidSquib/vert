@@ -1,7 +1,9 @@
 // Copyright Inside Out Games Ltd. 2017
 
 #include "VertPlayerController.h"
-#include "Vert.h"
+#include "Blueprint/UserWidget.h"
+#include "Actors/SpawnTargetter.h"
+#include "Online.h"
 
 DEFINE_LOG_CATEGORY(LogVertPlayerController);
 
@@ -24,16 +26,85 @@ void AVertPlayerController::OnKill()
 }
 
 //************************************
+// Method:    Suicide
+// FullName:  AVertPlayerController::Suicide
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertPlayerController::Suicide()
+{
+	AVertCharacterBase* character = Cast<AVertCharacterBase>(GetPawn());
+	if (character != nullptr && character->IsValidLowLevel())
+	{
+		character->Die();
+	}
+}
+
+//************************************
+// Method:    ShowCameraDebug
+// FullName:  AVertPlayerController::ShowCameraDebug
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: bool showDebug
+//************************************
+void AVertPlayerController::ShowCameraDebug(bool showDebug)
+{
+	if (AVertCameraManager* vertCameraMan = Cast<AVertCameraManager>(PlayerCameraManager))
+	{
+		vertCameraMan->SetShowCameraDebug(showDebug);
+	}
+}
+
+//************************************
 // Method:    DropIn
 // FullName:  AVertPlayerController::DropIn
 // Access:    virtual public 
 // Returns:   void
 // Qualifier:
 //************************************
-void AVertPlayerController::DropIn()
+void AVertPlayerController::StartPressed()
 {
-	// #MI_TODO: Needs to be slightly more fancy eventually but it does the job for now.
-	SetSpectatorPawn(SpawnSpectatorPawn());
+	if (mGameFinished)
+	{
+		mReadyToLeaveGame = !mReadyToLeaveGame;
+	}
+	else
+	{
+// 		mStartPressed = true;
+// 		if (mStartPressed && mBackPressed)
+// 		{
+// 			RestartGame();
+// 		}
+
+		if (GetInputKeyTimeDown(EKeys::Gamepad_LeftTrigger) > 0 && GetInputKeyTimeDown(EKeys::Gamepad_RightTrigger) > 0 && GetInputKeyTimeDown(EKeys::Gamepad_Special_Left) > 0)
+		{
+			RestartGame();
+		}
+	}
+}
+
+void AVertPlayerController::StartReleased()
+{
+	mStartPressed = false;
+}
+
+void AVertPlayerController::BackPressed()
+{
+	if (!mGameFinished)
+	{
+		mBackPressed = true;
+		if (mStartPressed && mBackPressed)
+		{
+			RestartGame();
+		}
+	}
+}
+
+void AVertPlayerController::BackReleased()
+{
+	mBackPressed = false;
 }
 
 //************************************
@@ -147,9 +218,17 @@ void AVertPlayerController::Possess(APawn* aPawn)
 	if (aPawn)
 	{
 		UE_LOG(LogVertPlayerController, Log, TEXT("Broadcasting controller possessed"));
-		OnPossessed.Broadcast(aPawn);
+		OnPossessed.Broadcast(this, aPawn);
 
-
+		if (wTimer && !TimerWidget)
+		{
+			TimerWidget = CreateWidget<UUserWidget>(this, wTimer);
+			if (TimerWidget)
+			{
+				TimerWidget->AddToViewport();
+				TimerWidget->SetVisibility(ESlateVisibility::Hidden);
+			}
+		}
 	}
 }
 
@@ -165,7 +244,7 @@ void AVertPlayerController::UnPossess()
 	if (GetPawn())
 	{
 		UE_LOG(LogVertPlayerController, Log, TEXT("Broadcasting controller unpossessed"));
-		OnUnPossessed.Broadcast(GetPawn());
+		OnUnPossessed.Broadcast(this, GetPawn());
 	}
 
 	Super::UnPossess();
@@ -183,7 +262,25 @@ void AVertPlayerController::UnPossess()
 //************************************
 void AVertPlayerController::UnFreeze()
 {
+	UE_LOG(LogVertPlayerController, Log, TEXT("Restarting %s"), *GetName());
+
 	ServerRestartPlayer();
+}
+
+//************************************
+// Method:    FailedToSpawnPawn
+// FullName:  AVertPlayerController::FailedToSpawnPawn
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertPlayerController::FailedToSpawnPawn()
+{
+	if (StateName == NAME_Inactive)
+	{
+		BeginInactiveState();
+	}
+	Super::FailedToSpawnPawn();
 }
 
 //************************************
@@ -211,9 +308,72 @@ void AVertPlayerController::SetupInputComponent()
 
 	if (InputComponent)
 	{
-		InputComponent->BindAction("DropIn", IE_Pressed, this, &AVertPlayerController::DropIn);
-		InputComponent->BindAction("ToggleFOV", IE_Pressed, this, &AVertPlayerController::ToggleFOV);
+		InputComponent->BindAction("Start", IE_Pressed, this, &AVertPlayerController::StartPressed);
+		InputComponent->BindAction("Start", IE_Released, this, &AVertPlayerController::StartReleased);
+		InputComponent->BindAction("Back", IE_Pressed, this, &AVertPlayerController::BackPressed);
+		InputComponent->BindAction("Back", IE_Released, this, &AVertPlayerController::BackReleased);
 	}	
+}
+
+//************************************
+// Method:    GetPodSpawnLocation
+// FullName:  AVertPlayerController::GetPodSpawnLocation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+FVector AVertPlayerController::GetPodSpawnLocation()
+{
+	AVertCameraManager* VertCameraMan = Cast<AVertCameraManager>(PlayerCameraManager);
+	if (VertCameraMan)
+	{
+		FVector TopLeft, BottomRight, BottomLeft, TopRight;
+		VertCameraMan->GetCurrentPlayerBounds(TopLeft, BottomRight, BottomLeft, TopRight);
+		
+		FVector MiddleTop = (TopRight + TopLeft) / 2;
+		float MiddleX = MiddleTop.X;
+		float MiddleZ = ((TopLeft + BottomLeft) / 2).Z;
+
+		FCollisionQueryParams Params;
+		FHitResult Hit(ForceInit);
+		const bool DidHit = GetWorld()->LineTraceSingleByChannel(Hit, FVector(MiddleX, MiddleTop.Y, MiddleZ), MiddleTop, ECC_Visibility, Params);
+		if (DidHit)
+		{
+			return Hit.ImpactPoint;
+		}
+
+		return FVector(MiddleTop.X, TopLeft.Y, TopLeft.Z - 100.f);
+	}
+
+	UE_LOG(LogVertPlayerController, Warning, TEXT("Unable to get PlayerCameraManager"));
+	return FVector::ZeroVector;
+}
+
+float AVertPlayerController::GetPodTargetHeight()
+{
+	AVertCameraManager* VertCameraMan = Cast<AVertCameraManager>(PlayerCameraManager);
+	if (VertCameraMan)
+	{
+		FVector TopLeft, BottomRight, BottomLeft, TopRight;
+		VertCameraMan->GetCurrentPlayerBounds(TopLeft, BottomRight, BottomLeft, TopRight);
+
+		return TopLeft.Z - 100.f;
+	}
+
+	UE_LOG(LogVertPlayerController, Warning, TEXT("Unable to get PlayerCameraManager"));
+	return 0;
+}
+
+void AVertPlayerController::GetPodLeftAndRightBounds(float& Left, float& Right)
+{
+	AVertCameraManager* VertCameraMan = Cast<AVertCameraManager>(PlayerCameraManager);
+	if (VertCameraMan)
+	{
+		return VertCameraMan->GetBoundsXMinMax(Left, Right);
+	}
+
+	UE_LOG(LogVertPlayerController, Warning, TEXT("Unable to get PlayerCameraManager"));
+	Left = Right = 0;
 }
 
 //************************************
@@ -248,18 +408,6 @@ void AVertPlayerController::OnPawnDeath_Implementation(const FTakeHitInfo& lastH
 		const FTimerManager& timerMan = GetWorld()->GetTimerManager();
 
 	}
-}
-
-//************************************
-// Method:    RespawnDeadPawn_Implementation
-// FullName:  AVertPlayerController::RespawnDeadPawn_Implementation
-// Access:    public 
-// Returns:   void
-// Qualifier:
-//************************************
-void AVertPlayerController::RespawnDeadPawn_Implementation()
-{
-
 }
 
 //************************************
@@ -405,4 +553,186 @@ void AVertPlayerController::EnableDebugInfo(bool enable)
 			}
 		}
 	}
+}
+
+void AVertPlayerController::ShowTimer()
+{
+	if (!TimerWidget)
+	{
+		return;
+	}
+	else
+	{
+		TimerWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void AVertPlayerController::HideTimer()
+{
+	if (TimerWidget)
+	{
+		TimerWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+/** Starts the online game using the session name in the PlayerState */
+//************************************
+// Method:    ClientStartOnlineGame_Implementation
+// FullName:  AVertPlayerController::ClientStartOnlineGame_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertPlayerController::ClientStartOnlineGame_Implementation()
+{
+	if (!IsPrimaryPlayer())
+		return;
+
+	AVertPlayerState* VertPlayerState = Cast<AVertPlayerState>(PlayerState);
+	if (VertPlayerState)
+	{
+		IOnlineSubsystem* OnlineSub = IOnlineSubsystem::Get();
+		if (OnlineSub)
+		{
+			IOnlineSessionPtr Sessions = OnlineSub->GetSessionInterface();
+			if (Sessions.IsValid())
+			{
+				UE_LOG(LogOnline, Log, TEXT("Starting session %s on client"), *VertPlayerState->SessionName.ToString());
+				Sessions->StartSession(VertPlayerState->SessionName);
+			}
+		}
+	}
+	else
+	{
+		// Keep retrying until player state is replicated
+		GetWorldTimerManager().SetTimer(mTimerHandle_ClientStartOnlineGame, this, &AVertPlayerController::ClientStartOnlineGame_Implementation, 0.2f, false);
+	}
+}
+
+//************************************
+// Method:    ClientEndOnlineGame_Implementation
+// FullName:  AVertPlayerController::ClientEndOnlineGame_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertPlayerController::ClientEndOnlineGame_Implementation()
+{
+	if (!IsPrimaryPlayer())
+		return;
+
+	AVertPlayerState* VertPlayerState = Cast<AVertPlayerState>(PlayerState);
+	if (VertPlayerState)
+	{
+		IOnlineSubsystem* OnlineSub = IOnlineSubsystem::Get();
+		if (OnlineSub)
+		{
+			IOnlineSessionPtr Sessions = OnlineSub->GetSessionInterface();
+			if (Sessions.IsValid())
+			{
+				UE_LOG(LogOnline, Log, TEXT("Ending session %s on client"), *VertPlayerState->SessionName.ToString());
+				Sessions->EndSession(VertPlayerState->SessionName);
+			}
+		}
+	}
+}
+
+//************************************
+// Method:    DisableMovementInput
+// FullName:  AVertPlayerController::DisableMovementInput
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertPlayerController::DisableMovementInput()
+{
+	mEnableMovement = false;
+}
+
+//************************************
+// Method:    EnableMovementInput
+// FullName:  AVertPlayerController::EnableMovementInput
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertPlayerController::EnableMovementInput()
+{
+	mEnableMovement = true;
+}
+
+//************************************
+// Method:    IsMovementInputEnabled
+// FullName:  AVertPlayerController::IsMovementInputEnabled
+// Access:    public 
+// Returns:   bool
+// Qualifier: const
+//************************************
+bool AVertPlayerController::IsMovementInputEnabled() const
+{
+	return mEnableMovement;
+}
+
+//************************************
+// Method:    RestartGame
+// FullName:  AVertPlayerController::RestartGame
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertPlayerController::RestartGame()
+{
+	AVertGameState* GameState = GetWorld()->GetGameState<AVertGameState>();
+	if (GameState)
+	{
+		GameState->RequestFinishAndExitToMainMenu();
+	}
+}
+
+//************************************
+// Method:    ShowScoreboard
+// FullName:  AVertPlayerController::ShowScoreboard
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Should only be called on the primary controller
+//************************************
+void AVertPlayerController::ShowScoreboard()
+{
+	if (wScoreboard && ScoreboardWidget == nullptr)
+	{
+		ScoreboardWidget = CreateWidget<UUserWidget>(GetGameInstance(), wScoreboard);
+		if(ScoreboardWidget)
+		{
+			ScoreboardWidget->AddToViewport();
+			ScoreboardWidget->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+}
+
+//************************************
+// Method:    GameHasEnded
+// FullName:  AVertPlayerController::GameHasEnded
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: class AActor * EndGameFocus
+// Parameter: bool bIsWinner
+//************************************
+void AVertPlayerController::GameHasEnded(class AActor* EndGameFocus /* = NULL */, bool bIsWinner /* = false */)
+{
+	if (IsPrimaryPlayer())
+	{
+		ShowScoreboard();
+	}
+
+	AVertGameMode* GameMode = GetWorld()->GetAuthGameMode<AVertGameMode>();
+	AVertPlayerState* VPS = Cast<AVertPlayerState>(PlayerState);
+	if (GameMode && GetPawn())
+	{
+		GameMode->ScoreLastManStanding(VPS);
+	}
+
+	mGameFinished = true;
+	Super::GameHasEnded(EndGameFocus, bIsWinner);
 }

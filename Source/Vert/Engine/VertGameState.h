@@ -31,6 +31,16 @@ public:
 	bool TimerPaused;
 
 public:
+	virtual bool IsMatchInProgress() const override;
 	void GetRankedMap(int32 TeamIndex, RankedPlayerMap& OutRankedMap) const; /** gets ranked PlayerState map for specific team */
 	void RequestFinishAndExitToMainMenu();
+
+	UFUNCTION(BlueprintCallable, Category = "Drop In / Out")
+	bool CanPlayersJoin() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Drop In / Out")
+	void SetCanPlayersJoin(bool canJoin);
+
+private:
+	bool mPlayersCanJoin = false;
 };

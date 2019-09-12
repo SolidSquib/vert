@@ -29,7 +29,7 @@
 #include "VertSpectator.h"
 #include "GameFramework/Pawn.h"
 #include "VertGameMode.h"
-#include "UserInterface/VertHUD.h"
+#include "UI/VertHUD.h"
 #include "Weapons/BaseWeapon.h"
 #include "Weapons/WeaponProjectile.h"
 #include "Components/SplineComponent.h"
@@ -39,3 +39,6 @@
 
 // Interfaces
 #include "Interactives/Interactive.h"
+
+// Plugins
+#include "OBJPool.h"

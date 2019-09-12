@@ -2,6 +2,8 @@
 
 #include "VertGameInstance.h"
 #include "Vert.h"
+#include "View/VertViewportClient.h"
+#include <MoviePlayer.h>
 
 //************************************
 // Method:    IsControllerIDAvailable
@@ -34,6 +36,9 @@ bool UVertGameInstance::IsControllerIDAvailable(const int32& id)
 void UVertGameInstance::Init()
 {
 	Super::Init();
+
+	FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UVertGameInstance::BeginLoadingScreen);
+	FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UVertGameInstance::EndLoadingScreen);
 }
 
 //************************************
@@ -46,18 +51,6 @@ void UVertGameInstance::Init()
 void UVertGameInstance::Shutdown()
 {
 	Super::Shutdown();
-}
-
-//************************************
-// Method:    StartGameInstance
-// FullName:  UVertGameInstance::StartGameInstance
-// Access:    virtual public 
-// Returns:   void
-// Qualifier:
-//************************************
-void UVertGameInstance::StartGameInstance()
-{
-	Super::StartGameInstance();
 }
 
 //************************************
@@ -192,4 +185,42 @@ TArray<UVertLocalPlayer*> UVertGameInstance::GetVertLocalPlayers()
 	}
 
 	return localPlayers;
+}
+
+//************************************
+// Method:    BeginLoadingScreen
+// FullName:  UVertGameInstance::BeginLoadingScreen
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: const FString & mapName
+//************************************
+void UVertGameInstance::BeginLoadingScreen(const FString& mapName)
+{
+	if (!IsRunningDedicatedServer())
+	{
+		FLoadingScreenAttributes loadingScreen;
+		loadingScreen.bAutoCompleteWhenLoadingCompletes = false;
+		loadingScreen.WidgetLoadingScreen = FLoadingScreenAttributes::NewTestLoadingScreenWidget();
+
+		GetMoviePlayer()->SetupLoadingScreen(loadingScreen);
+	}
+}
+
+//************************************
+// Method:    EndLoadingScreen
+// FullName:  UVertGameInstance::EndLoadingScreen
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: UWorld * world
+//************************************
+void UVertGameInstance::EndLoadingScreen(UWorld* world)
+{
+// 	constexpr float cFadeTime = 1.5f;
+// 
+// 	if(UVertViewportClient* client = Cast<UVertViewportClient>(GetGameViewportClient()))
+// 	{
+// 		client->Fade(cFadeTime, false);
+// 	}
 }

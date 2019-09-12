@@ -8,7 +8,15 @@ public class Vert : ModuleRules
 	{
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "CableComponent" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "CableComponent", "OBJPool", "UMG", "Slate", "SlateCore", "AkAudio", "MoviePlayer" });
         PrivateDependencyModuleNames.AddRange(new string[] { "OnlineSubsystem"/*, "Slate", "SlateCore" */ });
-	}
+
+        PublicIncludePathModuleNames.AddRange(new string[] { "OBJPool" });
+
+        if(UEBuildConfiguration.bBuildEditor == true)
+        {
+            PublicDependencyModuleNames.Add("OBJPoolEditor");
+            PublicIncludePathModuleNames.Add("OBJPoolEditor");
+        }
+    }
 }

@@ -1,7 +1,7 @@
 // Copyright Inside Out Games Ltd. 2017
 
 #include "MeleeWeapon.h"
-#include "Vert.h"
+#include "Engine/VertUtilities.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogVertMeleeWeapon, Log, All);
 
@@ -10,10 +10,55 @@ AMeleeWeapon::AMeleeWeapon(const FObjectInitializer& ObjectInitializer) : Super(
 	bReplicates = true;
 }
 
-// Called when the game starts or when spawned
-void AMeleeWeapon::BeginPlay()
+//************************************
+// Method:    EndPlay
+// FullName:  AMeleeWeapon::EndPlay
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const EEndPlayReason::Type EndPlayReason
+//************************************
+void AMeleeWeapon::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Super::BeginPlay();
+	if (EndPlayReason == EEndPlayReason::Destroyed)
+	{
+		GetWorldTimerManager().ClearAllTimersForObject(this);
+	}
+}
+
+//************************************
+// Method:    Reset
+// FullName:  AMeleeWeapon::Reset
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AMeleeWeapon::Reset()
+{
+	ResetComboDepth();
+	DisableTrace();
+
+	Super::Reset();
+}
+
+//************************************
+// Method:    StartAttacking
+// FullName:  AMeleeWeapon::StartAttacking
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AMeleeWeapon::StartAttacking()
+{
+	if (mIsAttackAnimationPlaying && ComboAttackAnims[mComboDepth].AllowAnimationClipping)
+	{
+		mClipAnimation = true;
+		GetWorldTimerManager().SetTimer(mTimerHandle_AnimationClip, [this](void) {
+			mClipAnimation = false;
+		}, ComboAttackAnims[mComboDepth].ClipTime, false);
+	}
+
+	Super::StartAttacking();
 }
 
 //************************************
@@ -55,36 +100,9 @@ void AMeleeWeapon::ClientStopSimulateWeaponAttack_Implementation()
 //************************************
 bool AMeleeWeapon::AttackWithWeapon_Implementation()
 {
-	if (mTraceHit)
-	{
-		for (FName socket : ScanSockets)
-		{
-			FVector start;
-			FQuat rotation;
-			WeaponMesh->GetSocketWorldLocationAndRotation(socket, start, rotation);
-			FVector direction = rotation.Vector().GetSafeNormal();
+	WeaponAttackFire();
 
-			FHitResult hit = WeaponTrace(start, direction*MeleeTraceRange);
-			if (hit.bBlockingHit)
-				mComboDepth += 1;
-		}
-
-		MeleeAttackWithWeapon();
-	}
-
-	return mAttackDone;
-}
-
-//************************************
-// Method:    MeleeAttackWithWeapon_Implementation
-// FullName:  AMeleeWeapon::MeleeAttackWithWeapon_Implementation
-// Access:    public 
-// Returns:   void
-// Qualifier:
-//************************************
-void AMeleeWeapon::MeleeAttackWithWeapon_Implementation()
-{
-	OnMeleeAttack.Broadcast(mComboDepth);
+	return true;
 }
 
 //************************************
@@ -96,20 +114,7 @@ void AMeleeWeapon::MeleeAttackWithWeapon_Implementation()
 //************************************
 void AMeleeWeapon::NotifyAttackAnimationActiveStarted_Implementation()
 {
-	mTraceHit = true;
-
-	if (AttackStartFX)
-	{
-		UParticleSystemComponent* AttackStartPSC = UGameplayStatics::SpawnEmitterAtLocation(this, AttackStartFX, WeaponMesh->GetSocketLocation(FXSocketTop));
-	}
-
-	if (ArcFX)
-	{
-		if (ArcPSC == NULL)
-		{
-			ArcPSC = UGameplayStatics::SpawnEmitterAttached(ArcFX, WeaponMesh, FXSocketTop);
-		}
-	}
+	EnableTrace();
 }
 
 //************************************
@@ -121,8 +126,48 @@ void AMeleeWeapon::NotifyAttackAnimationActiveStarted_Implementation()
 //************************************
 void AMeleeWeapon::NotifyAttackAnimationActiveEnded_Implementation()
 {
-	mTraceHit = false;
+	DisableTrace();
+}
 
+//************************************
+// Method:    EnableTrace
+// FullName:  AMeleeWeapon::EnableTrace
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AMeleeWeapon::EnableTrace()
+{
+	if (AttackStartFX)
+	{
+		UParticleSystemComponent* AttackStartPSC = UGameplayStatics::SpawnEmitterAtLocation(this, AttackStartFX, WeaponMesh->GetSocketLocation(FXSocketTop));
+	}
+
+	// Start tracing for hits!
+	static constexpr float scTraceDelta = 1 / 60.f;
+	GetWorldTimerManager().SetTimer(mTimerHandle_TraceTimer, [this](void) {
+		BoxTraceForHits();
+	}, scTraceDelta, true, 0.f);
+
+	// Spawn arc particle FX
+	if (ArcFX)
+	{
+		if (ArcPSC == NULL)
+		{
+			ArcPSC = UGameplayStatics::SpawnEmitterAttached(ArcFX, WeaponMesh, FXSocketTop);
+		}
+	}
+}
+
+//************************************
+// Method:    DisableTrace
+// FullName:  AMeleeWeapon::DisableTrace
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AMeleeWeapon::DisableTrace()
+{
 	if (AttackEndFX)
 	{
 		UParticleSystemComponent* AttackEndPSC = UGameplayStatics::SpawnEmitterAtLocation(this, AttackEndFX, WeaponMesh->GetSocketLocation(FXSocketTop));
@@ -134,7 +179,33 @@ void AMeleeWeapon::NotifyAttackAnimationActiveEnded_Implementation()
 		ArcPSC = NULL;
 	}
 
-	mAttackDone = true;
+	GetWorldTimerManager().ClearTimer(mTimerHandle_TraceTimer);
+}
+
+//************************************
+// Method:    NotifyAttackAnimationEnded_Implementation
+// FullName:  AMeleeWeapon::NotifyAttackAnimationEnded_Implementation
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AMeleeWeapon::NotifyAttackAnimationEnded_Implementation()
+{
+	Super::NotifyAttackAnimationEnded_Implementation();
+
+	GetWorldTimerManager().SetTimer(mTimerHandle_ComboDeathTime, [this](void) {
+		mComboInProgress = false;
+		mComboDepth = 0;
+		mLastAttackUsed = -1;
+	}, TimeForComboToDie, false);
+
+	if (mClipAnimation)
+	{
+		WeaponAttackFire();
+		mClipAnimation = false;
+	}
+
+	mIsAttackAnimationPlaying = false;
 }
 
 //************************************
@@ -147,4 +218,163 @@ void AMeleeWeapon::NotifyAttackAnimationActiveEnded_Implementation()
 UClass* AMeleeWeapon::GetWeaponType_Implementation() const
 {
 	return AMeleeWeapon::StaticClass();
+}
+
+//************************************
+// Method:    BoxTraceForHit
+// FullName:  AMeleeWeapon::BoxTraceForHit
+// Access:    protected 
+// Returns:   FHitResult
+// Qualifier: const
+//************************************
+TArray<FHitResult> AMeleeWeapon::BoxTraceForHits()
+{
+	FVector start = FVector::ZeroVector;
+	FQuat rotation = FQuat::Identity;
+	WeaponMesh->GetSocketWorldLocationAndRotation(BoxTrace.TraceStartSocket, start, rotation);
+	FVector direction = rotation.Vector().GetSafeNormal();
+	
+	static FName WeaponFireTag = FName(TEXT("WeaponTrace"));
+
+	// Perform trace to retrieve hit info
+	FCollisionQueryParams TraceParams(WeaponFireTag, true, Instigator);
+	TraceParams.bTraceAsyncScene = true;
+	TraceParams.bReturnPhysicalMaterial = true;
+	FVector end = start + (direction*BoxTrace.TraceLength);
+
+	TArray<FHitResult> hits;
+	const bool didHit = GetWorld()->SweepMultiByChannel(hits, start, end, (end - start).Rotation().Quaternion(), ECC_WeaponTracePenetrate, FCollisionShape::MakeBox(BoxTrace.BoxTraceHalfExtent), TraceParams);
+
+	for (auto hit : hits)
+	{
+		if (hit.Actor.IsValid() && mCurrentHitActors.Find(hit.Actor) == INDEX_NONE)
+		{
+			if (!mDidHit && Cast<AVertCharacter>(hit.Actor.Get()))
+			{
+				mDidHit = true;
+			}
+
+			mCurrentHitActors.Add(hit.Actor);
+
+			FVertPointDamageEvent PointDmg;
+			PointDmg.DamageTypeClass = WeaponConfig.DamageType;
+			PointDmg.HitInfo = hit;
+			PointDmg.ShotDirection = (hit.TraceEnd - hit.TraceStart).GetSafeNormal();
+			PointDmg.Damage = WeaponConfig.BaseDamage + GetBonusDamage();
+			PointDmg.Knockback = WeaponConfig.BaseKnockback + GetBonusKnockback();
+			PointDmg.KnockbackScaling = WeaponConfig.KnockbackScaling;
+			PointDmg.StunTime = WeaponConfig.StunTime;
+			hit.Actor->TakeDamage(
+				WeaponConfig.BaseDamage + GetBonusDamage(),
+				PointDmg,
+				Instigator ? Instigator->GetController() : nullptr,
+				Instigator ? Instigator : nullptr
+			);
+		}
+	}
+
+#if ENABLE_DRAW_DEBUG
+	if (ShowDebug)
+	{
+		// Red up to the blocking hit, green thereafter
+		UVertUtilities::DrawDebugBoxTraceMulti(GetWorld(), start, end, BoxTrace.BoxTraceHalfExtent, (start - end).Rotation(), EDrawDebugTrace::ForDuration, didHit, hits, FLinearColor::Green, FLinearColor::Red, 3);
+	}
+#endif
+
+	return hits;
+}
+
+//************************************
+// Method:    WeaponAttackFire
+// FullName:  AMeleeWeapon::WeaponAttackFire
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+// Parameter: float ratio
+//************************************
+void AMeleeWeapon::WeaponAttackFire(float ratio /*= 0.f*/)
+{
+	mCurrentHitActors.Empty();
+
+	if (!UseComboAnimations)
+	{
+		Super::WeaponAttackFire(ratio);
+	}
+	else
+	{
+		if (!ManualComboManagement)
+		{
+			if (mDidHit)
+			{
+				if (mLastAttackUsed == (ComboAttackAnims.Num() - 1))
+				{
+					mComboDepth = 0;
+				}
+				else
+				{
+					mComboDepth = mLastAttackUsed + 1;
+				}				
+			}
+			else
+			{
+				if (mLastAttackUsed == AnimLoopRange)
+				{
+					mComboDepth = 0;
+				}
+				else
+				{
+					mComboDepth = mLastAttackUsed + 1;
+				}
+			}
+
+			IsWaitingForAttackAnimEnd = ComboAttackAnims[mComboDepth].AttackAnim.HoldForAnimationEnd;
+			Delegate_OnWeaponAttackFire.Broadcast(ComboAttackAnims[mComboDepth].AttackAnim, ratio);
+			mLastAttackUsed = mComboDepth;
+		}
+		else
+		{
+			mComboDepth = FMath::Clamp(mComboDepth, 0, ComboAttackAnims.Num() - 1);
+			IsWaitingForAttackAnimEnd = ComboAttackAnims[mComboDepth].AttackAnim.HoldForAnimationEnd;
+			Delegate_OnWeaponAttackFire.Broadcast(ComboAttackAnims[mComboDepth].AttackAnim, ratio);
+		}
+	}
+
+	mIsAttackAnimationPlaying = true;
+	mDidHit = false;
+}
+
+//************************************
+// Method:    IncrementComboDepth
+// FullName:  AMeleeWeapon::IncrementComboDepth
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AMeleeWeapon::IncrementComboDepth()
+{
+	mComboDepth = FMath::Max(mComboDepth + 1, ComboAttackAnims.Num() - 1);
+}
+
+//************************************
+// Method:    DecrementComboDepth
+// FullName:  AMeleeWeapon::DecrementComboDepth
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AMeleeWeapon::DecrementComboDepth()
+{
+	mComboDepth = FMath::Min(0, mComboDepth-1);
+}
+
+//************************************
+// Method:    ResetComboDepth
+// FullName:  AMeleeWeapon::ResetComboDepth
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AMeleeWeapon::ResetComboDepth()
+{
+	mComboDepth = 0;
 }

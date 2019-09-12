@@ -4,6 +4,7 @@
 #include "VertCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "DrawDebugHelpers.h"
+#include "AkGameplayStatics.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogCharacterInteractionComponent, Log, All);
 
@@ -18,6 +19,13 @@ UCharacterInteractionComponent::UCharacterInteractionComponent()
 
 
 // Called when the game starts
+//************************************
+// Method:    BeginPlay
+// FullName:  UCharacterInteractionComponent::BeginPlay
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void UCharacterInteractionComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -60,7 +68,34 @@ void UCharacterInteractionComponent::BeginPlay()
 	else { UE_LOG(LogCharacterInteractionComponent, Error, TEXT("[%s] was unable to spawn default weapon."), *GetName()); }
 }
 
+//************************************
+// Method:    EndPlay
+// FullName:  UCharacterInteractionComponent::EndPlay
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const EEndPlayReason::Type endPlayReason
+//************************************
+void UCharacterInteractionComponent::EndPlay(const EEndPlayReason::Type endPlayReason)
+{
+	if (endPlayReason == EEndPlayReason::Destroyed && mDefaultWeapon.IsValid())
+	{
+		mDefaultWeapon->Destroy();
+		mDefaultWeapon = nullptr;
+	}
+}
+
 // Called every frame
+//************************************
+// Method:    TickComponent
+// FullName:  UCharacterInteractionComponent::TickComponent
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: float DeltaTime
+// Parameter: ELevelTick TickType
+// Parameter: FActorComponentTickFunction * ThisTickFunction
+//************************************
 void UCharacterInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -69,6 +104,13 @@ void UCharacterInteractionComponent::TickComponent(float DeltaTime, ELevelTick T
 		DrawDebug();
 }
 
+//************************************
+// Method:    AttemptInteract
+// FullName:  UCharacterInteractionComponent::AttemptInteract
+// Access:    public 
+// Returns:   AInteractive*
+// Qualifier:
+//************************************
 AInteractive* UCharacterInteractionComponent::AttemptInteract()
 {
 	switch (mInteractionState)
@@ -109,6 +151,16 @@ AInteractive* UCharacterInteractionComponent::AttemptInteract()
 	return nullptr;
 }
 
+//************************************
+// Method:    HoldInteractive
+// FullName:  UCharacterInteractionComponent::HoldInteractive
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+// Parameter: AInteractive * interactive
+// Parameter: const FVector & localOffset
+// Parameter: bool forceDrop
+//************************************
 bool UCharacterInteractionComponent::HoldInteractive(AInteractive* interactive, const FVector& localOffset /*=FVector::ZeroVector*/, bool forceDrop /*= false*/)
 {
 	if (forceDrop)
@@ -137,6 +189,13 @@ bool UCharacterInteractionComponent::HoldInteractive(AInteractive* interactive, 
 	return false;
 }
 
+//************************************
+// Method:    DropInteractive
+// FullName:  UCharacterInteractionComponent::DropInteractive
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void UCharacterInteractionComponent::DropInteractive()
 {
 	if (mHeldInteractive)
@@ -163,6 +222,11 @@ void UCharacterInteractionComponent::ThrowInteractive(UPrimitiveComponent* body,
 			mHeldWeapon->OnDrop();		
 		}
 
+		if (ThrowSound)
+		{
+			UAkGameplayStatics::PostEvent(ThrowSound, GetOwner(), false);
+		}
+
 		Delegate_OnDropInteractive.Broadcast(mHeldInteractive, true);
 
 		mHeldInteractive = nullptr;
@@ -171,6 +235,13 @@ void UCharacterInteractionComponent::ThrowInteractive(UPrimitiveComponent* body,
 	}
 }
 
+//************************************
+// Method:    AttemptAttack
+// FullName:  UCharacterInteractionComponent::AttemptAttack
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+//************************************
 bool UCharacterInteractionComponent::AttemptAttack()
 {
 	if (!mWantsToAttack)
@@ -191,18 +262,50 @@ bool UCharacterInteractionComponent::AttemptAttack()
 	return false;
 }
 
-void UCharacterInteractionComponent::StopAttacking()
+//************************************
+// Method:    AttemptDashAttack
+// FullName:  UCharacterMovementComponent::AttemptDashAttack
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+//************************************
+bool UCharacterInteractionComponent::AttemptDashAttack()
+{
+	if (!mWantsToAttack)
+	{
+		mWantsToAttack = true;
+		if (mHeldWeapon)
+		{
+			return mHeldWeapon->DashAttack();
+		}
+		else if (mDefaultWeapon.IsValid())
+		{
+			return mDefaultWeapon->DashAttack();
+		}
+	}
+
+	return false;
+}
+
+//************************************
+// Method:    StopAttacking
+// FullName:  UCharacterInteractionComponent::StopAttacking
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void UCharacterInteractionComponent::StopAttacking(bool forced /*= false*/)
 {
 	if (mWantsToAttack)
 	{
 		mWantsToAttack = false;
-		if (mHeldWeapon)
+		if (mHeldWeapon && mHeldWeapon->GetWantsToAttack())
 		{
-			mHeldWeapon->StopAttacking();
+			mHeldWeapon->StopAttacking(forced);
 		}
-		else if (mDefaultWeapon.IsValid())
+		else if (mDefaultWeapon.IsValid() && mDefaultWeapon->GetWantsToAttack())
 		{
-			mDefaultWeapon->StopAttacking();
+			mDefaultWeapon->StopAttacking(forced);
 		}
 	}	
 }

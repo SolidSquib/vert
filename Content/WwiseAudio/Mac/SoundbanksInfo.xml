@@ -1,0 +1,708 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SoundBanksInfo Platform="Mac" BasePlatform="Mac" SchemaVersion="11" SoundbankVersion="120">
+	<RootPaths>
+		<ProjectRoot>Z:\Projects\vert-latest\vert_WwiseProject\</ProjectRoot>
+		<SourceFilesRoot>Z:\Projects\vert-latest\vert_WwiseProject\.cache\Mac\</SourceFilesRoot>
+		<SoundBanksRoot>Z:\Projects\vert-latest\Content\WwiseAudio\Mac\</SoundBanksRoot>
+		<ExternalSourcesInputFile></ExternalSourcesInputFile>
+		<ExternalSourcesOutputRoot>Z:\Projects\vert-latest\vert_WwiseProject\GeneratedSoundBanks\Mac\</ExternalSourcesOutputRoot>
+	</RootPaths>
+	<DialogueEvents/>
+	<StreamedFiles/>
+	<MediaFilesNotInAnyBank/>
+	<SoundBanks>
+		<SoundBank Id="1355168291" Language="SFX">
+			<ObjectPath>Init</ObjectPath>
+			<ShortName>Init</ShortName>
+			<Path>Init.bnk</Path>
+		</SoundBank>
+		<SoundBank Id="3161908922" Language="SFX">
+			<ObjectPath>\SoundBanks\Default Work Unit\Main</ObjectPath>
+			<ShortName>Main</ShortName>
+			<Path>Main.bnk</Path>
+			<IncludedEvents>
+				<Event Id="1108732931" Name="Ammo_Box_Drop" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Ammo_Box_Drop"/>
+				<Event Id="4257782712" Name="Ammo_Unpack" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Ammo_Unpack"/>
+				<Event Id="546945303" Name="Boo" ObjectPath="\Events\Default Work Unit\Audience SFX\Boo"/>
+				<Event Id="1624142916" Name="Buckshot" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Buckshot"/>
+				<Event Id="3510885559" Name="Clapping" ObjectPath="\Events\Default Work Unit\Audience SFX\Clapping"/>
+				<Event Id="3138285746" Name="Countdown_1" ObjectPath="\Events\Default Work Unit\Voice Over\Countdown_1"/>
+				<Event Id="3138285745" Name="Countdown_2" ObjectPath="\Events\Default Work Unit\Voice Over\Countdown_2"/>
+				<Event Id="3138285744" Name="Countdown_3" ObjectPath="\Events\Default Work Unit\Voice Over\Countdown_3"/>
+				<Event Id="3138285751" Name="Countdown_4" ObjectPath="\Events\Default Work Unit\Voice Over\Countdown_4"/>
+				<Event Id="3138285750" Name="Countdown_5" ObjectPath="\Events\Default Work Unit\Voice Over\Countdown_5"/>
+				<Event Id="2201105581" Name="Credits" ObjectPath="\Events\Default Work Unit\Voice Over\Credits"/>
+				<Event Id="3301905610" Name="Crowd_Applause" ObjectPath="\Events\Default Work Unit\Audience SFX\Crowd_Applause"/>
+				<Event Id="2074502412" Name="Crowd_Near_Miss" ObjectPath="\Events\Default Work Unit\Audience SFX\Crowd_Near_Miss"/>
+				<Event Id="1057806445" Name="Exit_VO" ObjectPath="\Events\Default Work Unit\Voice Over\Exit_VO"/>
+				<Event Id="1915202000" Name="Extras" ObjectPath="\Events\Default Work Unit\Voice Over\Extras"/>
+				<Event Id="3777860431" Name="Go_Back_Page" ObjectPath="\Events\Default Work Unit\User Interface Sounds\Go_Back_Page"/>
+				<Event Id="1474592182" Name="Gorilla_Beating_Chest" ObjectPath="\Events\Default Work Unit\Gorilla\Gorilla_Beating_Chest"/>
+				<Event Id="2571184033" Name="Gorilla_Beating_Chest_Roar" ObjectPath="\Events\Default Work Unit\Gorilla\Gorilla_Beating_Chest_Roar"/>
+				<Event Id="3506810959" Name="Gorilla_Land" ObjectPath="\Events\Default Work Unit\Gorilla\Gorilla_Land"/>
+				<Event Id="1598522030" Name="Gorilla_Loud_Growl" ObjectPath="\Events\Default Work Unit\Gorilla\Gorilla_Loud_Growl"/>
+				<Event Id="3420496803" Name="Gorilla_Walk" ObjectPath="\Events\Default Work Unit\Gorilla\Gorilla_Walk"/>
+				<Event Id="476098361" Name="Grapple_Fire" ObjectPath="\Events\Default Work Unit\Player Character\Grapple_Fire"/>
+				<Event Id="3838905789" Name="Grapple_Latch" ObjectPath="\Events\Default Work Unit\Player Character\Grapple_Latch"/>
+				<Event Id="3619263103" Name="Gun_Empty" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Gun_Empty"/>
+				<Event Id="2418608077" Name="Gun_Landing" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Gun_Landing"/>
+				<Event Id="3401989302" Name="Gun_No_Ammo" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Gun_No_Ammo"/>
+				<Event Id="2505329354" Name="Hammer_Charge_Up" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Charge_Up"/>
+				<Event Id="1814594873" Name="Hammer_Charge_Up_Pause" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Charge_Up_Pause"/>
+				<Event Id="2200387064" Name="Hammer_Charge_Up_Resume" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Charge_Up_Resume"/>
+				<Event Id="1411615481" Name="Hammer_Charge_Up_Stop" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Charge_Up_Stop"/>
+				<Event Id="63992545" Name="Hammer_Fall" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Fall"/>
+				<Event Id="3578357145" Name="Hammer_Impact_Mud_Stone" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Impact_Mud_Stone"/>
+				<Event Id="2945414944" Name="Hammer_Swing" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Swing"/>
+				<Event Id="3051433909" Name="Item_Throw" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Item_Throw"/>
+				<Event Id="3833651337" Name="Jump" ObjectPath="\Events\Default Work Unit\Player Character\Jump"/>
+				<Event Id="3419686739" Name="Jump_Land" ObjectPath="\Events\Default Work Unit\Player Character\Jump_Land"/>
+				<Event Id="3111416588" Name="Lan_VO" ObjectPath="\Events\Default Work Unit\Voice Over\Lan_VO"/>
+				<Event Id="1145423536" Name="Last_Stand" ObjectPath="\Events\Default Work Unit\Voice Over\Last_Stand"/>
+				<Event Id="2113806440" Name="Lazer_Gun" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Lazer_Gun"/>
+				<Event Id="4122940260" Name="Lazer_Gun_Reload" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Lazer_Gun_Reload"/>
+				<Event Id="2884852039" Name="Lazer_Gun_Stop" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Lazer_Gun_Stop"/>
+				<Event Id="4087265999" Name="Lets_Vert" ObjectPath="\Events\Default Work Unit\Voice Over\Lets_Vert"/>
+				<Event Id="2121193815" Name="Lifting_Back_Over_Ledge" ObjectPath="\Events\Default Work Unit\Player Character\Lifting_Back_Over_Ledge"/>
+				<Event Id="3858290224" Name="Local_VO" ObjectPath="\Events\Default Work Unit\Voice Over\Local_VO"/>
+				<Event Id="3776419406" Name="Minigun" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Minigun"/>
+				<Event Id="1186466189" Name="Minigun_Stop" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Minigun_Stop"/>
+				<Event Id="4042913455" Name="Multiplayer_VO" ObjectPath="\Events\Default Work Unit\Voice Over\Multiplayer_VO"/>
+				<Event Id="3991942870" Name="Music" ObjectPath="\Events\Default Work Unit\Soundtrack\Music"/>
+				<Event Id="3050945240" Name="New_Event" ObjectPath="\Events\Default Work Unit\Voice Over\New_Event"/>
+				<Event Id="3908800326" Name="Online_VO" ObjectPath="\Events\Default Work Unit\Voice Over\Online_VO"/>
+				<Event Id="2417276545" Name="Options_VO" ObjectPath="\Events\Default Work Unit\Voice Over\Options_VO"/>
+				<Event Id="1976209091" Name="Play_Demo" ObjectPath="\Events\Default Work Unit\Voice Over\Play_Demo"/>
+				<Event Id="2540088038" Name="Player_1_Enter_Game" ObjectPath="\Events\Default Work Unit\Voice Over\Player_1_Enter_Game"/>
+				<Event Id="2703657663" Name="Player_2_Enter_Game" ObjectPath="\Events\Default Work Unit\Voice Over\Player_2_Enter_Game"/>
+				<Event Id="3028078684" Name="Player_3_Enter_Game" ObjectPath="\Events\Default Work Unit\Voice Over\Player_3_Enter_Game"/>
+				<Event Id="1000566589" Name="Player_4_Enter_Game" ObjectPath="\Events\Default Work Unit\Voice Over\Player_4_Enter_Game"/>
+				<Event Id="2394582229" Name="Player_Dash" ObjectPath="\Events\Default Work Unit\Player Character\Player_Dash"/>
+				<Event Id="48136597" Name="Player_Death_Explosion" ObjectPath="\Events\Default Work Unit\Player Character\Player_Death_Explosion"/>
+				<Event Id="254582912" Name="Player_Joins" ObjectPath="\Events\Default Work Unit\User Interface Sounds\Player_Joins"/>
+				<Event Id="3825368260" Name="Player_Punch_Impact" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Player_Punch_Impact"/>
+				<Event Id="2941725407" Name="Punches" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Punches"/>
+				<Event Id="1368721370" Name="Re_Spawn" ObjectPath="\Events\Default Work Unit\Player Character\Re_Spawn"/>
+				<Event Id="451078697" Name="Re_Spawn_Stop" ObjectPath="\Events\Default Work Unit\Player Character\Re_Spawn_Stop"/>
+				<Event Id="3701637754" Name="Ready" ObjectPath="\Events\Default Work Unit\Voice Over\Ready"/>
+				<Event Id="154081620" Name="Rhino_Cry" ObjectPath="\Events\Default Work Unit\Rhino\Rhino_Cry"/>
+				<Event Id="107113585" Name="Rhino_Footsteps" ObjectPath="\Events\Default Work Unit\Rhino\Rhino_Footsteps"/>
+				<Event Id="2866173512" Name="Rhino_Roar" ObjectPath="\Events\Default Work Unit\Rhino\Rhino_Roar"/>
+				<Event Id="51683977" Name="Shotgun" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Shotgun"/>
+				<Event Id="1879880223" Name="Single_Player" ObjectPath="\Events\Default Work Unit\Voice Over\Single_Player"/>
+				<Event Id="1160432365" Name="Sword_Attack_Part_1" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Sword_Attack_Part_1"/>
+				<Event Id="1160432366" Name="Sword_Attack_Part_2" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Sword_Attack_Part_2"/>
+				<Event Id="1160432367" Name="Sword_Attack_Part_3" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Sword_Attack_Part_3"/>
+				<Event Id="1398541948" Name="Winner_Player_1" ObjectPath="\Events\Default Work Unit\Voice Over\Winner_Player_1"/>
+				<Event Id="1398541951" Name="Winner_Player_2" ObjectPath="\Events\Default Work Unit\Voice Over\Winner_Player_2"/>
+				<Event Id="1398541950" Name="Winner_Player_3" ObjectPath="\Events\Default Work Unit\Voice Over\Winner_Player_3"/>
+				<Event Id="1398541945" Name="Winner_Player_4" ObjectPath="\Events\Default Work Unit\Voice Over\Winner_Player_4"/>
+				<Event Id="3311711206" Name="Winner_VO" ObjectPath="\Events\Default Work Unit\Voice Over\Winner_VO"/>
+				<Event Id="283822990" Name="Zap_Gun_Blast" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Zap_Gun_Blast"/>
+				<Event Id="2968341316" Name="Zap_Gun_Charge_Up" ObjectPath="\Events\Default Work Unit\Weapons_Ammo_Mellee\Zap_Gun_Charge_Up"/>
+			</IncludedEvents>
+			<IncludedMemoryFiles>
+				<File Id="1342881" Language="SFX">
+					<ShortName>Sword Attack Part 1.wav</ShortName>
+					<Path>SFX\Sword Attack Part 1_0EEECE5B.wem</Path>
+				</File>
+				<File Id="19063432" Language="SFX">
+					<ShortName>Hammer Swing (1).wav</ShortName>
+					<Path>SFX\Hammer Swing (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="32809874" Language="SFX">
+					<ShortName>Punch Player Impact (5).wav</ShortName>
+					<Path>SFX\Punch Player Impact (5)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="33810153" Language="SFX">
+					<ShortName>Gorilla Growl (5).wav</ShortName>
+					<Path>SFX\Gorilla Growl (5)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="40445562" Language="SFX">
+					<ShortName>Rhino Cry (2).wav</ShortName>
+					<Path>SFX\Rhino Cry (2)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="42255301" Language="SFX">
+					<ShortName>Player 3 Winner.wav</ShortName>
+					<Path>SFX\Player 3 Winner_0EEECE5B.wem</Path>
+				</File>
+				<File Id="59839613" Language="SFX">
+					<ShortName>Crowd Applause (1).wav</ShortName>
+					<Path>SFX\Crowd Applause (1)_9E69E797.wem</Path>
+				</File>
+				<File Id="64822041" Language="SFX">
+					<ShortName>Crowd Applause (5).wav</ShortName>
+					<Path>SFX\Crowd Applause (5)_9E69E797.wem</Path>
+				</File>
+				<File Id="70678057" Language="SFX">
+					<ShortName>Sentinel Knights Pre transition MIx7.wav</ShortName>
+					<Path>SFX\Sentinel Knights Pre transition MIx7_BA19D509.wem</Path>
+				</File>
+				<File Id="72324719" Language="SFX">
+					<ShortName>Hammer Fall (2).wav</ShortName>
+					<Path>SFX\Hammer Fall (2)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="75481645" Language="SFX">
+					<ShortName>Near Miss (6).wav</ShortName>
+					<Path>SFX\Near Miss (6)_9E69E797.wem</Path>
+				</File>
+				<File Id="76790609" Language="SFX">
+					<ShortName>Near Miss (12).wav</ShortName>
+					<Path>SFX\Near Miss (12)_9E69E797.wem</Path>
+				</File>
+				<File Id="77987933" Language="SFX">
+					<ShortName>Gun Landing (1).wav</ShortName>
+					<Path>SFX\Gun Landing (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="82636542" Language="SFX">
+					<ShortName>Tier 7.wav</ShortName>
+					<Path>SFX\Tier 7_BA19D509.wem</Path>
+				</File>
+				<File Id="88334019" Language="SFX">
+					<ShortName>Rhino Lighter Footstep 3.wav</ShortName>
+					<Path>SFX\Rhino Lighter Footstep 3_0EEECE5B.wem</Path>
+				</File>
+				<File Id="89812687" Language="SFX">
+					<ShortName>Grapple Fire (5) mix2.wav</ShortName>
+					<Path>SFX\Grapple Fire (5) mix2_0EEECE5B.wem</Path>
+				</File>
+				<File Id="103090377" Language="SFX">
+					<ShortName>Item Throw (1).wav</ShortName>
+					<Path>SFX\Item Throw (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="108232976" Language="SFX">
+					<ShortName>Near Miss (2).wav</ShortName>
+					<Path>SFX\Near Miss (2)_9E69E797.wem</Path>
+				</File>
+				<File Id="113384768" Language="SFX">
+					<ShortName>Shotgun (1).wav</ShortName>
+					<Path>SFX\Shotgun (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="120369458" Language="SFX">
+					<ShortName>Jump (7) mix2.wav</ShortName>
+					<Path>SFX\Jump (7) mix2_0EEECE5B.wem</Path>
+				</File>
+				<File Id="121997090" Language="SFX">
+					<ShortName>Player (3).wav</ShortName>
+					<Path>SFX\Player (3)_9E69E797.wem</Path>
+				</File>
+				<File Id="128263727" Language="SFX">
+					<ShortName>Gorilla Walk (2).wav</ShortName>
+					<Path>SFX\Gorilla Walk (2)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="131591118" Language="SFX">
+					<ShortName>Rhino Cry (4).wav</ShortName>
+					<Path>SFX\Rhino Cry (4)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="136748144" Language="SFX">
+					<ShortName>Hammer Fall (3).wav</ShortName>
+					<Path>SFX\Hammer Fall (3)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="141720824" Language="SFX">
+					<ShortName>Ammo Box Unpack (3).wav</ShortName>
+					<Path>SFX\Ammo Box Unpack (3)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="154494065" Language="SFX">
+					<ShortName>Punches (3).wav</ShortName>
+					<Path>SFX\Punches (3)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="168148750" Language="SFX">
+					<ShortName>Hammer Impact Mud&amp;Stone.wav</ShortName>
+					<Path>SFX\Hammer Impact Mud&amp;Stone_0EEECE5B.wem</Path>
+				</File>
+				<File Id="171386584" Language="SFX">
+					<ShortName>Play Demo (2).wav</ShortName>
+					<Path>SFX\Play Demo (2)_9E69E797.wem</Path>
+				</File>
+				<File Id="177345851" Language="SFX">
+					<ShortName>Ammo Box Unpack (1).wav</ShortName>
+					<Path>SFX\Ammo Box Unpack (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="196968570" Language="SFX">
+					<ShortName>Rhino Cry (5).wav</ShortName>
+					<Path>SFX\Rhino Cry (5)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="198444238" Language="SFX">
+					<ShortName>Gorilla Growl (7).wav</ShortName>
+					<Path>SFX\Gorilla Growl (7)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="203551564" Language="SFX">
+					<ShortName>Punches (8).wav</ShortName>
+					<Path>SFX\Punches (8)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="205325741" Language="SFX">
+					<ShortName>Zap Gun Charge (1).wav</ShortName>
+					<Path>SFX\Zap Gun Charge (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="205327664" Language="SFX">
+					<ShortName>Gorilla beating Chest (3).wav</ShortName>
+					<Path>SFX\Gorilla beating Chest (3)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="211491707" Language="SFX">
+					<ShortName>Near Miss (7).wav</ShortName>
+					<Path>SFX\Near Miss (7)_9E69E797.wem</Path>
+				</File>
+				<File Id="223144575" Language="SFX">
+					<ShortName>Online (1).wav</ShortName>
+					<Path>SFX\Online (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="234208288" Language="SFX">
+					<ShortName>Planet_Explosion (1) .wav</ShortName>
+					<Path>SFX\Planet_Explosion (1) _0EEECE5B.wem</Path>
+				</File>
+				<File Id="238697950" Language="SFX">
+					<ShortName>Gorilla Growl (4).wav</ShortName>
+					<Path>SFX\Gorilla Growl (4)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="238806087" Language="SFX">
+					<ShortName>Single Player VO (1).wav</ShortName>
+					<Path>SFX\Single Player VO (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="258574621" Language="SFX">
+					<ShortName>Tier 2.wav</ShortName>
+					<Path>SFX\Tier 2_BA19D509.wem</Path>
+				</File>
+				<File Id="269054492" Language="SFX">
+					<ShortName>Near Miss (10).wav</ShortName>
+					<Path>SFX\Near Miss (10)_9E69E797.wem</Path>
+				</File>
+				<File Id="283605291" Language="SFX">
+					<ShortName>Rhino Lighter Footstep 2.wav</ShortName>
+					<Path>SFX\Rhino Lighter Footstep 2_0EEECE5B.wem</Path>
+				</File>
+				<File Id="297537221" Language="SFX">
+					<ShortName>Jump (7) mix1.wav</ShortName>
+					<Path>SFX\Jump (7) mix1_0EEECE5B.wem</Path>
+				</File>
+				<File Id="299624855" Language="SFX">
+					<ShortName>Extras (1).wav</ShortName>
+					<Path>SFX\Extras (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="310680841" Language="SFX">
+					<ShortName>Gorilla Growl (1).wav</ShortName>
+					<Path>SFX\Gorilla Growl (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="313118895" Language="SFX">
+					<ShortName>Lazer Gun (2) mix1.wav</ShortName>
+					<Path>SFX\Lazer Gun (2) mix1_BA19D509.wem</Path>
+				</File>
+				<File Id="317251290" Language="SFX">
+					<ShortName>Winnter VO (1).wav</ShortName>
+					<Path>SFX\Winnter VO (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="319540122" Language="SFX">
+					<ShortName>Sentinel Knights Mix7.wav</ShortName>
+					<Path>SFX\Sentinel Knights Mix7_BA19D509.wem</Path>
+				</File>
+				<File Id="323114712" Language="SFX">
+					<ShortName>Ammo Box Drop (2).wav</ShortName>
+					<Path>SFX\Ammo Box Drop (2)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="323346100" Language="SFX">
+					<ShortName>Minigun (4) Cool Down.wav</ShortName>
+					<Path>SFX\Minigun (4) Cool Down_9E69E797.wem</Path>
+				</File>
+				<File Id="330385891" Language="SFX">
+					<ShortName>Crowd Applause (7).wav</ShortName>
+					<Path>SFX\Crowd Applause (7)_9E69E797.wem</Path>
+				</File>
+				<File Id="351403022" Language="SFX">
+					<ShortName>Re-spawn(2).wav</ShortName>
+					<Path>SFX\Re-spawn(2)_BA19D509.wem</Path>
+				</File>
+				<File Id="355349041" Language="SFX">
+					<ShortName>Exit VO (1).wav</ShortName>
+					<Path>SFX\Exit VO (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="363662251" Language="SFX">
+					<ShortName>Rhino Lighter Footstep 5.wav</ShortName>
+					<Path>SFX\Rhino Lighter Footstep 5_0EEECE5B.wem</Path>
+				</File>
+				<File Id="368480651" Language="SFX">
+					<ShortName>Rhino Lighter Footstep 4.wav</ShortName>
+					<Path>SFX\Rhino Lighter Footstep 4_0EEECE5B.wem</Path>
+				</File>
+				<File Id="372995201" Language="SFX">
+					<ShortName>Gorilla Growl (6).wav</ShortName>
+					<Path>SFX\Gorilla Growl (6)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="373205406" Language="SFX">
+					<ShortName>Sword Attack Part 2.wav</ShortName>
+					<Path>SFX\Sword Attack Part 2_0EEECE5B.wem</Path>
+				</File>
+				<File Id="376589291" Language="SFX">
+					<ShortName>Punch Player Impact (3).wav</ShortName>
+					<Path>SFX\Punch Player Impact (3)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="379359750" Language="SFX">
+					<ShortName>Options (1).wav</ShortName>
+					<Path>SFX\Options (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="388928287" Language="SFX">
+					<ShortName>Rhino Cry (8).wav</ShortName>
+					<Path>SFX\Rhino Cry (8)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="400183469" Language="SFX">
+					<ShortName>Tier 4.wav</ShortName>
+					<Path>SFX\Tier 4_BA19D509.wem</Path>
+				</File>
+				<File Id="403264948" Language="SFX">
+					<ShortName>Boo (1).wav</ShortName>
+					<Path>SFX\Boo (1)_9E69E797.wem</Path>
+				</File>
+				<File Id="407618374" Language="SFX">
+					<ShortName>Player (4).wav</ShortName>
+					<Path>SFX\Player (4)_9E69E797.wem</Path>
+				</File>
+				<File Id="412415225" Language="SFX">
+					<ShortName>Near Miss (1).wav</ShortName>
+					<Path>SFX\Near Miss (1)_9E69E797.wem</Path>
+				</File>
+				<File Id="417594452" Language="SFX">
+					<ShortName>Gun Landing (4).wav</ShortName>
+					<Path>SFX\Gun Landing (4)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="431640905" Language="SFX">
+					<ShortName>Player 1 Winner.wav</ShortName>
+					<Path>SFX\Player 1 Winner_0EEECE5B.wem</Path>
+				</File>
+				<File Id="445895557" Language="SFX">
+					<ShortName>Gorilla beating Chest (1).wav</ShortName>
+					<Path>SFX\Gorilla beating Chest (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="454572570" Language="SFX">
+					<ShortName>Ammo Box Unpack (2).wav</ShortName>
+					<Path>SFX\Ammo Box Unpack (2)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="458360787" Language="SFX">
+					<ShortName>Tier 6.wav</ShortName>
+					<Path>SFX\Tier 6_BA19D509.wem</Path>
+				</File>
+				<File Id="470809261" Language="SFX">
+					<ShortName>Countdown - 3.wav</ShortName>
+					<Path>SFX\Countdown - 3_0EEECE5B.wem</Path>
+				</File>
+				<File Id="481954872" Language="SFX">
+					<ShortName>Player 2 Winner.wav</ShortName>
+					<Path>SFX\Player 2 Winner_0EEECE5B.wem</Path>
+				</File>
+				<File Id="496044105" Language="SFX">
+					<ShortName>Multiplayer VO (1).wav</ShortName>
+					<Path>SFX\Multiplayer VO (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="497514371" Language="SFX">
+					<ShortName>Jump Land (1).wav</ShortName>
+					<Path>SFX\Jump Land (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="501657047" Language="SFX">
+					<ShortName>Lifting Back Over Ledge (1).wav</ShortName>
+					<Path>SFX\Lifting Back Over Ledge (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="505137848" Language="SFX">
+					<ShortName>Zap Gun Blast (1).wav</ShortName>
+					<Path>SFX\Zap Gun Blast (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="506916185" Language="SFX">
+					<ShortName>Near Miss (11).wav</ShortName>
+					<Path>SFX\Near Miss (11)_9E69E797.wem</Path>
+				</File>
+				<File Id="514227725" Language="SFX">
+					<ShortName>Rhino Cry (3).wav</ShortName>
+					<Path>SFX\Rhino Cry (3)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="522659768" Language="SFX">
+					<ShortName>Rhino Lighter Footstep 1.wav</ShortName>
+					<Path>SFX\Rhino Lighter Footstep 1_0EEECE5B.wem</Path>
+				</File>
+				<File Id="524648054" Language="SFX">
+					<ShortName>Transition (1).wav</ShortName>
+					<Path>SFX\Transition (1)_BA19D509.wem</Path>
+				</File>
+				<File Id="532573489" Language="SFX">
+					<ShortName>Lets Vert (1).wav</ShortName>
+					<Path>SFX\Lets Vert (1)_9E69E797.wem</Path>
+				</File>
+				<File Id="540425409" Language="SFX">
+					<ShortName>Last Stand (2).wav</ShortName>
+					<Path>SFX\Last Stand (2)_9E69E797.wem</Path>
+				</File>
+				<File Id="549537156" Language="SFX">
+					<ShortName>Countdown - 1.wav</ShortName>
+					<Path>SFX\Countdown - 1_0EEECE5B.wem</Path>
+				</File>
+				<File Id="550194216" Language="SFX">
+					<ShortName>Reload (2) Mix1.wav</ShortName>
+					<Path>SFX\Reload (2) Mix1_0EEECE5B.wem</Path>
+				</File>
+				<File Id="555670717" Language="SFX">
+					<ShortName>Player (2).wav</ShortName>
+					<Path>SFX\Player (2)_9E69E797.wem</Path>
+				</File>
+				<File Id="572387885" Language="SFX">
+					<ShortName>Rhino Cry (7).wav</ShortName>
+					<Path>SFX\Rhino Cry (7)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="597155847" Language="SFX">
+					<ShortName>Punches (5).wav</ShortName>
+					<Path>SFX\Punches (5)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="604443381" Language="SFX">
+					<ShortName>Ammo Box Drop (3).wav</ShortName>
+					<Path>SFX\Ammo Box Drop (3)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="605586307" Language="SFX">
+					<ShortName>Punches (1).wav</ShortName>
+					<Path>SFX\Punches (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="612213016" Language="SFX">
+					<ShortName>Player Dash (4) mix1.wav</ShortName>
+					<Path>SFX\Player Dash (4) mix1_0EEECE5B.wem</Path>
+				</File>
+				<File Id="617832491" Language="SFX">
+					<ShortName>Hammer Charge Up.wav</ShortName>
+					<Path>SFX\Hammer Charge Up_0EEECE5B.wem</Path>
+				</File>
+				<File Id="624857544" Language="SFX">
+					<ShortName>Tier 3.wav</ShortName>
+					<Path>SFX\Tier 3_BA19D509.wem</Path>
+				</File>
+				<File Id="625248800" Language="SFX">
+					<ShortName>Gorilla beating Chest (4).wav</ShortName>
+					<Path>SFX\Gorilla beating Chest (4)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="629174218" Language="SFX">
+					<ShortName>Player 4 Winner.wav</ShortName>
+					<Path>SFX\Player 4 Winner_0EEECE5B.wem</Path>
+				</File>
+				<File Id="644062068" Language="SFX">
+					<ShortName>Gorilla Growl (2).wav</ShortName>
+					<Path>SFX\Gorilla Growl (2)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="648812954" Language="SFX">
+					<ShortName>Gorilla beating Chest (2).wav</ShortName>
+					<Path>SFX\Gorilla beating Chest (2)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="664483247" Language="SFX">
+					<ShortName>Punches (6).wav</ShortName>
+					<Path>SFX\Punches (6)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="673669982" Language="SFX">
+					<ShortName>Minigun (1).wav</ShortName>
+					<Path>SFX\Minigun (1)_BA19D509.wem</Path>
+				</File>
+				<File Id="686777277" Language="SFX">
+					<ShortName>Crowd Applause (4).wav</ShortName>
+					<Path>SFX\Crowd Applause (4)_9E69E797.wem</Path>
+				</File>
+				<File Id="687192983" Language="SFX">
+					<ShortName>Lan (1).wav</ShortName>
+					<Path>SFX\Lan (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="687287660" Language="SFX">
+					<ShortName>Grapple Latch (2) mix1.wav</ShortName>
+					<Path>SFX\Grapple Latch (2) mix1_0EEECE5B.wem</Path>
+				</File>
+				<File Id="693461037" Language="SFX">
+					<ShortName>Gorilla Growl (3).wav</ShortName>
+					<Path>SFX\Gorilla Growl (3)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="697884124" Language="SFX">
+					<ShortName>Gun Landing (2).wav</ShortName>
+					<Path>SFX\Gun Landing (2)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="706385539" Language="SFX">
+					<ShortName>Tier 10.wav</ShortName>
+					<Path>SFX\Tier 10_BA19D509.wem</Path>
+				</File>
+				<File Id="716904329" Language="SFX">
+					<ShortName>Buckshot (1).wav</ShortName>
+					<Path>SFX\Buckshot (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="724387991" Language="SFX">
+					<ShortName>Countdown - 2.wav</ShortName>
+					<Path>SFX\Countdown - 2_0EEECE5B.wem</Path>
+				</File>
+				<File Id="727461974" Language="SFX">
+					<ShortName>Rhino Lighter Footstep 6.wav</ShortName>
+					<Path>SFX\Rhino Lighter Footstep 6_0EEECE5B.wem</Path>
+				</File>
+				<File Id="733197233" Language="SFX">
+					<ShortName>Player Enter Game (1).wav</ShortName>
+					<Path>SFX\Player Enter Game (1)_9E69E797.wem</Path>
+				</File>
+				<File Id="738512091" Language="SFX">
+					<ShortName>Back Page Interface Sound (2).wav</ShortName>
+					<Path>SFX\Back Page Interface Sound (2)_9E69E797.wem</Path>
+				</File>
+				<File Id="738766813" Language="SFX">
+					<ShortName>Gorilla Land (1).wav</ShortName>
+					<Path>SFX\Gorilla Land (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="738845764" Language="SFX">
+					<ShortName>Punch Player Impact (1).wav</ShortName>
+					<Path>SFX\Punch Player Impact (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="748326836" Language="SFX">
+					<ShortName>Creature_Dragon_Roar_01.wav</ShortName>
+					<Path>SFX\Creature_Dragon_Roar_01_0EEECE5B.wem</Path>
+				</File>
+				<File Id="750064220" Language="SFX">
+					<ShortName>Jump (7) mix3.wav</ShortName>
+					<Path>SFX\Jump (7) mix3_0EEECE5B.wem</Path>
+				</File>
+				<File Id="751252513" Language="SFX">
+					<ShortName>Gorilla Walk (4).wav</ShortName>
+					<Path>SFX\Gorilla Walk (4)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="753568650" Language="SFX">
+					<ShortName>Rhino Cry (1).wav</ShortName>
+					<Path>SFX\Rhino Cry (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="754373638" Language="SFX">
+					<ShortName>Crowd Applause (2).wav</ShortName>
+					<Path>SFX\Crowd Applause (2)_9E69E797.wem</Path>
+				</File>
+				<File Id="774557217" Language="SFX">
+					<ShortName>Near Miss (4).wav</ShortName>
+					<Path>SFX\Near Miss (4)_9E69E797.wem</Path>
+				</File>
+				<File Id="788079693" Language="SFX">
+					<ShortName>Punch Player Impact (2).wav</ShortName>
+					<Path>SFX\Punch Player Impact (2)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="793575246" Language="SFX">
+					<ShortName>Hammer Fall (1).wav</ShortName>
+					<Path>SFX\Hammer Fall (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="800333122" Language="SFX">
+					<ShortName>Punch Player Impact (4).wav</ShortName>
+					<Path>SFX\Punch Player Impact (4)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="811076263" Language="SFX">
+					<ShortName>Tier 1.wav</ShortName>
+					<Path>SFX\Tier 1_BA19D509.wem</Path>
+				</File>
+				<File Id="811652383" Language="SFX">
+					<ShortName>Machine Gun Empty (1).wav</ShortName>
+					<Path>SFX\Machine Gun Empty (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="817053903" Language="SFX">
+					<ShortName>Gorilla Walk (3).wav</ShortName>
+					<Path>SFX\Gorilla Walk (3)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="827921370" Language="SFX">
+					<ShortName>VERT MIX7.wav</ShortName>
+					<Path>SFX\VERT MIX7_BA19D509.wem</Path>
+				</File>
+				<File Id="843816483" Language="SFX">
+					<ShortName>Local (2).wav</ShortName>
+					<Path>SFX\Local (2)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="868124766" Language="SFX">
+					<ShortName>Near Miss (5).wav</ShortName>
+					<Path>SFX\Near Miss (5)_9E69E797.wem</Path>
+				</File>
+				<File Id="875611607" Language="SFX">
+					<ShortName>Clapping (1).wav</ShortName>
+					<Path>SFX\Clapping (1)_9E69E797.wem</Path>
+				</File>
+				<File Id="879916003" Language="SFX">
+					<ShortName>Player (1).wav</ShortName>
+					<Path>SFX\Player (1)_9E69E797.wem</Path>
+				</File>
+				<File Id="895972806" Language="SFX">
+					<ShortName>Ready.wav</ShortName>
+					<Path>SFX\Ready_9E69E797.wem</Path>
+				</File>
+				<File Id="906755935" Language="SFX">
+					<ShortName>Punches (2).wav</ShortName>
+					<Path>SFX\Punches (2)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="910999735" Language="SFX">
+					<ShortName>Crowd Applause (6).wav</ShortName>
+					<Path>SFX\Crowd Applause (6)_9E69E797.wem</Path>
+				</File>
+				<File Id="919451101" Language="SFX">
+					<ShortName>Countdown - 5.wav</ShortName>
+					<Path>SFX\Countdown - 5_0EEECE5B.wem</Path>
+				</File>
+				<File Id="922499319" Language="SFX">
+					<ShortName>Gorilla Walk (1).wav</ShortName>
+					<Path>SFX\Gorilla Walk (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="929323591" Language="SFX">
+					<ShortName>Near Miss (3).wav</ShortName>
+					<Path>SFX\Near Miss (3)_9E69E797.wem</Path>
+				</File>
+				<File Id="929440878" Language="SFX">
+					<ShortName>Jump (7) mix4.wav</ShortName>
+					<Path>SFX\Jump (7) mix4_0EEECE5B.wem</Path>
+				</File>
+				<File Id="937853313" Language="SFX">
+					<ShortName>Credits (1).wav</ShortName>
+					<Path>SFX\Credits (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="938863080" Language="SFX">
+					<ShortName>Near Miss (9).wav</ShortName>
+					<Path>SFX\Near Miss (9)_9E69E797.wem</Path>
+				</File>
+				<File Id="941345858" Language="SFX">
+					<ShortName>Near Miss (8).wav</ShortName>
+					<Path>SFX\Near Miss (8)_9E69E797.wem</Path>
+				</File>
+				<File Id="945042984" Language="SFX">
+					<ShortName>Tier 5.wav</ShortName>
+					<Path>SFX\Tier 5_BA19D509.wem</Path>
+				</File>
+				<File Id="958803131" Language="SFX">
+					<ShortName>Tier 9.wav</ShortName>
+					<Path>SFX\Tier 9_4B8CC0C5.wem</Path>
+				</File>
+				<File Id="965258061" Language="SFX">
+					<ShortName>Sword Attack Part 3.wav</ShortName>
+					<Path>SFX\Sword Attack Part 3_0EEECE5B.wem</Path>
+				</File>
+				<File Id="971294137" Language="SFX">
+					<ShortName>Rhino Cry (6).wav</ShortName>
+					<Path>SFX\Rhino Cry (6)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="980658758" Language="SFX">
+					<ShortName>Rhino Vocal Sounds (1).wav</ShortName>
+					<Path>SFX\Rhino Vocal Sounds (1)_9E69E797.wem</Path>
+				</File>
+				<File Id="991135533" Language="SFX">
+					<ShortName>Ammo Box Drop (1).wav</ShortName>
+					<Path>SFX\Ammo Box Drop (1)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="1003270565" Language="SFX">
+					<ShortName>Punches (7).wav</ShortName>
+					<Path>SFX\Punches (7)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="1004732940" Language="SFX">
+					<ShortName>VERT Title Theme (Intro for GOE).wav</ShortName>
+					<Path>SFX\VERT Title Theme (Intro for GOE)_BA19D509.wem</Path>
+				</File>
+				<File Id="1017011497" Language="SFX">
+					<ShortName>Grapple Fire (5) mix1.wav</ShortName>
+					<Path>SFX\Grapple Fire (5) mix1_0EEECE5B.wem</Path>
+				</File>
+				<File Id="1035720450" Language="SFX">
+					<ShortName>Crowd Applause (3).wav</ShortName>
+					<Path>SFX\Crowd Applause (3)_9E69E797.wem</Path>
+				</File>
+				<File Id="1035748365" Language="SFX">
+					<ShortName>Gun Landing (3).wav</ShortName>
+					<Path>SFX\Gun Landing (3)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="1053465203" Language="SFX">
+					<ShortName>Punches (4).wav</ShortName>
+					<Path>SFX\Punches (4)_0EEECE5B.wem</Path>
+				</File>
+				<File Id="1073529797" Language="SFX">
+					<ShortName>Countdown - 4.wav</ShortName>
+					<Path>SFX\Countdown - 4_0EEECE5B.wem</Path>
+				</File>
+			</IncludedMemoryFiles>
+		</SoundBank>
+	</SoundBanks>
+</SoundBanksInfo>

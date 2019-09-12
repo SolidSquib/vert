@@ -31,6 +31,18 @@ void AVertGameState::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & Ou
 }
 
 //************************************
+// Method:    IsMatchInProgress
+// FullName:  AVertGameState::IsMatchInProgress
+// Access:    virtual public 
+// Returns:   bool
+// Qualifier: const
+//************************************
+bool AVertGameState::IsMatchInProgress() const
+{
+	return GetMatchState() == MatchState::InProgress || GetMatchState() == MatchState::IntroducingMatch || GetMatchState() == MatchState::InProgressFinale;
+}
+
+//************************************
 // Method:    GetRankedMap
 // FullName:  AVertGameState::GetRankedMap
 // Access:    public 
@@ -103,4 +115,32 @@ void AVertGameState::RequestFinishAndExitToMainMenu()
 			primaryPC->HandleReturnToMainMenu();
 		}
 	}
+
+	UAkGameplayStatics::StopAll();
+	UGameplayStatics::OpenLevel(this, TEXT("MainMenu"));
+}
+
+//************************************
+// Method:    CanPlayerJoin
+// FullName:  AVertGameState::CanPlayerJoin
+// Access:    public 
+// Returns:   bool
+// Qualifier: const
+//************************************
+bool AVertGameState::CanPlayersJoin() const
+{
+	return mPlayersCanJoin;
+}
+
+//************************************
+// Method:    SetCanPlayerJoin
+// FullName:  AVertGameState::SetCanPlayerJoin
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: bool canPlayersJoin
+//************************************
+void AVertGameState::SetCanPlayersJoin(bool canJoin)
+{
+	mPlayersCanJoin = canJoin;
 }

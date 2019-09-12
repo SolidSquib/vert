@@ -30,6 +30,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnDropInteractiveDelegate Delegate_OnDropInteractive;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+	class UAkAudioEvent* ThrowSound = nullptr;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact|Trace")
 	FVector LocalSphereTraceOffset = FVector::ZeroVector;
 
@@ -58,14 +61,16 @@ public:
 	void DropInteractive();
 	void ThrowInteractive(UPrimitiveComponent* body, const FVector& impulse, const FVector& radialImpulse);
 	bool AttemptAttack();
-	void StopAttacking();
+	bool AttemptDashAttack();
+	void StopAttacking(bool forced = false);
+	bool WantsToAttack() const { return mWantsToAttack; }
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	FORCEINLINE AInteractive* GetHeldInteractive() const { return mHeldInteractive; }
 	FORCEINLINE ABaseWeapon* GetHeldWeapon() const { return mHeldWeapon; }
-	FORCEINLINE TWeakObjectPtr<ABaseWeapon> GetDefaultWeapon() const { return mDefaultWeapon; }
+	FORCEINLINE ABaseWeapon* GetDefaultWeapon() const { return mDefaultWeapon.IsValid() ? mDefaultWeapon.Get() : nullptr; }
 
 	UFUNCTION(BlueprintCallable, Category = "Interact|Character")
 	FORCEINLINE AVertCharacter* GetCharacterOwner() const { return mCharacterOwner.Get(); }
@@ -73,6 +78,7 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type endPlayReason);
 
 private:
 	class AInteractive* TraceForSingleInteractive();

@@ -22,21 +22,30 @@ struct FInstantHitInfo
 	int32 RandomSeed;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FInstantWeaponData
 {
 	GENERATED_USTRUCT_BODY()
 
 	/** weapon range */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = WeaponStat)
 	float WeaponRange;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = WeaponStat)
+	bool Penetrate = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = WeaponStat)
+	bool UseSphereTrace = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = WeaponStat, meta = (EditCondition = "UseSphereTrace"))
+	float SphereTraceRadius = 10.f;
+
 	/** hit verification: scale for bounding box of hit actor */
-	UPROPERTY(EditDefaultsOnly, Category = HitVerification)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = HitVerification)
 	float ClientSideHitLeeway;
 
 	/** hit verification: threshold for dot product between view direction and hit direction */
-	UPROPERTY(EditDefaultsOnly, Category = HitVerification)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = HitVerification)
 	float AllowedViewDotHitDir;
 
 	/** defaults */
@@ -55,8 +64,11 @@ class AHitscanRangedWeapon : public ARangedWeapon
 	GENERATED_UCLASS_BODY()
 
 protected:
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool ShowDebug = false;
+
 	/** weapon config */
-	UPROPERTY(EditDefaultsOnly, Category = Config)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Config)
 	FInstantWeaponData InstantConfig;
 
 	/** impact effects */
@@ -68,7 +80,7 @@ protected:
 	UParticleSystem* TrailFX;
 
 	/** param name for beam target in smoke trail */
-	UPROPERTY(EditDefaultsOnly, Category = Effects)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Effects)
 	FName TrailTargetParam;
 
 	/** instant hit notify for replication */
@@ -85,7 +97,6 @@ protected:
 	void SpawnTrailEffect(const FVector& EndPoint); /** spawn trail effect */
 
 	virtual bool AttackWithWeapon_Implementation() override; /** [local] weapon specific fire implementation */
-	virtual UClass* GetWeaponType_Implementation() const override;
 
 	UFUNCTION()
 	void OnRep_HitNotify();

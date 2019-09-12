@@ -1,6 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<WwiseDocument Type="WorkUnit" ID="{B638D783-DDCA-40B4-904A-90402D7A7807}" SchemaVersion="75">
+<WwiseDocument Type="WorkUnit" ID="{B8347972-0EB1-4001-9ACB-FD2DF2D34BF8}" SchemaVersion="75">
 	<GameParameters>
-		<WorkUnit Name="Default Work Unit" ID="{B638D783-DDCA-40B4-904A-90402D7A7807}" PersistMode="Standalone"/>
+		<WorkUnit Name="Default Work Unit" ID="{B8347972-0EB1-4001-9ACB-FD2DF2D34BF8}" PersistMode="Standalone">
+			<ChildrenList>
+				<GameParameter Name="Master_Music_Volume" ID="{C93D377E-FC20-48F1-9772-427E8594D954}">
+					<PropertyList>
+						<Property Name="InitialValue" Type="Real64" Value="80"/>
+					</PropertyList>
+				</GameParameter>
+				<GameParameter Name="Master_Sound_Volume" ID="{B934037A-C0FC-4CF3-8BB8-D849849F666B}">
+					<PropertyList>
+						<Property Name="InitialValue" Type="Real64" Value="80"/>
+					</PropertyList>
+				</GameParameter>
+				<GameParameter Name="Waterfall_Volume" ID="{06E490D8-5F01-484C-86A2-0AEF2DE2F0A1}">
+					<PropertyList>
+						<Property Name="InitialValue" Type="Real64" Value="0"/>
+					</PropertyList>
+				</GameParameter>
+				<GameParameter Name="Waterfall_Volume_Panning" ID="{90F8E069-DF18-414D-ABB3-6F8B83755547}">
+					<PropertyList>
+						<Property Name="InitialValue" Type="Real64" Value="20"/>
+					</PropertyList>
+				</GameParameter>
+				<GameParameter Name="Hammer_Charge_Up" ID="{36948F9D-0B98-42AA-9336-BB2303C284B9}">
+					<PropertyList>
+						<Property Name="InitialValue" Type="Real64" Value="0"/>
+						<Property Name="Max" Type="Real64" Value="30"/>
+					</PropertyList>
+				</GameParameter>
+				<GameParameter Name="Zap_Gun_Charge_Up" ID="{C990E5F7-3E11-4C8C-AE39-53FEC1E1D85F}">
+					<PropertyList>
+						<Property Name="InitialValue" Type="Real64" Value="0"/>
+						<Property Name="Max" Type="Real64" Value="1"/>
+					</PropertyList>
+				</GameParameter>
+			</ChildrenList>
+		</WorkUnit>
 	</GameParameters>
 </WwiseDocument>

@@ -31,12 +31,42 @@ bool AHitscanRangedWeapon::AttackWithWeapon_Implementation()
 	const FVector ShootDir = GetShootDirectionAfterSpread(AimDir, randomSeed, currentSpread);
 	const FVector EndTrace = StartTrace + (ShootDir * InstantConfig.WeaponRange);
 
-	const FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
-	ProcessInstantHit(Impact, StartTrace, ShootDir, randomSeed, currentSpread);
+	if (InstantConfig.Penetrate)
+	{
+		TArray<FHitResult> impacts = WeaponTraceWithPenetration(StartTrace, EndTrace, InstantConfig.UseSphereTrace, InstantConfig.SphereTraceRadius);
+		if (impacts.Num() > 0)
+		{
+			for (auto impact : impacts)
+			{
+				ProcessInstantHit(impact, StartTrace, ShootDir, randomSeed, currentSpread);
+			}
+		}
+		else
+			ProcessInstantHit(FHitResult(ForceInit), StartTrace, ShootDir, randomSeed, currentSpread);
+
+#if ENABLE_DRAW_DEBUG
+		if (ShowDebug)
+		{
+			UVertUtilities::DrawDebugSphereTraceMulti(GetWorld(), StartTrace, EndTrace, InstantConfig.SphereTraceRadius, EDrawDebugTrace::ForDuration, !impacts.Num() == 0, impacts, FLinearColor::Green, FLinearColor::Red, 3);
+		}
+#endif
+	}
+	else
+	{
+		FHitResult Impact = WeaponTrace(StartTrace, EndTrace, InstantConfig.UseSphereTrace, InstantConfig.SphereTraceRadius);
+		ProcessInstantHit(Impact, StartTrace, ShootDir, randomSeed, currentSpread);
+
+#if ENABLE_DRAW_DEBUG
+		if (ShowDebug)
+		{
+			UVertUtilities::DrawDebugSphereTraceSingle(GetWorld(), StartTrace, EndTrace, InstantConfig.SphereTraceRadius, EDrawDebugTrace::ForDuration, Impact.bBlockingHit, Impact, FLinearColor::Green, FLinearColor::Red, 3);
+		}
+#endif
+	}
 
 	mCurrentFiringSpread = FMath::Min(SpreadConfig.FiringSpreadMax, mCurrentFiringSpread + SpreadConfig.FiringSpreadIncrement);
-
-	Delegate_OnWeaponFiredWithRecoil.Broadcast(SpreadConfig.RecoilAmount);
+	
+	WeaponAttackFire(SpreadConfig.RecoilAmount);
 
 	return true;
 }
@@ -205,7 +235,7 @@ void AHitscanRangedWeapon::ProcessInstantHit(const FHitResult& Impact, const FVe
 		}
 		else if (Impact.GetActor() == NULL)
 		{
-			if (Impact.bBlockingHit)
+			if (Impact.bBlockingHit || InstantConfig.Penetrate)
 			{
 				// notify the server of the hit
 				ServerNotifyHit(Impact, ShootDir, RandomSeed, ReticleSpread);
@@ -296,13 +326,21 @@ bool AHitscanRangedWeapon::ShouldDealDamage(AActor* TestActor) const
 //************************************
 void AHitscanRangedWeapon::DealDamage(const FHitResult& Impact, const FVector& ShootDir)
 {
-	FPointDamageEvent PointDmg;
+	FVertPointDamageEvent PointDmg;
 	PointDmg.DamageTypeClass = WeaponConfig.DamageType;
 	PointDmg.HitInfo = Impact;
 	PointDmg.ShotDirection = ShootDir;
-	PointDmg.Damage = WeaponConfig.BaseDamage;
+	PointDmg.Damage = WeaponConfig.BaseDamage + GetBonusDamage();
+	PointDmg.Knockback = WeaponConfig.BaseKnockback + GetBonusKnockback();
+	PointDmg.KnockbackScaling = WeaponConfig.KnockbackScaling;
+	PointDmg.StunTime = WeaponConfig.StunTime;
 
-	Impact.GetActor()->TakeDamage(PointDmg.Damage, PointDmg, MyPawn->Controller, this);
+	Impact.GetActor()->TakeDamage(
+		PointDmg.Damage, 
+		PointDmg, 
+		MyPawn->Controller, 
+		this
+	);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -340,15 +378,34 @@ void AHitscanRangedWeapon::SimulateInstantHit(const FVector& ShotOrigin, int32 R
 	const FVector ShootDir = WeaponRandomStream.VRandCone(AimDir, ConeHalfAngle, ConeHalfAngle);
 	const FVector EndTrace = StartTrace + ShootDir * InstantConfig.WeaponRange;
 
-	FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
-	if (Impact.bBlockingHit)
+	if (InstantConfig.Penetrate)
 	{
-		SpawnImpactEffects(Impact);
-		SpawnTrailEffect(Impact.ImpactPoint);
+		TArray<FHitResult> Impacts = WeaponTraceWithPenetration(StartTrace, EndTrace, InstantConfig.UseSphereTrace, InstantConfig.SphereTraceRadius);
+		for (auto Impact : Impacts)
+		{
+			if (Impact.bBlockingHit)
+			{
+				SpawnImpactEffects(Impact);
+				SpawnTrailEffect(Impact.ImpactPoint);
+			}
+			else
+			{
+				SpawnTrailEffect(EndTrace);
+			}
+		}
 	}
 	else
 	{
-		SpawnTrailEffect(EndTrace);
+		FHitResult Impact = WeaponTrace(StartTrace, EndTrace, InstantConfig.UseSphereTrace, InstantConfig.SphereTraceRadius);
+		if (Impact.bBlockingHit)
+		{
+			SpawnImpactEffects(Impact);
+			SpawnTrailEffect(Impact.ImpactPoint);
+		}
+		else
+		{
+			SpawnTrailEffect(EndTrace);
+		}
 	}
 }
 
@@ -371,7 +428,7 @@ void AHitscanRangedWeapon::SpawnImpactEffects(const FHitResult& Impact)
 		{
 			const FVector StartTrace = Impact.ImpactPoint + Impact.ImpactNormal * 10.0f;
 			const FVector EndTrace = Impact.ImpactPoint - Impact.ImpactNormal * 10.0f;
-			FHitResult Hit = WeaponTrace(StartTrace, EndTrace);
+			FHitResult Hit = WeaponTrace(StartTrace, EndTrace, InstantConfig.UseSphereTrace, InstantConfig.SphereTraceRadius);
 			UseImpact = Hit;
 		}
 
@@ -420,16 +477,4 @@ void AHitscanRangedWeapon::GetLifetimeReplicatedProps(TArray< FLifetimeProperty 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(AHitscanRangedWeapon, HitNotify, COND_SkipOwner);
-}
-
-//************************************
-// Method:    GetWeaponType_Implementation
-// FullName:  AHitscanRangedWeapon::GetWeaponType_Implementation
-// Access:    virtual protected 
-// Returns:   UClass*
-// Qualifier: const
-//************************************
-UClass* AHitscanRangedWeapon::GetWeaponType_Implementation() const
-{
-	return AHitscanRangedWeapon::StaticClass();
 }

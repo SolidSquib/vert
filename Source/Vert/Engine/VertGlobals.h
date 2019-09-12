@@ -5,12 +5,34 @@
 #include "VertUtilities.h"
 #include "VertGlobals.generated.h"
 
+UENUM(BlueprintType)
+enum class ECustomMovementMode : uint8
+{
+	MOVE_Climbing UMETA(DisplayName = "Climbing"),
+	MOVE_GrappleWalk UMETA(DisplayName = "Grappling - Ground"),
+	MOVE_GrappleFall UMETA(DisplayName = "Grappling - Air")
+};
+
 UENUM()
 enum class ERechargeRule : uint8
 {
 	OnRechargeTimer UMETA(DisplayName = "Always recharge"),
 	OnContactGround UMETA(DisplayName = "Recharge on ground"),
 	OnContactGroundOrLatchedAnywhere UMETA(DisplayName = "Recharge on ground / Latched to any surface")
+};
+
+UENUM(BlueprintType)
+enum class EScoreTrack : uint8
+{
+	SCORE_BountyHunter,
+	SCORE_HeavyHitter,
+	SCORE_KillingSpree,
+	SCORE_GlassCannon,
+	SCORE_MonsterHunter,
+	SCORE_SpeedRacer,
+	SCORE_MasterOfArms,
+	SCORE_Survivor,
+	SCORE_RubberBand
 };
 
 namespace EVertMatchState
@@ -67,10 +89,47 @@ namespace EVertDialogType
 #define ECC_Interactive ECC_GameTraceChannel2
 #define ECC_SphereTracer ECC_GameTraceChannel3
 #define ECC_LedgeTracer ECC_GameTraceChannel4
+#define ECC_IKFootTrace ECC_GameTraceChannel5
+#define ECC_CameraPlaceholder ECC_GameTraceChannel6
 #define ECC_WeaponTrace ECC_GameTraceChannel7
 #define ECC_WeaponProjectile ECC_GameTraceChannel8
 #define ECC_InteractionTrace ECC_GameTraceChannel9
 #define ECC_WeaponMelee ECC_GameTraceChannel10
+#define ECC_StreamingBounds ECC_GameTraceChannel11
+#define ECC_GrappleTrace ECC_GameTraceChannel12
+#define ECC_WeaponTracePenetrate ECC_GameTraceChannel13
+
+#define UI_MOVE_GrappleWalk static_cast<uint8>(ECustomMovementMode::MOVE_GrappleWalk)
+#define UI_MOVE_GrappleFall static_cast<uint8>(ECustomMovementMode::MOVE_GrappleFall)
+
+USTRUCT(BlueprintType)
+struct FPlayerColours
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Colours")
+	FLinearColor PrimaryColour;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Colours")
+	FLinearColor SecondaryColour;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Colours")
+	FLinearColor EmissiveColour;
+
+	FPlayerColours()
+	{
+		PrimaryColour = FLinearColor::White;
+		SecondaryColour = FLinearColor::Gray;
+		EmissiveColour = FLinearColor::Black;
+	}
+
+	FPlayerColours(const FLinearColor& armour, const FLinearColor& detail, const FLinearColor& visor)
+	{
+		PrimaryColour = armour;
+		SecondaryColour = detail;
+		EmissiveColour = visor;
+	}
+};
 
 USTRUCT()
 struct FDecalData
@@ -113,7 +172,7 @@ struct FTakeHitInfo
 
 	/** Who hit us */
 	UPROPERTY()
-	TWeakObjectPtr<class AVertCharacter> PawnInstigator;
+	TWeakObjectPtr<class AVertCharacterBase> PawnInstigator;
 
 	/** Who actually caused the damage */
 	UPROPERTY()

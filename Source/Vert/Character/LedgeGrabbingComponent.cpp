@@ -1,9 +1,14 @@
 // Copyright Inside Out Games Ltd. 2017
 
 #include "LedgeGrabbingComponent.h"
-#include "Vert.h"
+#include "Components/LedgeComponent.h"
+#include "GameFramework/Character.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Engine/VertGlobals.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogLedgeGrabbingComponent, Log, All);
+
+static constexpr float scTimeToBlockGrab = 0.2f;
 
 // Sets default values for this component's properties
 ULedgeGrabbingComponent::ULedgeGrabbingComponent()
@@ -16,11 +21,13 @@ ULedgeGrabbingComponent::ULedgeGrabbingComponent()
 	bGenerateOverlapEvents = true;
 	SetCollisionObjectType(ECC_SphereTracer);
 	SetCollisionResponseToAllChannels(ECR_Ignore);
-	//SetCollisionResponseToChannel(ECC_LedgeTracer, ECR_Block);
 	SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
 	CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 
 	TraceChannel = ECC_LedgeTracer;
+
+	OnComponentBeginOverlap.AddUniqueDynamic(this, &ULedgeGrabbingComponent::OnBeginOverlap);
+	OnComponentEndOverlap.AddUniqueDynamic(this, &ULedgeGrabbingComponent::OnEndOverlap);
 }
 
 // Called every frame
@@ -50,11 +57,8 @@ void ULedgeGrabbingComponent::BeginPlay()
 	if (ACharacter* character = Cast<ACharacter>(GetOwner()))
 	{
 		mCharacterOwner = character;
-		InputDelayTimer.BindAlarm(this, TEXT("StopLerping"));
+		InputDelayTimer.BindAlarm(this, TEXT("EndTransition"));
 		InputDelayTimer.Reset();
-
-		OnComponentBeginOverlap.AddUniqueDynamic(this, &ULedgeGrabbingComponent::OnBeginOverlap);
-		OnComponentEndOverlap.AddUniqueDynamic(this, &ULedgeGrabbingComponent::OnEndOverlap);
 	}
 	else { UE_LOG(LogLedgeGrabbingComponent, Error, TEXT("[%s] not attached to ACharacter, functionality may be dimished and crashes may occur."), *GetName()); }
 }
@@ -78,7 +82,7 @@ void ULedgeGrabbingComponent::LerpToLedge(float deltaTime)
 	}
 
 #if ENABLE_DRAW_DEBUG
-	if (mShowDebug)
+	if (ShowDebug)
 	{
 		DrawDebugPoint(GetWorld(), FVector(mLerpTarget.X, mLerpTarget.Y - 100.f, mLerpTarget.Z), 32.f, FColor::Black, false, -1.f, 100);
 	}
@@ -132,7 +136,7 @@ void ULedgeGrabbingComponent::OnEndOverlap(UPrimitiveComponent* overlappedComp, 
 // Returns:   void
 // Qualifier:
 //************************************
-void ULedgeGrabbingComponent::StopLerping()
+void ULedgeGrabbingComponent::EndTransition()
 {
 	mTransitioning = false;
 }
@@ -149,10 +153,16 @@ bool ULedgeGrabbingComponent::ShouldGrabLedge(const FVector& ledgeHeight) const
 {
 	if (InGrabbingRange(ledgeHeight) && !mClimbingLedge)
 	{
-		static constexpr float scVelocity_Threshold = 10.0f;
+		static constexpr float scVelocity_Threshold = 0.0f;
 
 		if (mCharacterOwner.IsValid())
 		{
+			if (AVertCharacter* vertGuy = Cast<AVertCharacter>(mCharacterOwner.Get()))
+			{
+				if (vertGuy->IsGrappling())
+					return false;
+			}
+
 			float upwardsVelocity = mCharacterOwner->GetVelocity().Z;
 
 			if (upwardsVelocity <= scVelocity_Threshold)
@@ -201,21 +211,19 @@ bool ULedgeGrabbingComponent::InGrabbingRange(const FVector& ledgeHeight) const
 //************************************
 bool ULedgeGrabbingComponent::PerformLedgeTrace(const FVector& start, const FVector& end, FHitResult& hit)
 {
-	static const FName sLedgeGrabTrace(TEXT("LedgeGrabTrace"));
+	static const FName scLedgeTraceFromGrapple(TEXT("LedgeTraceFromGrapple"));
 
-	FCollisionQueryParams params(sLedgeGrabTrace, false);
+	FCollisionQueryParams params(scLedgeTraceFromGrapple, false);
 	params.bReturnPhysicalMaterial = true;
 	params.bTraceAsyncScene = false;
 	params.bFindInitialOverlaps = false;
-	params.AddIgnoredActors(ActorsToIgnore);
 	params.AddIgnoredActor(GetOwner());
 
 	UWorld* world = GetWorld();
-
 	const bool foundHit = world->SweepSingleByChannel(hit, start, end, FQuat::Identity, TraceChannel, FCollisionShape::MakeSphere(TraceRadius), params);
 
 #if ENABLE_DRAW_DEBUG
-	if (mShowDebug)
+	if (ShowDebug)
 	{
 		if (foundHit && hit.bBlockingHit)
 		{
@@ -281,6 +289,9 @@ bool ULedgeGrabbingComponent::TraceForUpwardLedge(FHitResult& hit)
 //************************************
 void ULedgeGrabbingComponent::GrabLedge(const FHitResult& forwardHit, const FHitResult& downwardHit, bool freshGrab /*= true*/)
 {
+	if (GetWorld()->GetTimerManager().IsTimerActive(mTimerHandle_GrabBlock))
+		return;
+
 	mLastLedgeHeight = downwardHit.ImpactPoint;
 	
 	float radius = mCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleRadius();
@@ -289,13 +300,13 @@ void ULedgeGrabbingComponent::GrabLedge(const FHitResult& forwardHit, const FHit
 	FVector playerOffset = FVector(radius, 0.f, 0.f) * forwardHit.ImpactNormal;
 	mLerpTarget = playerOffset + FVector(
 		forwardHit.ImpactPoint.X,
-		forwardHit.ImpactPoint.Y,
+		mCharacterOwner->GetActorLocation().Y,
 		downwardHit.ImpactPoint.Z - halfHeight + GrabHeightOffset
 	);
 
-	FRotator targetRotation = (forwardHit.ImpactPoint - mCharacterOwner->GetActorLocation()).Rotation();
+	FRotator targetRotation = (-forwardHit.ImpactNormal).Rotation();
 	targetRotation.Pitch = 0;
-	mCharacterOwner->SetActorRotation(targetRotation);
+	mCharacterOwner->GetController()->SetControlRotation(targetRotation);
 	mCharacterOwner->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
 	mCharacterOwner->GetCharacterMovement()->StopMovementImmediately();
 
@@ -311,6 +322,20 @@ void ULedgeGrabbingComponent::GrabLedge(const FHitResult& forwardHit, const FHit
 		mLerping = true;
 		mTransitioning = true;
 		InputDelayTimer.Start();
+
+		if (forwardHit.Component.IsValid())
+		{
+			if (ULedgeComponent* ledge = Cast<ULedgeComponent>(forwardHit.Component.Get()))
+			{
+				mCurrentLedge = ledge;
+				mCurrentLedge->GrabbedBy(this);
+			}
+		}
+
+		if (GrabLedgeSound)
+		{
+			UAkGameplayStatics::PostEvent(GrabLedgeSound, GetOwner());
+		}
 	}
 }
 
@@ -340,9 +365,38 @@ void ULedgeGrabbingComponent::DropLedge()
 	if (mClimbingLedge && mCharacterOwner.IsValid())
 	{
 		UE_LOG(LogLedgeGrabbingComponent, Log, TEXT("%s dropping ledge."), *mCharacterOwner->GetName());
-		mCharacterOwner->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 		mClimbingLedge = false;
 		mTransitioning = false;
+
+		if (AVertCharacter* vc = Cast<AVertCharacter>(mCharacterOwner.Get()))
+		{
+			if (vc->IsGrappling())
+			{
+				mCharacterOwner->GetCharacterMovement()->SetMovementMode(MOVE_Custom, UI_MOVE_GrappleFall);
+			}
+			else
+			{
+				mCharacterOwner->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+			}
+		}
+		else
+		{
+			mCharacterOwner->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		}
+
+		if (mCurrentLedge.IsValid())
+		{
+			mCurrentLedge->DroppedBy(this);
+			mCurrentLedge = nullptr;
+		}
+
+		GetWorld()->GetTimerManager().SetTimer(mTimerHandle_GrabBlock, scTimeToBlockGrab, false);
+
+		if (mWantsAttack)
+		{
+			WantsToAttack.Broadcast();
+			mWantsAttack = false;
+		}
 	}
 	else {
 		UE_LOG(LogLedgeGrabbingComponent, Warning, TEXT("%s can't drop ledge while not climbing, check call."), *GetName());
@@ -361,42 +415,46 @@ void ULedgeGrabbingComponent::TransitionLedge(ELedgeTransition transition)
 {
 	if (!mTransitioning && mClimbingLedge)
 	{
+		mTransitioning = true;
 		mLerping = false;
 		InputDelayTimer.Reset();
 
 		switch (transition)
 		{
+		case ELedgeTransition::AttackFromGrabbedLedge:
+			mWantsAttack = true;
+			// Fall through to climb-up
 		case ELedgeTransition::ClimbUpLedge:
-			// Root motion animation, wait for notify to finish.
-			DropLedge();
-			break;
-		case ELedgeTransition::JumpAwayFromGrabbedLedge:
-			DropLedge();
-			break;
+			if (ClimbSound)
+			{
+				UAkGameplayStatics::PostEvent(ClimbSound, GetOwner());
+			}
+
+			if (UseRootMotion)
+			{
+				// Root motion animation, wait for notify to finish.
+				break;
+			}
+			// Else fall through to jump			
+		case ELedgeTransition::JumpAwayFromGrabbedLedge:	
+			// No implementation yet, fall through to jump.
 		case ELedgeTransition::LaunchFromGrabbedLedge:
 			mLaunchingFromLedge = true;
 			mCharacterOwner->Jump();
 
-			GetWorld()->GetTimerManager().SetTimer(mLaunchingTimerHandle, [this]() -> void {
-				UE_LOG(LogTemp, Warning, TEXT("Launch Ended"));
+			GetWorld()->GetTimerManager().SetTimer(mTimerHandle_Launching, [this]() -> void {
 				mLaunchingFromLedge = false;
 				mCharacterOwner->StopJumping();
 			}, mCharacterOwner->GetJumpMaxHoldTime(), false);
 			
 			DropLedge();
 			break;
-		case ELedgeTransition::AttackFromGrabbedLedge:
-			// Root motion animation + attack at end
-			DropLedge();
-			break;
 		case ELedgeTransition::DamagedOnGrabbedLedge: // intentionally fall through
-			// Hitstun and Drop
 		case ELedgeTransition::DropFromGrabbedLedge:
 			DropLedge();
 			break;
 		}
-
-		//mTransitioning = true;
+		
 		OnLedgeTransition.Broadcast(transition);
 	}
 }
@@ -411,9 +469,9 @@ void ULedgeGrabbingComponent::TransitionLedge(ELedgeTransition transition)
 void ULedgeGrabbingComponent::CancelLaunchFromLedge()
 {
 	mLaunchingFromLedge = false;
-	if (GetWorld()->GetTimerManager().IsTimerActive(mLaunchingTimerHandle))
+	if (GetWorld()->GetTimerManager().IsTimerActive(mTimerHandle_Launching))
 	{
-		GetWorld()->GetTimerManager().ClearTimer(mLaunchingTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(mTimerHandle_Launching);
 	}
 }
 
@@ -435,16 +493,4 @@ FVector ULedgeGrabbingComponent::GetLedgeDirection(EAimFreedom freedom /* = EAim
 	}
 
 	return direction;
-}
-
-//************************************
-// Method:    DrawDebugInfo
-// FullName:  ULedgeGrabbingComponent::DrawDebugInfo
-// Access:    virtual protected 
-// Returns:   void
-// Qualifier:
-//************************************
-void ULedgeGrabbingComponent::DrawDebugInfo()
-{
-
 }

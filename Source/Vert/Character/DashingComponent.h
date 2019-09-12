@@ -34,12 +34,6 @@ class VERT_API UDashingComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-	struct FCurrentDash
-	{
-		FVector Direction = FVector::ZeroVector;
-		float DistanceTravelled = 0;
-	};
-
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Speed")
 	float LaunchForce = 2000.f;
@@ -75,11 +69,16 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnDashEndedDelegate OnDashEnd;
 
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+	class UAkAudioEvent* DashSound = nullptr;
+
 public:	
 	// Sets default values for this component's properties
 	UDashingComponent();
 
 	void OnLanded();
+	void StopDashing();
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -90,10 +89,7 @@ public:
 	FORCEINLINE int32 GetRemainingDashes() const { return mRemainingDashes; }
 
 	UFUNCTION(BlueprintCallable, Category = "Dash")
-	bool ExecuteGroundDash(FVector& outDirection);
-
-	UFUNCTION(BlueprintCallable, Category = "Dash")
-	bool ExecuteGrappleDash(FVector& outDirecton);
+	bool ExecuteDash(FVector& outDirection);
 
 protected:
 	// Called when the game starts
@@ -116,9 +112,6 @@ private:
 	UFUNCTION()
 	void CooldownEnded();
 
-	UFUNCTION()
-	void AirSlowdownTimerEnded();
-
 private:
 	TWeakObjectPtr<class AVertCharacter> mCharacterOwner = nullptr;
 
@@ -126,4 +119,9 @@ private:
 	bool mOnCooldown = false;
 	bool mIsGroundDash = true;
 	int32 mRemainingDashes = 0;
+	FVector mCurrentDashDirection = FVector::ZeroVector;
+
+	FTimerHandle mTimerHandle_Dash;
+	FTimerHandle mTimerHandle_Cooldown;
+	FTimerHandle mTimerHandle_AirSlowdown;
 };

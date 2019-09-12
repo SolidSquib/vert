@@ -42,16 +42,17 @@ void UHealthComponent::BeginPlay()
 //************************************
 int32 UHealthComponent::DealDamage(float DamageTaken, const FDamageEvent& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser)
 {
-	check(mCharacterOwner.IsValid());
+	if (!mCharacterOwner.IsValid())
+		return 0;
 	
 	const AVertGameMode* Game = GetWorld()->GetAuthGameMode<AVertGameMode>();
-	DamageTaken = Game ? Game->ModifyDamage(DamageTaken, GetOwner(), DamageEvent, PawnInstigator->GetController(), DamageCauser) : 0.f;
+	DamageTaken = Game ? Game->ModifyDamage(DamageTaken, GetOwner(), DamageEvent, PawnInstigator ? PawnInstigator->GetController() : nullptr, DamageCauser) : 0.f;
 
 	PlayHit(DamageTaken, DamageEvent, PawnInstigator, DamageCauser);
 	mCharacterOwner->MakeNoise(1.0f, PawnInstigator ? PawnInstigator : mCharacterOwner.Get());
 	
 	SetDamageTaken(mDamageTaken + DamageTaken);
-
+	
 	return mDamageTaken;
 }
 
@@ -150,7 +151,7 @@ void UHealthComponent::PlayHit(float DamageTaken, const FDamageEvent& DamageEven
 
 	if (DamageTaken > 0.f)
 	{
-		if (const ABaseWeapon* weapon = Cast<ABaseWeapon>(DamageCauser))
+		if (DamageEvent.IsOfType(FVertRadialDamageEvent::ClassID) || DamageEvent.IsOfType(FVertPointDamageEvent::ClassID))
 		{
 			//LaunchCharacter(DamageEvent, weapon);
 			mCharacterOwner->ApplyDamageMomentum(DamageTaken, DamageEvent, PawnInstigator, DamageCauser);
@@ -189,7 +190,7 @@ void UHealthComponent::ReplicateHit(float Damage, const FDamageEvent& DamageEven
 	}
 
 	LastTakeHitInfo.ActualDamage = Damage;
-	LastTakeHitInfo.PawnInstigator = Cast<AVertCharacter>(PawnInstigator);
+	LastTakeHitInfo.PawnInstigator = Cast<AVertCharacterBase>(PawnInstigator);
 	LastTakeHitInfo.DamageCauser = DamageCauser;
 	LastTakeHitInfo.SetDamageEvent(DamageEvent);
 	LastTakeHitInfo.bKilled = bKilled;

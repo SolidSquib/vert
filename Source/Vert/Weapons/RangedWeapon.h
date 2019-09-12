@@ -53,8 +53,11 @@ protected:
 	FRangedWeaponSpreadConfig SpreadConfig;
 
 	/** name of bone/socket for muzzle in weapon mesh */
-	UPROPERTY(EditDefaultsOnly, Category = Effects)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Effects)
 	FName MuzzleAttachPoint;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+	class UAkAudioEvent* ReloadSound = nullptr;
 
 	/** FX for muzzle flash */
 	UPROPERTY(EditDefaultsOnly, Category = Effects)
@@ -67,9 +70,6 @@ protected:
 	/** spawned component for second muzzle FX (Needed for split screen) */
 	UPROPERTY(Transient)
 	UParticleSystemComponent* MuzzlePSCSecondary;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Config)
-	FWeaponAnim RecoilAnim;
 
 	/** is muzzle FX looped? */
 	UPROPERTY(EditDefaultsOnly, Category = Effects)
@@ -90,10 +90,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Aim")
 	virtual FVector GetAdjustedAim() const;
 
-	UFUNCTION(BlueprintCallable, Category = "Animation")
-	UAnimSequence* GetRecoilAnim() const;
-
-protected:	
+protected:
+	virtual void StartReload(bool bFromReplication = false) override;
 	virtual FVector GetShootDirectionAfterSpread(const FVector& aimDirection, int32& outRandomSeed, float& outCurrentSpread);
 	virtual void OnBurstFinished() override; /** [local + server] update spread on firing */
 	virtual void ClientSimulateWeaponAttack_Implementation() override;

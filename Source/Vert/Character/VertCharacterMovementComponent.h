@@ -14,29 +14,34 @@ class VERT_API UVertCharacterMovementComponent : public UCharacterMovementCompon
 	GENERATED_BODY()
 
 public:
-	void AddGrappleLineForce(const float desiredLineLength, const float actualLineLength, const FVector& direction, const float k, const float b);
-	void AddGrappleLineForce(const FVector& desiredLineLength, const FVector& actualLineLength, const float k, const float b);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Debug)
+	bool ShowDebug = false;
+
+public:
+	FVector DetermineVelocityAfterGravityForGrapple(const FVector& initialVelocity, const FVector& gravity, float deltaTime) const;
 
 	virtual bool DoJump(bool replayingMoves) override;
 	virtual void BeginPlay() override;
-	
-	UFUNCTION(BlueprintCallable)
-	void AlterAirLateralFriction(float newFriction);
+	virtual bool IsFalling() const override;
+	virtual bool IsMovingOnGround() const override;
+	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
+	virtual void SetPostLandedPhysics(const FHitResult& Hit) override;
+	virtual void StartFalling(int32 Iterations, float remainingTime, float timeTick, const FVector& Delta, const FVector& subLoc) override;
 
-	FORCEINLINE UFUNCTION(BlueprintCallable)
-	void DisableGravity() { mSavedGravityScale = GravityScale; GravityScale = 0.0f; }
+	UFUNCTION(BlueprintCallable, Category = "Pawn|Components|CharacterMovement")
+	virtual void SetMovementMode(EMovementMode NewMovementMode, uint8 NewCustomMode = 0) override;
 
-	FORCEINLINE UFUNCTION(BlueprintCallable)
-	void DisableGroundFriction() { mSavedGroundFriction = GroundFriction; GroundFriction = 0.0f; }
+	UFUNCTION(BlueprintCallable, Category = "Friction")
+	virtual void SetDashFrictionForTime(float time, bool disableGravity = false);
 
-	FORCEINLINE UFUNCTION(BlueprintCallable)
-	void ResetAirLateralFriction() { FallingLateralFriction = mSavedAirLateralFriction; }
-
-	FORCEINLINE UFUNCTION(BlueprintCallable)
-	void EnableGravity() { GravityScale = mSavedGravityScale; }
-
-	FORCEINLINE UFUNCTION(BlueprintCallable)
-	void EnableGroundFriction() { GroundFriction = mSavedGroundFriction; }
+protected:
+	virtual void PhysClimbing(float deltaTime, int32 iterations);
+	virtual void PhysGrappling(float deltaTime, int32 iterations);
+	virtual void PhysGrappleFalling(float deltaTime, int32 iterations);
+	virtual void CorrectGrapplePosition();
+	virtual void DashFrictionEnded();
+	virtual void DashFrictionCorrectionEnded();
+	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
 
 private:
 	TWeakObjectPtr<class UGrapplingComponent> mGrapplingComponent = nullptr;
@@ -46,10 +51,14 @@ private:
 	float mCurrentGrappleLengthSqr = 0.f;
 	bool mIsGrappling = false;
 	bool mIsGrappleLatched = false;
-	float mSavedGravityScale = 1.f;
-	float mSavedGroundFriction = 3.0f;
-	float mSavedAirLateralFriction = 0.f;
 	float mStartingGravityScale = 1.f;
 	float mStartingGroundFriction = 3.0f;
 	float mStartingAirLateralFriction = 0.f;
+
+	FVector storedSwingDirection = FVector::ZeroVector;
+	float storedMagnitude = 0;
+	float lerpSpeed = 100.f;
+
+	FTimerHandle mTimerHandle_Friction;
+	FTimerHandle mTimerHandle_PostDash;
 };

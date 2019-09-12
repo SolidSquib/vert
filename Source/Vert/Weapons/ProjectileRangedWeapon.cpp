@@ -4,7 +4,10 @@
 #include "Vert.h"
 #include "Weapons/WeaponProjectile.h"
 
-AProjectileRangedWeapon::AProjectileRangedWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+DECLARE_LOG_CATEGORY_CLASS(LogVertProjectileRangedWeapon, Log, All);
+
+AProjectileRangedWeapon::AProjectileRangedWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer),
+	ProjectileClass(AWeaponProjectile::StaticClass())
 {
 }
 
@@ -30,9 +33,21 @@ bool AProjectileRangedWeapon::AttackWithWeapon_Implementation()
 
 	mCurrentFiringSpread = FMath::Min(SpreadConfig.FiringSpreadMax, mCurrentFiringSpread + SpreadConfig.FiringSpreadIncrement);
 
-	Delegate_OnWeaponFiredWithRecoil.Broadcast(SpreadConfig.RecoilAmount);
+	WeaponAttackFire(SpreadConfig.RecoilAmount);
 
 	return true;
+}
+
+//************************************
+// Method:    GetProjectileClass
+// FullName:  AProjectileRangedWeapon::GetProjectileClass
+// Access:    public 
+// Returns:   TSubclassOf<AWeaponProjectile>
+// Qualifier: const
+//************************************
+TSubclassOf<AWeaponProjectile> AProjectileRangedWeapon::GetProjectileClass() const
+{
+	return ProjectileClass;
 }
 
 //************************************
@@ -60,39 +75,26 @@ bool AProjectileRangedWeapon::ServerFireProjectile_Validate(FVector Origin, FVec
 //************************************
 void AProjectileRangedWeapon::ServerFireProjectile_Implementation(FVector Origin, FVector_NetQuantizeNormal ShootDir)
 {
-	FTransform SpawnTM(ShootDir.Rotation(), Origin);
-	AWeaponProjectile* Projectile = Cast<AWeaponProjectile>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, ProjectileConfig.ProjectileClass, SpawnTM));
-	if (Projectile)
+	if (ProjectileClass == nullptr)
 	{
-		Projectile->Instigator = Instigator;
-		Projectile->SetOwner(this);
-		Projectile->InitVelocity(ShootDir);
-
-		UGameplayStatics::FinishSpawningActor(Projectile, SpawnTM);
+		UE_LOG(LogVertProjectileRangedWeapon, Warning, TEXT("Projectile class not set in weapon %s."), *GetClass()->GetName());
+		return;
 	}
-}
 
-//************************************
-// Method:    ApplyWeaponConfig
-// FullName:  AProjectileRangedWeapon::ApplyWeaponConfig
-// Access:    public 
-// Returns:   void
-// Qualifier:
-// Parameter: FProjectileWeaponData & Data
-//************************************
-void AProjectileRangedWeapon::ApplyWeaponConfig(FProjectileWeaponData& Data)
-{
-	Data = ProjectileConfig;
-}
+	FTransform SpawnTM(ShootDir.Rotation(), Origin);
 
-//************************************
-// Method:    GetWeaponType_Implementation
-// FullName:  AProjectileRangedWeapon::GetWeaponType_Implementation
-// Access:    virtual protected 
-// Returns:   UClass*
-// Qualifier: const
-//************************************
-UClass* AProjectileRangedWeapon::GetWeaponType_Implementation() const
-{
-	return AProjectileRangedWeapon::StaticClass();
+	if (AVertGameMode* gm = GetWorld()->GetAuthGameMode<AVertGameMode>())
+	{
+		if (AWeaponProjectile* Projectile = gm->RequestProjectileSpawn(ProjectileClass, SpawnTM, this))
+		{
+			Projectile->SetOwner(this);
+			Projectile->Instigator = Instigator;
+			Projectile->InitProjectile(ProjectileConfig, WeaponConfig.BaseDamage, WeaponConfig.BaseKnockback, WeaponConfig.KnockbackScaling, WeaponConfig.StunTime);
+			Projectile->InitVelocity(ShootDir);
+		}
+		else
+		{
+			UE_LOG(LogVertProjectileRangedWeapon, Error, TEXT("Projectile pool for class %s does not exist in game mode."), *ProjectileClass->GetName())
+		}
+	}
 }

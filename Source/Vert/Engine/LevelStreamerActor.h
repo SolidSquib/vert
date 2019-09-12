@@ -13,7 +13,7 @@ class VERT_API ALevelStreamerActor : public AActor
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FName LevelToLoad;
+	TArray<FName> LevelsToLoad;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool DieOnUnload = false;
@@ -28,6 +28,8 @@ public:
 	ALevelStreamerActor();
 
 protected:
+	virtual void PostInitializeComponents() override;
+
 	UFUNCTION()
 	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 

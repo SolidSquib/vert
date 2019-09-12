@@ -1,0 +1,46 @@
+{
+	"FileVersion" : 3,
+	"Version" : 1,
+	"VersionName" : "1.3.5",
+	"FriendlyName" : "Object Pool Component",
+	"Description" : "The classes implemented by this plugin builds for you a fully working Object Pool system super easy to use.",
+	"Category" : "Runtime",
+	"CreatedBy" : "(C) Bruno Xavier Leite",
+	"CreatedByURL" : "http://brunoxavierleite.com",
+	"DocsURL" : "https://forums.unrealengine.com/showthread.php?132287-Plugin-Object-Pool-Component",
+	"MarketplaceURL" : "com.epicgames.launcher://ue/marketplace/content/e3c6aea892b748eb9e2241b9c4b74d36",
+	"SupportURL" : "mailto:bruno_xavier_@msn.com",
+	"EngineVersion" : "4.16.0",
+	"CanContainContent" : true,
+	"IsBetaVersion" : false,
+	"Installed" : true,
+	"RequiresBuildPlatform" : false,
+	"Modules" :
+	[
+		{
+			"Name" : "OBJPool",
+			"Type" : "Runtime",
+			"LoadingPhase" : "PreDefault",
+			"WhitelistPlatforms" :
+			[
+				"Win64",
+				"Win32",
+				"Linux",
+				"Mac",
+				"IOS",
+				"Android"
+			]
+		},
+		{
+			"Name" : "OBJPoolEditor",
+			"Type" : "Editor",
+			"LoadingPhase" : "PostEngineInit",
+			"WhitelistPlatforms" :
+			[
+				"Win64",
+				"Linux",
+				"Mac"
+			]
+		}
+	]
+}

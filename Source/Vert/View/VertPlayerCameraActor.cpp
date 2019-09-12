@@ -1,8 +1,8 @@
 // Copyright Inside Out Games Ltd. 2017
 
 #include "VertPlayerCameraActor.h"
-#include "Vert.h"
 #include "Kismet/KismetTextLibrary.h"
+#include "AkComponent.h"
 
 DEFINE_LOG_CATEGORY(LogVertPlayerCamera);
 
@@ -13,8 +13,12 @@ AVertPlayerCameraActor::AVertPlayerCameraActor()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
-	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	SetRootComponent(SceneRoot);
+	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComponent"));
+	SetRootComponent(SphereCollision);
+	SphereCollision->SetCollisionObjectType(ECC_CameraPlaceholder);
+	SphereCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+	SphereCollision->SetCollisionResponseToChannel(ECC_StreamingBounds, ECR_Overlap);
+	SphereCollision->bGenerateOverlapEvents = true;
 
 	// Create a camera boom attached to the root (capsule)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -33,25 +37,94 @@ AVertPlayerCameraActor::AVertPlayerCameraActor()
 
 	// Prevent all automatic rotation behavior on the camera, character, and camera component
 	CameraBoom->bAbsoluteRotation = true;
-
 }
 
+//************************************
+// Method:    ActivateCamera
+// FullName:  AVertPlayerCameraActor::ActivateCamera
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertPlayerCameraActor::ActivateCamera()
 {
 	SetActorTickEnabled(true);
-	OnCameraBecomeActive.Broadcast();
+	OnCameraBecomeActive.Broadcast(this);
+	mIsCameraActive = true;
+
+	if (CameraSpline)
+	{
+		SetActorLocation(CameraSpline->GetLocationAtTime(0, ESplineCoordinateSpace::World, true));
+	}
+
+	if (OnTimer && TimerValue > 0.0001f)
+	{
+		NotifyReachedEndOnManualSpline = false;
+		AVertGameMode* gm = GetWorld()->GetAuthGameMode<AVertGameMode>();
+		if (gm)
+		{
+			gm->OnTimerExpired.AddDynamic(this, &AVertPlayerCameraActor::OnTimerExpired);
+			gm->StartTimer(TimerValue, true, true);
+		}
+	}
 }
 
+//************************************
+// Method:    OnTimerExpired
+// FullName:  AVertPlayerCameraActor::OnTimerExpired
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertPlayerCameraActor::OnTimerExpired()
+{
+	if (AVertGameMode* gameMode = GetWorld()->GetAuthGameMode<AVertGameMode>())
+	{
+		gameMode->OnTimerExpired.RemoveDynamic(this, &AVertPlayerCameraActor::OnTimerExpired);
+	}
+
+	IsAutoSpline = true;
+}
+
+//************************************
+// Method:    DeactivateCamera
+// FullName:  AVertPlayerCameraActor::DeactivateCamera
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertPlayerCameraActor::DeactivateCamera()
 {
 	SetActorTickEnabled(false);
-	OnCameraBecomeInactive.Broadcast();
+	OnCameraBecomeInactive.Broadcast(this);
+	mIsCameraActive = false;
+
+	//if (WwiseAudioComponent)
+	//{
+	//	WwiseAudioComponent->DestroyComponent();
+	//	WwiseAudioComponent = nullptr;
+	//}
+}
+
+//************************************
+// Method:    SetArmLength
+// FullName:  AVertPlayerCameraActor::SetArmLength
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: float armLength
+//************************************
+void AVertPlayerCameraActor::SetArmLength(float armLength)
+{
+	CameraBoom->TargetArmLength = armLength;
 }
 
 // Called when the game starts or when spawned
 void AVertPlayerCameraActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	mTargetLocation = GetActorLocation();
 
 	PlayerSpline = (PlayerSpline) ? PlayerSpline : ((CameraSpline) ? CameraSpline : nullptr);
 	CameraSpline = (CameraSpline) ? CameraSpline : ((PlayerSpline) ? PlayerSpline : nullptr);
@@ -61,10 +134,17 @@ void AVertPlayerCameraActor::BeginPlay()
 	// calculate the actual movement speed based on the spline's length
 	if (CameraSpline)
 	{
+		SetActorLocation(CameraSpline->GetLocationAtTime(0, ESplineCoordinateSpace::World, true));
 		SetCameraSplineSpeed(AutoSplineSpeed);
+		SetLeaderFollowThreshold(LeaderFollowThreshold);
 	}
 
 	SetupDebugNumbers();
+}
+
+void AVertPlayerCameraActor::PostLoad()
+{
+	Super::PostLoad();
 }
 
 // Called every frame
@@ -73,7 +153,8 @@ void AVertPlayerCameraActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// Find the mean location of the pawns we wish to follow
-	UpdateTargetCameraPosition();
+	if(!IgnorePlayers)
+		UpdateTargetCameraPosition();
 
 	// If we have any splines attached to this camera, figure out the new desired location from them.
 	if (CameraSpline != nullptr || PlayerSpline != nullptr)
@@ -82,35 +163,63 @@ void AVertPlayerCameraActor::Tick(float DeltaTime)
 
 		if (mHasReachedEnd&&StopAtEnd)
 		{
-			zoomTarget = MakePositionVectorForSpline(CameraSpline->GetLocationAtTime(1.f, ESplineCoordinateSpace::World, ConstantVelocity));
-			
+			zoomTarget = MakePositionVectorForSpline(CameraSpline->GetLocationAtTime(1.f, ESplineCoordinateSpace::World, ConstantVelocity));			
 		}		
 		else if (IsAutoSpline) // Automatically move the camera along a spline according to the speed.
 		{
 			mSplineCurrentTime = FMath::FInterpConstantTo(mSplineCurrentTime, 1.f, DeltaTime, mActualSplineSpeed);
+
+			if (FollowTheLeader)
+			{
+				float furthestTime = 0;
+				const TArray<AActor*>& actors = mActiveGameMode->GetFollowedActors();
+
+				// check the 'would-be' time for each pawn in the follow list
+				for (auto actor : actors)
+				{
+					if (APawn* pawn = Cast<APawn>(actor))
+					{
+						float time = RecursiveDistanceCheck(SplineIterationMax, 0.f, 1.f, pawn->GetActorLocation());
+						if (time > furthestTime)
+						{
+							furthestTime = time;
+						}
+					}
+				}
+
+				// Check against the threshold to see whether we should use the standard target or the leader's
+				float difference = furthestTime - (mSplineCurrentTime + mActualLeaderThreshold);
+				if (difference > 0 && difference < FollowDiscrepancyThreshold)
+				{
+					//mSplineCurrentTime += difference;
+					mSplineCurrentTime = FMath::FInterpTo(mSplineCurrentTime, mSplineCurrentTime + difference, DeltaTime, InterpSpeed);
+				}
+			}
+			
 			zoomTarget = MakePositionVectorForSpline(CameraSpline->GetLocationAtTime(mSplineCurrentTime, ESplineCoordinateSpace::World, ConstantVelocity));
 		}
 		else
 		{
-			mSplineDesiredTime = RecursiveDistanceCheck(SplineIterationMax, 0.f, 1.f);
+			mSplineDesiredTime = RecursiveDistanceCheck(SplineIterationMax, 0.f, 1.f, mTargetLocation);
 			zoomTarget = MakePositionVectorForSpline(UpdateDesiredTime(DeltaTime));
 		}
 		
 		UpdateCamera(DeltaTime, zoomTarget);
-		UpdateCameraZoom(DeltaTime, zoomTarget);
+		if(!IgnorePlayers)
+			UpdateCameraZoom(DeltaTime, zoomTarget);
 		DebugSplineMovement();
+
+		if (!mHasReachedEnd && mSplineCurrentTime >= 1.f && (IsAutoSpline || NotifyReachedEndOnManualSpline))
+		{
+			OnCameraReachEndOfTrack.Broadcast(this);
+			mHasReachedEnd = true;
+		}
 	}
 	else 
 	{
 		UpdateCamera(DeltaTime);
-		UpdateCameraZoom(DeltaTime, mTargetLocation);
-	}
-
-	
-	if (LockPawnsToBounds)
-	{
-		int i = 0; // placeholder
-		// CorrectPawnPositions(largestDistance);
+		if (!IgnorePlayers)
+			UpdateCameraZoom(DeltaTime, mTargetLocation);
 	}
 }
 
@@ -126,31 +235,35 @@ void AVertPlayerCameraActor::Tick(float DeltaTime)
 //************************************
 void AVertPlayerCameraActor::UpdateTargetCameraPosition()
 {
-	const TArray<APawn*>& pawns = mActiveGameMode->GetFollowedActors();
+	const TArray<AActor*>& actors = mActiveGameMode->GetFollowedActors();
 
-	if (mPawnOverride > -1)
+	if (mActorOverride > -1)
 	{
-		if (pawns.Num() > mPawnOverride)
+		if (actors.Num() > mActorOverride)
 		{
-			SetActorLocation(pawns[mPawnOverride]->GetActorLocation());
+			SetActorLocation(actors[mActorOverride]->GetActorLocation());
 			CameraBoom->TargetArmLength = (mZoomOverride > -1) ? mZoomOverride : 1000.f;
 		} else { UE_LOG(LogVertPlayerCamera, Error, TEXT("Overriden pawn does not exist in array.")); }
 	}
-	else
+	else if(actors.Num() > 0)
 	{
 		FVector meanLocation = FVector::ZeroVector;
 		float largestSquareH = 0;
 		float largestSquareV = 0;
 
-		for (APawn* pawn : pawns)
+		for (AActor* actor : actors)
 		{
-			// Add the new pawn's location to the current value
-			meanLocation += pawn->GetActorLocation();
+			check(actor);
+			meanLocation += actor->GetActorLocation();
 		}
 		// determine the average location and set this actors position to that (in the center of all pawns)
-		meanLocation /= pawns.Num();
+		meanLocation /= actors.Num();
 		mTargetLocation = meanLocation;
-	}	
+	}
+	else
+	{
+		mTargetLocation = GetActorLocation();
+	}
 }
 
 //************************************
@@ -162,21 +275,28 @@ void AVertPlayerCameraActor::UpdateTargetCameraPosition()
 //************************************
 void AVertPlayerCameraActor::UpdateCameraZoom(float deltaTime, const FVector& zoomTarget)
 {
-	const TArray<APawn*>& pawns = mActiveGameMode->GetFollowedActors();
+	const TArray<AActor*>& actors = mActiveGameMode->GetFollowedActors();
 
 	if (mZoomOverride < 0)
 	{
 		float largestSquareH = 0, largestSquareV = 0;
 
 		// Find the largest distance (vertical and horizontal) from each pawn to the desired camera location
-		for (APawn* pawn : pawns)
+		for (AActor* actor : actors)
 		{
-			FVector distance = zoomTarget - pawn->GetActorLocation();
+			FVector distance = zoomTarget - actor->GetActorLocation();
 			FVector horizontal = FVector::CrossProduct(distance, CameraComponent->GetUpVector());
 			FVector vertical = FVector::CrossProduct(distance, CameraComponent->GetRightVector());
 
 			largestSquareH = FMath::Max(horizontal.SizeSquared(), largestSquareH);
 			largestSquareV = FMath::Max(vertical.SizeSquared(), largestSquareV);
+
+			// Show picture in picture if character is out of camera bounds
+			if (!actor->WasRecentlyRendered())
+			{
+				// Cast to vert character
+				// display picture in picture if alive
+			}
 		}
 
 		// Determine the final length of the largest two distances, used for camera zoom
@@ -201,17 +321,17 @@ void AVertPlayerCameraActor::UpdateCameraZoom(float deltaTime, const FVector& zo
 //************************************
 void AVertPlayerCameraActor::CorrectPawnPositions(const FVector& largestDistance)
 {
-	const TArray<APawn*>& pawns = mActiveGameMode->GetFollowedActors();
+	const TArray<AActor*>& actors = mActiveGameMode->GetFollowedActors();
 
 	UE_LOG(LogVertPlayerCamera, Warning, TEXT("Function not fully implemented, behaviour may be undesirable."));
 
-	for (APawn* pawn : pawns)
+	for (AActor* actor : actors)
 	{
 		FVector clamped = largestDistance.GetClampedToMaxSize(MaximumDistance);
-		FVector targetLocation = (FVector::DotProduct(pawn->GetActorLocation(), CameraComponent->GetRightVector()) > SMALL_NUMBER)
+		FVector targetLocation = (FVector::DotProduct(actor->GetActorLocation(), CameraComponent->GetRightVector()) > SMALL_NUMBER)
 			? GetActorLocation() + (clamped*0.5f)
 			: GetActorLocation() - (clamped*0.5f);
-		pawn->SetActorLocation(targetLocation);
+		actor->SetActorLocation(targetLocation);
 	}
 }
 
@@ -225,7 +345,7 @@ void AVertPlayerCameraActor::CorrectPawnPositions(const FVector& largestDistance
 //************************************
 void AVertPlayerCameraActor::OverridePawnFollow(int32 pawnIndex)
 {
-	mPawnOverride = pawnIndex;
+	mActorOverride = pawnIndex;
 }
 
 //************************************
@@ -326,10 +446,10 @@ void AVertPlayerCameraActor::DebugSplineMovement()
 // Parameter: float startTime
 // Parameter: float endTime
 //************************************
-float AVertPlayerCameraActor::RecursiveDistanceCheck(int iterations, float startTime, float endTime)
+float AVertPlayerCameraActor::RecursiveDistanceCheck(int iterations, float startTime, float endTime, FVector target)
 {
-	float startDistance = (PlayerSpline->GetLocationAtTime(startTime, ESplineCoordinateSpace::World, ConstantVelocity) - mTargetLocation).Size();
-	float endDistance = (PlayerSpline->GetLocationAtTime(endTime, ESplineCoordinateSpace::World, ConstantVelocity) - mTargetLocation).Size();
+	float startDistance = (PlayerSpline->GetLocationAtTime(startTime, ESplineCoordinateSpace::World, ConstantVelocity) - target).Size();
+	float endDistance = (PlayerSpline->GetLocationAtTime(endTime, ESplineCoordinateSpace::World, ConstantVelocity) - target).Size();
 	float best;
 
 	if (startDistance < endDistance)
@@ -348,7 +468,7 @@ float AVertPlayerCameraActor::RecursiveDistanceCheck(int iterations, float start
 			}
 			else
 			{
-				best = RecursiveDistanceCheck(iterations, startTime, UKismetMathLibrary::Lerp(startTime, endTime, 0.5f));
+				best = RecursiveDistanceCheck(iterations, startTime, UKismetMathLibrary::Lerp(startTime, endTime, 0.5f), target);
 			}
 		}
 	}
@@ -368,7 +488,7 @@ float AVertPlayerCameraActor::RecursiveDistanceCheck(int iterations, float start
 			}
 			else
 			{
-				best = RecursiveDistanceCheck(iterations, UKismetMathLibrary::Lerp(startTime, endTime, 0.5f), endTime);
+				best = RecursiveDistanceCheck(iterations, UKismetMathLibrary::Lerp(startTime, endTime, 0.5f), endTime, target);
 			}
 		}
 	}
@@ -386,7 +506,7 @@ float AVertPlayerCameraActor::RecursiveDistanceCheck(int iterations, float start
 //************************************
 FVector AVertPlayerCameraActor::MakePositionVectorForSpline(const FVector& desiredSplineLocation)
 {
-	if (LockX&&LockY&&LockZ)
+	if ((LockX&&LockY&&LockZ) || IgnorePlayers)
 		return desiredSplineLocation;
 
 	FVector diff = (mTargetLocation - desiredSplineLocation);
@@ -430,13 +550,7 @@ FVector AVertPlayerCameraActor::UpdateDesiredTime(float DeltaTime)
 	else
 	{
 		mSplineCurrentTime = FMath::FInterpTo(mSplineCurrentTime, mSplineDesiredTime, DeltaTime, InterpSpeed);
-	}
-
-	if (mSplineCurrentTime >= 1.f)
-	{
-		OnCameraReachEndOfTrack.Broadcast();
-		mHasReachedEnd = true;
-	}		
+	}	
 
 	return CameraSpline->GetLocationAtTime(mSplineCurrentTime, ESplineCoordinateSpace::World, ConstantVelocity);
 }
@@ -483,4 +597,59 @@ void AVertPlayerCameraActor::UpdateCamera(float DeltaTime, const FVector& camera
 void AVertPlayerCameraActor::SetCameraSplineSpeed(float newSpeed)
 {
 	mActualSplineSpeed = newSpeed / CameraSpline->GetSplineLength();
+}
+
+//************************************
+// Method:    SetLeaderFollowThreshold
+// FullName:  AVertPlayerCameraActor::SetLeaderFollowThreshold
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: float newThreshold
+//************************************
+void AVertPlayerCameraActor::SetLeaderFollowThreshold(float newThreshold)
+{
+	mActualLeaderThreshold = newThreshold / CameraSpline->GetSplineLength();
+}
+
+//************************************
+// Method:    OnLeaveKillBounds
+// FullName:  AVertPlayerCameraActor::OnLeaveKillBounds
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: UPrimitiveComponent * overlappedComponent
+// Parameter: AActor * otherActor
+// Parameter: UPrimitiveComponent * otherComp
+// Parameter: int32 otherBodyIndex
+//************************************
+void AVertPlayerCameraActor::OnLeaveKillBounds(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex)
+{
+	UE_LOG(LogVertPlayerCamera, Log, TEXT("Actor overlapped camera bounds for %s"), *GetName());
+
+	if (KillAtEndOfBounds && IsCameraActive())
+	{
+		if (AVertCharacter* character = Cast<AVertCharacter>(otherActor))
+		{
+			// Kill the character that left the bounds.
+			character->Die();
+		}
+		else if (APooledActor* poolActor = Cast<APooledActor>(otherActor))
+		{
+			poolActor->ReturnToPool();
+			UE_LOG(LogVertPlayerCamera, Log, TEXT("Pooled actor %s left kill bounds, returned to pool."), *poolActor->GetName());
+		}
+	}
+}
+
+//************************************
+// Method:    GetCurrentArmLength
+// FullName:  AVertPlayerCameraActor::GetCurrentArmLength
+// Access:    public 
+// Returns:   void
+// Qualifier: const
+//************************************
+float AVertPlayerCameraActor::GetCurrentArmLength() const
+{
+	return CameraBoom->TargetArmLength;
 }

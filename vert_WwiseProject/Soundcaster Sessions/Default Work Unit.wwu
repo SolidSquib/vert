@@ -1,6 +1,1467 @@
 <?xml version="1.0" encoding="utf-8"?>
-<WwiseDocument Type="WorkUnit" ID="{561A11F2-054C-41F1-9569-E4A1712C8765}" SchemaVersion="75">
+<WwiseDocument Type="WorkUnit" ID="{E9F35A87-1813-414D-8E00-FFD82C68704B}" SchemaVersion="75">
 	<SoundcasterSessions>
-		<WorkUnit Name="Default Work Unit" ID="{561A11F2-054C-41F1-9569-E4A1712C8765}" PersistMode="Standalone"/>
+		<WorkUnit Name="Default Work Unit" ID="{E9F35A87-1813-414D-8E00-FFD82C68704B}" PersistMode="Standalone">
+			<ChildrenList>
+				<SoundcasterSession Name="Mix 1" ID="{3E1F0ABB-C0FE-4427-905C-67FFBEC17870}">
+					<ModuleList>
+						<Module>
+							<ObjectRef Name="Grapple Fire" ID="{ED404A7C-44E1-4FC6-8A13-F6A144D0E034}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Zap Gun Blast (1)" ID="{9ED12F01-BFD9-4F95-A458-03C59ABF5D37}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Zap Gun Charge (1)" ID="{6E4B07BE-B43E-4DB8-8AD9-0137DC664DE3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lazer Gun (2) mix1" ID="{3C3B4C17-1F7F-4949-BE06-F18D7EEB7A20}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla Land (1)" ID="{A33DB63D-CDB1-4F39-B51F-F9AFB6C7029D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Item Throw (1)" ID="{64194602-2D71-4948-9DC9-5C2490F4F065}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Jump" ID="{09DED59F-DC90-4EB4-8BC2-4AA52EBCE1AD}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player Punch Impact" ID="{6C6239F7-2710-4D69-ABA8-022F6559DCF6}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Exit VO (1)" ID="{8CAC1A30-5215-4FB7-AFB7-906945FB61E7}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Impact Mud&amp;Stone" ID="{4EC3ECFC-5252-48E2-AC23-A0F2F10BD610}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lifting Back Over Ledge (1)" ID="{5052B1BF-3CEB-4536-B6B7-6BA049CA631C}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Reload (2) Mix1" ID="{F060E7C2-22F8-4839-9C9D-0A9D87341835}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Winner VO (1)" ID="{86F233D6-08F8-4610-BD01-54FF30C40E62}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Fall" ID="{D6C84F15-4671-4D87-834A-3185990DAFAA}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Shotgun (1)" ID="{7D5F1525-3EA7-4B7D-905A-2A05A04B7405}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Zap_Gun_Blast" ID="{AC6219D3-0AB2-4421-822F-2BFA1BC43CD7}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="1" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Punches" ID="{46559E7A-16A6-4D9A-B8C2-668964AEEB80}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Extras (1)" ID="{B7DB6597-C115-4CD2-817D-DCA0F38DBC6C}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Swing (1)" ID="{D1B3C754-11D0-4B6F-942D-85599CB782EE}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Local (2)" ID="{69DB2BB3-9D16-42D8-AAEE-ED81FD9F7257}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Single Player VO (1)" ID="{EF360DA7-B419-43B4-BAD9-F7BF8CA845C6}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Zap Gun Blast (1)" ID="{9ED12F01-BFD9-4F95-A458-03C59ABF5D37}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Machine Gun Empty (1)" ID="{64ACDAE7-D7C9-4489-8593-5AB4926E0EE7}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Zap_Gun_Charge_Up" ID="{92E554AF-0AB2-4B60-8FCF-3760C7D422E7}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="2" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player_Death_Explosion" ID="{CC8EEC28-5534-4299-85B0-B7680DA39653}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="3" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Grab on Ledge (1)" ID="{F2930B6C-7A98-411E-943C-AAA36E080D23}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Jump (1)" ID="{633C4DE8-32AE-446C-B7D0-0DFF970CCE1F}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Multiplayer VO (1)" ID="{9B132257-CB64-4243-8198-FDDBF504397C}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Sword Attack Part 1" ID="{81DAF029-A83C-4298-8D7F-D60ED0E9BAFE}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Zap Gun Charge (1)" ID="{6E4B07BE-B43E-4DB8-8AD9-0137DC664DE3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Impact_Mud_Stone" ID="{6F4C8F40-12CE-4F61-8034-34528838EA01}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="3" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gun Landing" ID="{A806CCA0-B78B-478C-BBAA-B24B3E9417E3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Charge Up" ID="{2FDE2924-293D-467A-AFE2-BEE8E29CCC26}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Buckshot (1)" ID="{D2AE625E-3006-4DA2-A772-9927BA570DFD}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Grapple Latch (2) mix1" ID="{EDA296C3-055B-47DE-B37F-AC2085A53CC3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Jump Land (1)" ID="{1D595A41-4EC0-41AE-9315-EB4D9706394D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Online (1)" ID="{09D881D1-C8BD-478A-B5B7-40F838D47738}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Sword Attack Part 2" ID="{8029CB2D-8356-4EA5-AAF8-1D9BD61305B6}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla Walk" ID="{6297E9DA-6C3E-475D-A572-3C4C50E1AED9}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Charge_Up" ID="{241F287B-F719-4CD3-AD67-6139254DE47E}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="4" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Impact Mud&amp;Stone" ID="{4EC3ECFC-5252-48E2-AC23-A0F2F10BD610}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Credits (1)" ID="{EDE664A2-1359-4676-A46D-9EAABBF7B0E4}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lan (1)" ID="{07C9FD39-5326-4203-B93A-37550B1DA8D5}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Options (1)" ID="{C5550C16-3861-45FF-B633-6153A88E6CDF}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Sword Attack Part 3" ID="{0FD5047A-C37E-4ECE-AE89-91A56D9DB2D7}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Ammo Box Drop" ID="{82A0653A-E659-4D35-9FF3-12B1212A2BB2}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla Loud Growl" ID="{5E323B09-CACC-4249-A840-BEB33F89AFDB}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Charge_Up_Pause" ID="{72171E7B-D89A-4A72-84E9-8C1B314282DA}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="5" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Swing (1)" ID="{D1B3C754-11D0-4B6F-942D-85599CB782EE}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Charge Up" ID="{2FDE2924-293D-467A-AFE2-BEE8E29CCC26}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lazer Gun (2) mix1" ID="{3C3B4C17-1F7F-4949-BE06-F18D7EEB7A20}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player Dash (4) mix1" ID="{67EAEDE1-6C9A-4982-A9EC-F849E8F946C3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Ammo Unpack" ID="{9C08964D-10AB-4BC1-930E-FF4FBF4D54CE}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Charge_Up_Stop" ID="{AF871458-B214-435F-9865-701B8F89618E}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="6" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Impact Mud&amp;Stone" ID="{4EC3ECFC-5252-48E2-AC23-A0F2F10BD610}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Minigun_Stop" ID="{3751082C-4477-4EDA-A0B9-570CB89E0337}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="7" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Minigun" ID="{9DE927C3-1C61-478E-9CD4-A707D31201FB}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="7" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Charge_Up" ID="{241F287B-F719-4CD3-AD67-6139254DE47E}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="7" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Charge_Up_Resume" ID="{75D65CB1-C988-4C7B-A69B-D9C8D4D6A557}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="7" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Minigun_Stop" ID="{3751082C-4477-4EDA-A0B9-570CB89E0337}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="7" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lazer_Gun_Stop" ID="{5432AFA0-4DE8-46E6-A316-2C7C17C03BE1}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="7" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Charge_Up_Resume" ID="{75D65CB1-C988-4C7B-A69B-D9C8D4D6A557}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="7" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Swing (1)" ID="{D1B3C754-11D0-4B6F-942D-85599CB782EE}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Charge_Up_Pause" ID="{72171E7B-D89A-4A72-84E9-8C1B314282DA}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="8" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Charge_Up_Stop" ID="{AF871458-B214-435F-9865-701B8F89618E}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="8" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lazer_Gun" ID="{B09DA7A0-ACC3-46F8-9348-45C98C9B21D7}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="8" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Charge Up" ID="{2FDE2924-293D-467A-AFE2-BEE8E29CCC26}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="8" Y="7"/>
+						</Module>
+					</ModuleList>
+					<RTPCValueList ShowAll="true">
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Turbulence" ID="{EDA87B19-73AA-40A0-9F19-2073606DB710}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Waterfall_Volume_Panning" ID="{90F8E069-DF18-414D-ABB3-6F8B83755547}"/>
+							<Value>20</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Hammer_Charge_Up" ID="{36948F9D-0B98-42AA-9336-BB2303C284B9}"/>
+							<Value>0</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Month" ID="{09E2B445-C4A3-447F-B3CA-818A1D925EF7}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_RPM" ID="{A34890AB-B9D5-4526-A64D-5290C43EF2DC}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Fury" ID="{A2AE79DC-CA3A-46BA-9652-9986C322A87B}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Size" ID="{1329EBEF-A193-472E-A38C-64668B494879}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Storm" ID="{E93F8CDB-06D1-4737-ACAF-7CD44BBED783}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Waterfall_Volume" ID="{06E490D8-5F01-484C-86A2-0AEF2DE2F0A1}"/>
+							<Value>63.8539042821159</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Master_Music_Volume" ID="{C93D377E-FC20-48F1-9772-427E8594D954}"/>
+							<Value>50.2518891687657</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Presence" ID="{E3B7811A-7B2F-490F-B44F-5FE51B468041}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_TimeOfDay" ID="{536FA72C-8C7E-4C8B-AE03-EF34FDADC314}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Zap_Gun_Charge_Up" ID="{C990E5F7-3E11-4C8C-AE39-53FEC1E1D85F}"/>
+							<Value>0.89</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Master_Sound_Volume" ID="{B934037A-C0FC-4CF3-8BB8-D849849F666B}"/>
+							<Value>50.0622665006227</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Freefall" ID="{2F2DFE37-4F9E-4D94-83D8-53CCA39781AD}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Fear" ID="{F72E0659-4346-4E1C-A1B1-DAB46A05101E}"/>
+							<Value>50</Value>
+						</RTPCValue>
+					</RTPCValueList>
+					<CurrentStateList ShowAll="true"/>
+					<CurrentSwitchList ShowAll="true">
+						<CurrentSwitchRef Name="Garden_Of_Eden_Tier_0" ID="{279F9ACF-3D05-4C47-8E9C-6B7B0C18178C}"/>
+					</CurrentSwitchList>
+				</SoundcasterSession>
+				<SoundcasterSession Name="MIX2" ID="{7DBBB915-E6B6-44B1-B37F-D11BE44A7860}">
+					<ModuleList>
+						<Module>
+							<ObjectRef Name="Gorilla_Beating_Chest" ID="{655F39BF-A35A-49D1-99A4-69BD97A68FF1}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="0" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Grapple_Fire" ID="{284C0CA5-48D4-432F-9531-688420111757}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="0" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Grapple_Latch" ID="{22C48E2F-DD21-4608-A502-EFBD80ACD0A3}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="0" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Ammo_Box_Drop" ID="{9548B8B1-EDEE-4AC6-9D5B-3FC00D13863B}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="0" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gun_Empty" ID="{465E08CA-E935-4290-8694-6BF8401848BC}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="0" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Impact_Mud_Stone" ID="{6F4C8F40-12CE-4F61-8034-34528838EA01}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="0" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla_Beating_Chest_Roar" ID="{87761111-D8FD-4C0C-A25E-8E8507D44A03}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="1" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla_Walk" ID="{78DFEB1F-87D3-4DD0-B169-CF81BB97B5E8}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="1" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Jump" ID="{BB0A14DA-2494-4A31-AEF3-2518AA05BEAB}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="1" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Jump_Land" ID="{7F8D907B-C385-4031-B98B-7285CD5C38C6}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="1" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Ammo_Unpack" ID="{FA0D9D41-CE05-4B77-867D-B54C3970F412}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="1" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gun_Landing" ID="{3130A8D7-7739-4997-B25F-52B938F4E909}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="1" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Swing" ID="{717140AF-FAFD-4F04-805D-D0849D876925}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="1" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla_Land" ID="{EDF821D2-DFF3-40B7-A39C-84744ADE88E1}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="2" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla_Loud_Growl" ID="{9A6E73D6-7B97-4780-9015-A0002CB2C426}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="2" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lifting_Back_Over_Ledge" ID="{40FE62F2-F5E7-4BA6-AD8C-6CE69E8AA141}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="2" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player_Dash" ID="{13F9BD15-0432-47D6-A403-354E5A55B0AA}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="2" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Buckshot" ID="{301172D8-024C-4B20-9548-EBA57B68544A}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="2" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gun_No_Ammo" ID="{BF78369E-D793-4FFF-B651-E178D107B4AE}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="2" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Item_Throw" ID="{780C3E04-C86C-4869-B64B-26F242838C24}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="2" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Music" ID="{F698D72D-2153-4E97-8926-A1805AB14A4A}" WorkUnitID="{253E9C4F-63AA-407D-97F3-9EB094A4C6B4}"/>
+							<Position X="2" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Punches" ID="{6CF81821-A623-4FD0-A556-BAE3B209A07A}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="3" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Re_Spawn" ID="{16A613EA-6A6E-4E43-A1BD-B10C50E6B748}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="3" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player_Death_Explosion" ID="{CC8EEC28-5534-4299-85B0-B7680DA39653}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="3" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Minigun" ID="{9DE927C3-1C61-478E-9CD4-A707D31201FB}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="3" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown_5" ID="{E6B42D1E-66D6-4ADE-9160-6DDC265B2364}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="3" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Charge_Up" ID="{241F287B-F719-4CD3-AD67-6139254DE47E}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="3" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lazer_Gun" ID="{B09DA7A0-ACC3-46F8-9348-45C98C9B21D7}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="3" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Zap_Gun_Charge_Up" ID="{92E554AF-0AB2-4B60-8FCF-3760C7D422E7}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="4" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Re_Spawn_Stop" ID="{6ED475BD-88E3-4980-9122-B8301905DA2C}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="4" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player_Punch_Impact" ID="{A28544B6-0EA5-4772-A22D-6E63CCF84E09}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="4" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Minigun_Stop" ID="{3751082C-4477-4EDA-A0B9-570CB89E0337}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="4" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Charge_Up_Stop" ID="{AF871458-B214-435F-9865-701B8F89618E}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="4" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Charge_Up_Pause" ID="{72171E7B-D89A-4A72-84E9-8C1B314282DA}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="4" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lazer_Gun_Reload" ID="{A5725958-0CBF-4E9A-A67B-F345A5079891}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="4" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Go_Back_Page" ID="{38CD74C2-A015-45A4-9CBB-C438083A0926}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="5" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Ready" ID="{58E42C6F-E45A-4466-9519-0552BC919B61}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="5" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lets_Vert" ID="{609ACE74-8722-48BD-B654-87EF895A40EA}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="5" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Shotgun" ID="{5D3986CE-7164-4CE6-A166-FEFBB26A1D0D}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="5" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Fall" ID="{A12E4C11-5DF1-461D-8112-D2D6E439AD81}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="5" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Play_Demo" ID="{C655DE9A-B026-4C79-847C-20AB812408ED}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="5" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer_Charge_Up_Resume" ID="{75D65CB1-C988-4C7B-A69B-D9C8D4D6A557}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="5" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lazer_Gun_Stop" ID="{5432AFA0-4DE8-46E6-A316-2C7C17C03BE1}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="5" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player_Joins" ID="{D6D373C9-C91B-41C3-81C6-967D17486BD4}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="6" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player_1_Enter_Game" ID="{9EC77D78-A403-4950-84DD-E28FBB00965B}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="6" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player_2_Enter_Game" ID="{0D29489E-F3A9-4C7A-ACFD-9D0FC57E2A30}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="6" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player_3_Enter_Game" ID="{D15FA9E6-BF3E-4558-AF8A-204F1A91D543}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="6" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player_4_Enter_Game" ID="{B4E2B867-66AF-4131-83EA-761820AE9319}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}"/>
+							<Position X="6" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 1" ID="{714CAA7F-C690-4654-BDC9-E5594B883A2B}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 2" ID="{24637648-2F7A-4C3A-BE7D-5FFC9767516C}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 4" ID="{9F724439-54BA-44C7-A170-55F4E73F9D4D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 3" ID="{5904660C-A567-4C3B-A8D4-15667DB18B69}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 5" ID="{BA21F54A-7522-4659-AE05-FF3772E6958D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Crowd Applause" ID="{13958FBA-BC85-44BA-85D5-5EB1CF996FD1}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Near Miss" ID="{2F14EAEB-2BDA-4B64-B3D9-7F8F28B08169}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Rhino Footsteps" ID="{46A4505F-E0FA-4E40-BA3E-17545255CE95}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Boo (1)" ID="{175FD47F-684B-4EAA-B153-028836968AF9}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Rhino Vocal Sounds (1)" ID="{AAAFD43F-CF08-4D2E-A56A-CB7BC2AD389A}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="5"/>
+						</Module>
+					</ModuleList>
+					<RTPCValueList ShowAll="true">
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Turbulence" ID="{EDA87B19-73AA-40A0-9F19-2073606DB710}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Waterfall_Volume_Panning" ID="{90F8E069-DF18-414D-ABB3-6F8B83755547}"/>
+							<Value>100</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Hammer_Charge_Up" ID="{36948F9D-0B98-42AA-9336-BB2303C284B9}"/>
+							<Value>0</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Month" ID="{09E2B445-C4A3-447F-B3CA-818A1D925EF7}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_RPM" ID="{A34890AB-B9D5-4526-A64D-5290C43EF2DC}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Fury" ID="{A2AE79DC-CA3A-46BA-9652-9986C322A87B}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Size" ID="{1329EBEF-A193-472E-A38C-64668B494879}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Storm" ID="{E93F8CDB-06D1-4737-ACAF-7CD44BBED783}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Waterfall_Volume" ID="{06E490D8-5F01-484C-86A2-0AEF2DE2F0A1}"/>
+							<Value>63</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Master_Music_Volume" ID="{C93D377E-FC20-48F1-9772-427E8594D954}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Presence" ID="{E3B7811A-7B2F-490F-B44F-5FE51B468041}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_TimeOfDay" ID="{536FA72C-8C7E-4C8B-AE03-EF34FDADC314}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Zap_Gun_Charge_Up" ID="{C990E5F7-3E11-4C8C-AE39-53FEC1E1D85F}"/>
+							<Value>0.89</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Master_Sound_Volume" ID="{B934037A-C0FC-4CF3-8BB8-D849849F666B}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Freefall" ID="{2F2DFE37-4F9E-4D94-83D8-53CCA39781AD}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Fear" ID="{F72E0659-4346-4E1C-A1B1-DAB46A05101E}"/>
+							<Value>49</Value>
+						</RTPCValue>
+					</RTPCValueList>
+					<CurrentStateList ShowAll="true"/>
+					<CurrentSwitchList ShowAll="true">
+						<CurrentSwitchRef Name="Garden_Of_Eden_Tier_0" ID="{279F9ACF-3D05-4C47-8E9C-6B7B0C18178C}"/>
+					</CurrentSwitchList>
+				</SoundcasterSession>
+				<SoundcasterSession Name="mix3" ID="{1787F441-2E71-44F9-805F-8B195C7FC0D9}">
+					<RTPCValueList ShowAll="true">
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Turbulence" ID="{EDA87B19-73AA-40A0-9F19-2073606DB710}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Waterfall_Volume_Panning" ID="{90F8E069-DF18-414D-ABB3-6F8B83755547}"/>
+							<Value>100</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Hammer_Charge_Up" ID="{36948F9D-0B98-42AA-9336-BB2303C284B9}"/>
+							<Value>25</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Month" ID="{09E2B445-C4A3-447F-B3CA-818A1D925EF7}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_RPM" ID="{A34890AB-B9D5-4526-A64D-5290C43EF2DC}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Fury" ID="{A2AE79DC-CA3A-46BA-9652-9986C322A87B}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Size" ID="{1329EBEF-A193-472E-A38C-64668B494879}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Storm" ID="{E93F8CDB-06D1-4737-ACAF-7CD44BBED783}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Waterfall_Volume" ID="{06E490D8-5F01-484C-86A2-0AEF2DE2F0A1}"/>
+							<Value>63</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Master_Music_Volume" ID="{C93D377E-FC20-48F1-9772-427E8594D954}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Presence" ID="{E3B7811A-7B2F-490F-B44F-5FE51B468041}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_TimeOfDay" ID="{536FA72C-8C7E-4C8B-AE03-EF34FDADC314}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Zap_Gun_Charge_Up" ID="{C990E5F7-3E11-4C8C-AE39-53FEC1E1D85F}"/>
+							<Value>0</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Master_Sound_Volume" ID="{B934037A-C0FC-4CF3-8BB8-D849849F666B}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Freefall" ID="{2F2DFE37-4F9E-4D94-83D8-53CCA39781AD}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Fear" ID="{F72E0659-4346-4E1C-A1B1-DAB46A05101E}"/>
+							<Value>49</Value>
+						</RTPCValue>
+					</RTPCValueList>
+					<CurrentStateList ShowAll="true"/>
+					<CurrentSwitchList ShowAll="true">
+						<CurrentSwitchRef Name="Title_Theme" ID="{0FC93E18-3B83-4255-BEF5-564C212981D8}"/>
+					</CurrentSwitchList>
+				</SoundcasterSession>
+				<SoundcasterSession Name="Title Theme" ID="{4F41ADC8-A4CA-4CAB-A827-8F8DC7690EBC}">
+					<ModuleList>
+						<Module>
+							<ObjectRef Name="Lets Vert (1)" ID="{555724EE-58B4-4C9D-AFC4-4E809EC6B495}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Play Demo (2)" ID="{0429417E-7924-4DC5-B504-7854E49D6618}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 2" ID="{24637648-2F7A-4C3A-BE7D-5FFC9767516C}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Back Page Interface Sound (2)" ID="{4DB5A4F4-8144-4D5E-9672-C097396E96A6}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Music" ID="{F698D72D-2153-4E97-8926-A1805AB14A4A}" WorkUnitID="{253E9C4F-63AA-407D-97F3-9EB094A4C6B4}"/>
+							<Position X="0" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Exit VO (1)" ID="{8CAC1A30-5215-4FB7-AFB7-906945FB61E7}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 1" ID="{714CAA7F-C690-4654-BDC9-E5594B883A2B}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player Enter Game (1)" ID="{E0AB1CFE-0AF5-43B8-8BD0-AC887816762A}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 3" ID="{5904660C-A567-4C3B-A8D4-15667DB18B69}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 4" ID="{9F724439-54BA-44C7-A170-55F4E73F9D4D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 5" ID="{BA21F54A-7522-4659-AE05-FF3772E6958D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="2"/>
+						</Module>
+					</ModuleList>
+					<RTPCValueList ShowAll="true">
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Turbulence" ID="{EDA87B19-73AA-40A0-9F19-2073606DB710}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Waterfall_Volume_Panning" ID="{90F8E069-DF18-414D-ABB3-6F8B83755547}"/>
+							<Value>100</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Hammer_Charge_Up" ID="{36948F9D-0B98-42AA-9336-BB2303C284B9}"/>
+							<Value>25</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Month" ID="{09E2B445-C4A3-447F-B3CA-818A1D925EF7}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_RPM" ID="{A34890AB-B9D5-4526-A64D-5290C43EF2DC}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Fury" ID="{A2AE79DC-CA3A-46BA-9652-9986C322A87B}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Size" ID="{1329EBEF-A193-472E-A38C-64668B494879}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Storm" ID="{E93F8CDB-06D1-4737-ACAF-7CD44BBED783}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Waterfall_Volume" ID="{06E490D8-5F01-484C-86A2-0AEF2DE2F0A1}"/>
+							<Value>63</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Master_Music_Volume" ID="{C93D377E-FC20-48F1-9772-427E8594D954}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Presence" ID="{E3B7811A-7B2F-490F-B44F-5FE51B468041}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_TimeOfDay" ID="{536FA72C-8C7E-4C8B-AE03-EF34FDADC314}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Zap_Gun_Charge_Up" ID="{C990E5F7-3E11-4C8C-AE39-53FEC1E1D85F}"/>
+							<Value>0</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Master_Sound_Volume" ID="{B934037A-C0FC-4CF3-8BB8-D849849F666B}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Freefall" ID="{2F2DFE37-4F9E-4D94-83D8-53CCA39781AD}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Fear" ID="{F72E0659-4346-4E1C-A1B1-DAB46A05101E}"/>
+							<Value>49</Value>
+						</RTPCValue>
+					</RTPCValueList>
+					<CurrentStateList ShowAll="true"/>
+					<CurrentSwitchList ShowAll="true">
+						<CurrentSwitchRef Name="Title_Theme" ID="{0FC93E18-3B83-4255-BEF5-564C212981D8}"/>
+					</CurrentSwitchList>
+				</SoundcasterSession>
+				<SoundcasterSession Name="In Game Music" ID="{64C1E937-5ED0-4030-9238-66060BC223A4}">
+					<ModuleList>
+						<Module>
+							<ObjectRef Name="Music" ID="{F698D72D-2153-4E97-8926-A1805AB14A4A}" WorkUnitID="{253E9C4F-63AA-407D-97F3-9EB094A4C6B4}"/>
+							<Position X="0" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Boo (1)" ID="{175FD47F-684B-4EAA-B153-028836968AF9}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Clapping (1)" ID="{F1BC4D69-7C79-43F6-BA57-F8699D05186A}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Buckshot (1)" ID="{D2AE625E-3006-4DA2-A772-9927BA570DFD}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Charge Up" ID="{2FDE2924-293D-467A-AFE2-BEE8E29CCC26}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Item Throw (1)" ID="{64194602-2D71-4948-9DC9-5C2490F4F065}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player 4 Winner" ID="{20882DE2-F8F8-4D10-BB93-E8E58E1AA319}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Ammo Box Drop" ID="{82A0653A-E659-4D35-9FF3-12B1212A2BB2}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Grapple Fire" ID="{ED404A7C-44E1-4FC6-8A13-F6A144D0E034}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Punches" ID="{46559E7A-16A6-4D9A-B8C2-668964AEEB80}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla_Beating_Chest_Roar" ID="{D7432549-4F45-4D49-A82F-A78C3DC4ED96}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Impact Mud&amp;Stone" ID="{4EC3ECFC-5252-48E2-AC23-A0F2F10BD610}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Jump (1)" ID="{633C4DE8-32AE-446C-B7D0-0DFF970CCE1F}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Rhino Vocal Sounds (1)" ID="{AAAFD43F-CF08-4D2E-A56A-CB7BC2AD389A}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Ammo Unpack" ID="{9C08964D-10AB-4BC1-930E-FF4FBF4D54CE}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gun Landing" ID="{A806CCA0-B78B-478C-BBAA-B24B3E9417E3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Rhino Cry" ID="{6F19F590-CC09-45A4-9B60-05D26101D8F9}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Grab on Ledge (1)" ID="{F2930B6C-7A98-411E-943C-AAA36E080D23}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Swing (1)" ID="{D1B3C754-11D0-4B6F-942D-85599CB782EE}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Jump Land (1)" ID="{1D595A41-4EC0-41AE-9315-EB4D9706394D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player 1 Winner" ID="{146B3CFD-E7E0-4C0D-935E-988D8379C036}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Crowd Applause" ID="{13958FBA-BC85-44BA-85D5-5EB1CF996FD1}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Fall" ID="{D6C84F15-4671-4D87-834A-3185990DAFAA}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Rhino Footsteps" ID="{46A4505F-E0FA-4E40-BA3E-17545255CE95}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Grapple Latch (2) mix1" ID="{EDA296C3-055B-47DE-B37F-AC2085A53CC3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Machine Gun Empty (1)" ID="{64ACDAE7-D7C9-4489-8593-5AB4926E0EE7}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Minigun (1)" ID="{9D427CD1-0F3A-4CF7-90F1-4CD3539704A4}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player 2 Winner" ID="{7E8FE387-48F3-4F56-8EFA-8BE016DF5ADF}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla Loud Growl" ID="{5E323B09-CACC-4249-A840-BEB33F89AFDB}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Jump" ID="{09DED59F-DC90-4EB4-8BC2-4AA52EBCE1AD}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Re-spawn(2)" ID="{38DF131F-CC3F-40F5-910A-48E420F32622}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Shotgun (1)" ID="{7D5F1525-3EA7-4B7D-905A-2A05A04B7405}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Minigun (4) Cool Down" ID="{31B5CD2D-4BEC-423D-B20E-72BE05F56AB3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Zap Gun Blast (1)" ID="{9ED12F01-BFD9-4F95-A458-03C59ABF5D37}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player 3 Winner" ID="{6E94AF77-7D75-462A-8D8D-02C69F8760D9}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla Walk" ID="{6297E9DA-6C3E-475D-A572-3C4C50E1AED9}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Near Miss" ID="{2F14EAEB-2BDA-4B64-B3D9-7F8F28B08169}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Back Page Interface Sound (2)" ID="{4DB5A4F4-8144-4D5E-9672-C097396E96A6}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player Enter Game (1)" ID="{E0AB1CFE-0AF5-43B8-8BD0-AC887816762A}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Zap Gun Charge (1)" ID="{6E4B07BE-B43E-4DB8-8AD9-0137DC664DE3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla_Beating_Chest_Roar" ID="{D7432549-4F45-4D49-A82F-A78C3DC4ED96}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Last Stand (2)" ID="{B81E2A19-1835-4DC8-9558-63B49B2EB00D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player Punch Impact" ID="{6C6239F7-2710-4D69-ABA8-022F6559DCF6}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla_Beating_Chest" ID="{8C665172-92F8-4F53-8780-BBC8E4240740}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Planet_Explosion (1)" ID="{F950A052-AD3E-4275-89C5-2924F9FE1D65}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player Dash (4) mix1" ID="{67EAEDE1-6C9A-4982-A9EC-F849E8F946C3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="4"/>
+						</Module>
+					</ModuleList>
+					<RTPCValueList ShowAll="true">
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Turbulence" ID="{EDA87B19-73AA-40A0-9F19-2073606DB710}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Waterfall_Volume_Panning" ID="{90F8E069-DF18-414D-ABB3-6F8B83755547}"/>
+							<Value>100</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Hammer_Charge_Up" ID="{36948F9D-0B98-42AA-9336-BB2303C284B9}"/>
+							<Value>25</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Month" ID="{09E2B445-C4A3-447F-B3CA-818A1D925EF7}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_RPM" ID="{A34890AB-B9D5-4526-A64D-5290C43EF2DC}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Fury" ID="{A2AE79DC-CA3A-46BA-9652-9986C322A87B}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Size" ID="{1329EBEF-A193-472E-A38C-64668B494879}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Storm" ID="{E93F8CDB-06D1-4737-ACAF-7CD44BBED783}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Waterfall_Volume" ID="{06E490D8-5F01-484C-86A2-0AEF2DE2F0A1}"/>
+							<Value>63</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Master_Music_Volume" ID="{C93D377E-FC20-48F1-9772-427E8594D954}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Presence" ID="{E3B7811A-7B2F-490F-B44F-5FE51B468041}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_TimeOfDay" ID="{536FA72C-8C7E-4C8B-AE03-EF34FDADC314}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Zap_Gun_Charge_Up" ID="{C990E5F7-3E11-4C8C-AE39-53FEC1E1D85F}"/>
+							<Value>0.74</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Master_Sound_Volume" ID="{B934037A-C0FC-4CF3-8BB8-D849849F666B}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Freefall" ID="{2F2DFE37-4F9E-4D94-83D8-53CCA39781AD}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Fear" ID="{F72E0659-4346-4E1C-A1B1-DAB46A05101E}"/>
+							<Value>49</Value>
+						</RTPCValue>
+					</RTPCValueList>
+					<CurrentStateList ShowAll="true"/>
+					<CurrentSwitchList ShowAll="true">
+						<CurrentSwitchRef Name="Garden_Of_Eden_Tier_7" ID="{DAFF5206-B1E7-4F05-BFEC-191C09EC67A2}"/>
+					</CurrentSwitchList>
+				</SoundcasterSession>
+				<SoundcasterSession Name="New Soundcaster Session" ID="{43389141-A884-4E28-82E5-568412844510}">
+					<ModuleList>
+						<Module>
+							<ObjectRef Name="Back Page Interface Sound (2)" ID="{4DB5A4F4-8144-4D5E-9672-C097396E96A6}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 5" ID="{BA21F54A-7522-4659-AE05-FF3772E6958D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Charge Up" ID="{2FDE2924-293D-467A-AFE2-BEE8E29CCC26}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lazer Gun (2) mix1" ID="{3C3B4C17-1F7F-4949-BE06-F18D7EEB7A20}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Multiplayer VO (1)" ID="{9B132257-CB64-4243-8198-FDDBF504397C}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player (4)" ID="{51DE3077-8ED2-420C-8830-3C1F24747F94}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player 4 Winner" ID="{20882DE2-F8F8-4D10-BB93-E8E58E1AA319}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Music" ID="{F698D72D-2153-4E97-8926-A1805AB14A4A}" WorkUnitID="{253E9C4F-63AA-407D-97F3-9EB094A4C6B4}"/>
+							<Position X="0" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Grapple Latch (2) mix1" ID="{EDA296C3-055B-47DE-B37F-AC2085A53CC3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Clapping (1)" ID="{F1BC4D69-7C79-43F6-BA57-F8699D05186A}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="0" Y="9"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Boo (1)" ID="{175FD47F-684B-4EAA-B153-028836968AF9}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Credits (1)" ID="{EDE664A2-1359-4676-A46D-9EAABBF7B0E4}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Impact Mud&amp;Stone" ID="{4EC3ECFC-5252-48E2-AC23-A0F2F10BD610}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lets Vert (1)" ID="{555724EE-58B4-4C9D-AFC4-4E809EC6B495}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Online (1)" ID="{09D881D1-C8BD-478A-B5B7-40F838D47738}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player 1 Winner" ID="{146B3CFD-E7E0-4C0D-935E-988D8379C036}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Grapple Fire" ID="{ED404A7C-44E1-4FC6-8A13-F6A144D0E034}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 1" ID="{714CAA7F-C690-4654-BDC9-E5594B883A2B}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="1" Y="9"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Buckshot (1)" ID="{D2AE625E-3006-4DA2-A772-9927BA570DFD}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Exit VO (1)" ID="{8CAC1A30-5215-4FB7-AFB7-906945FB61E7}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Hammer Swing (1)" ID="{D1B3C754-11D0-4B6F-942D-85599CB782EE}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lifting Back Over Ledge (1)" ID="{5052B1BF-3CEB-4536-B6B7-6BA049CA631C}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Options (1)" ID="{C5550C16-3861-45FF-B633-6153A88E6CDF}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player 2 Winner" ID="{7E8FE387-48F3-4F56-8EFA-8BE016DF5ADF}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player Enter Game (1)" ID="{E0AB1CFE-0AF5-43B8-8BD0-AC887816762A}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Shotgun (1)" ID="{7D5F1525-3EA7-4B7D-905A-2A05A04B7405}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Zap Gun Blast (1)" ID="{9ED12F01-BFD9-4F95-A458-03C59ABF5D37}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 2" ID="{24637648-2F7A-4C3A-BE7D-5FFC9767516C}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="2" Y="9"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Clapping (1)" ID="{F1BC4D69-7C79-43F6-BA57-F8699D05186A}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Extras (1)" ID="{B7DB6597-C115-4CD2-817D-DCA0F38DBC6C}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Item Throw (1)" ID="{64194602-2D71-4948-9DC9-5C2490F4F065}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Local (2)" ID="{69DB2BB3-9D16-42D8-AAEE-ED81FD9F7257}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Planet_Explosion (1)" ID="{F950A052-AD3E-4275-89C5-2924F9FE1D65}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player 3 Winner" ID="{6E94AF77-7D75-462A-8D8D-02C69F8760D9}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player Dash (4) mix1" ID="{67EAEDE1-6C9A-4982-A9EC-F849E8F946C3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Single Player VO (1)" ID="{EF360DA7-B419-43B4-BAD9-F7BF8CA845C6}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Zap Gun Charge (1)" ID="{6E4B07BE-B43E-4DB8-8AD9-0137DC664DE3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 3" ID="{5904660C-A567-4C3B-A8D4-15667DB18B69}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="3" Y="9"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 1" ID="{714CAA7F-C690-4654-BDC9-E5594B883A2B}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla Land (1)" ID="{A33DB63D-CDB1-4F39-B51F-F9AFB6C7029D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Jump (1)" ID="{633C4DE8-32AE-446C-B7D0-0DFF970CCE1F}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Machine Gun Empty (1)" ID="{64ACDAE7-D7C9-4489-8593-5AB4926E0EE7}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Play Demo (2)" ID="{0429417E-7924-4DC5-B504-7854E49D6618}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player 4 Winner" ID="{20882DE2-F8F8-4D10-BB93-E8E58E1AA319}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Ready" ID="{C362D808-5A11-4670-B373-6BE54F6E526F}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Sword Attack Part 1" ID="{81DAF029-A83C-4298-8D7F-D60ED0E9BAFE}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Crowd Applause" ID="{13958FBA-BC85-44BA-85D5-5EB1CF996FD1}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 4" ID="{9F724439-54BA-44C7-A170-55F4E73F9D4D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="4" Y="9"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 2" ID="{24637648-2F7A-4C3A-BE7D-5FFC9767516C}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Gorilla_Beating_Chest_Roar" ID="{D7432549-4F45-4D49-A82F-A78C3DC4ED96}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Jump Land (1)" ID="{1D595A41-4EC0-41AE-9315-EB4D9706394D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Minigun (1)" ID="{9D427CD1-0F3A-4CF7-90F1-4CD3539704A4}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player (1)" ID="{43496BED-3738-4159-8325-BBF77B615B68}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Reload (2) Mix1" ID="{F060E7C2-22F8-4839-9C9D-0A9D87341835}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Sword Attack Part 2" ID="{8029CB2D-8356-4EA5-AAF8-1D9BD61305B6}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Last Stand (2)" ID="{B81E2A19-1835-4DC8-9558-63B49B2EB00D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="8"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 5" ID="{BA21F54A-7522-4659-AE05-FF3772E6958D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="5" Y="9"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 3" ID="{5904660C-A567-4C3B-A8D4-15667DB18B69}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Grab on Ledge (1)" ID="{F2930B6C-7A98-411E-943C-AAA36E080D23}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Lan (1)" ID="{07C9FD39-5326-4203-B93A-37550B1DA8D5}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Minigun (4) Cool Down" ID="{31B5CD2D-4BEC-423D-B20E-72BE05F56AB3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player (2)" ID="{876C779E-89B3-4A24-A562-000B9EB9042A}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Re-spawn(2)" ID="{38DF131F-CC3F-40F5-910A-48E420F32622}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Sword Attack Part 3" ID="{0FD5047A-C37E-4ECE-AE89-91A56D9DB2D7}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="6" Y="7"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 4" ID="{9F724439-54BA-44C7-A170-55F4E73F9D4D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="0"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Grapple Latch (2) mix1" ID="{EDA296C3-055B-47DE-B37F-AC2085A53CC3}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="1"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Last Stand (2)" ID="{B81E2A19-1835-4DC8-9558-63B49B2EB00D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="2"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Minigun start up" ID="{B27798BA-A8C2-45AA-BF63-34C708B67158}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="3"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Player (3)" ID="{5F3EAF31-AEDA-45EC-B76F-02A1EB0F8ED7}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="4"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Countdown - 5" ID="{BA21F54A-7522-4659-AE05-FF3772E6958D}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="5"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Rhino Vocal Sounds (1)" ID="{AAAFD43F-CF08-4D2E-A56A-CB7BC2AD389A}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="6"/>
+						</Module>
+						<Module>
+							<ObjectRef Name="Winner VO (1)" ID="{86F233D6-08F8-4610-BD01-54FF30C40E62}" WorkUnitID="{5E8D0F3C-3688-4EC5-B16B-F6049A4E8007}"/>
+							<Position X="7" Y="7"/>
+						</Module>
+					</ModuleList>
+					<RTPCValueList ShowAll="true">
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Turbulence" ID="{EDA87B19-73AA-40A0-9F19-2073606DB710}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Waterfall_Volume_Panning" ID="{90F8E069-DF18-414D-ABB3-6F8B83755547}"/>
+							<Value>20</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Hammer_Charge_Up" ID="{36948F9D-0B98-42AA-9336-BB2303C284B9}"/>
+							<Value>0</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Month" ID="{09E2B445-C4A3-447F-B3CA-818A1D925EF7}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_RPM" ID="{A34890AB-B9D5-4526-A64D-5290C43EF2DC}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Fury" ID="{A2AE79DC-CA3A-46BA-9652-9986C322A87B}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Size" ID="{1329EBEF-A193-472E-A38C-64668B494879}"/>
+							<Value>50</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Storm" ID="{E93F8CDB-06D1-4737-ACAF-7CD44BBED783}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Waterfall_Volume" ID="{06E490D8-5F01-484C-86A2-0AEF2DE2F0A1}"/>
+							<Value>63.8539042821159</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Master_Music_Volume" ID="{C93D377E-FC20-48F1-9772-427E8594D954}"/>
+							<Value>50.2518891687657</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Presence" ID="{E3B7811A-7B2F-490F-B44F-5FE51B468041}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_TimeOfDay" ID="{536FA72C-8C7E-4C8B-AE03-EF34FDADC314}"/>
+							<Value>6</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Zap_Gun_Charge_Up" ID="{C990E5F7-3E11-4C8C-AE39-53FEC1E1D85F}"/>
+							<Value>0.89</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="Master_Sound_Volume" ID="{B934037A-C0FC-4CF3-8BB8-D849849F666B}"/>
+							<Value>50.0622665006227</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Freefall" ID="{2F2DFE37-4F9E-4D94-83D8-53CCA39781AD}"/>
+							<Value>75</Value>
+						</RTPCValue>
+						<RTPCValue>
+							<GameParameterRef Name="SS_Air_Fear" ID="{F72E0659-4346-4E1C-A1B1-DAB46A05101E}"/>
+							<Value>50</Value>
+						</RTPCValue>
+					</RTPCValueList>
+					<CurrentStateList ShowAll="true"/>
+					<CurrentSwitchList ShowAll="true">
+						<CurrentSwitchRef Name="Title_Theme" ID="{0FC93E18-3B83-4255-BEF5-564C212981D8}"/>
+					</CurrentSwitchList>
+				</SoundcasterSession>
+			</ChildrenList>
+		</WorkUnit>
 	</SoundcasterSessions>
 </WwiseDocument>

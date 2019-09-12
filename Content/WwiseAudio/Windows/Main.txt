@@ -1,0 +1,237 @@
+Event	ID	Name			Wwise Object Path	Notes
+	48136597	Player_Death_Explosion			\Default Work Unit\Player Character\Player_Death_Explosion	
+	51683977	Shotgun			\Default Work Unit\Weapons_Ammo_Mellee\Shotgun	
+	63992545	Hammer_Fall			\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Fall	
+	107113585	Rhino_Footsteps			\Default Work Unit\Rhino\Rhino_Footsteps	
+	154081620	Rhino_Cry			\Default Work Unit\Rhino\Rhino_Cry	
+	254582912	Player_Joins			\Default Work Unit\User Interface Sounds\Player_Joins	
+	283822990	Zap_Gun_Blast			\Default Work Unit\Weapons_Ammo_Mellee\Zap_Gun_Blast	
+	451078697	Re_Spawn_Stop			\Default Work Unit\Player Character\Re_Spawn_Stop	
+	476098361	Grapple_Fire			\Default Work Unit\Player Character\Grapple_Fire	
+	546945303	Boo			\Default Work Unit\Audience SFX\Boo	
+	1000566589	Player_4_Enter_Game			\Default Work Unit\Voice Over\Player_4_Enter_Game	
+	1057806445	Exit_VO			\Default Work Unit\Voice Over\Exit_VO	
+	1108732931	Ammo_Box_Drop			\Default Work Unit\Weapons_Ammo_Mellee\Ammo_Box_Drop	
+	1145423536	Last_Stand			\Default Work Unit\Voice Over\Last_Stand	
+	1160432365	Sword_Attack_Part_1			\Default Work Unit\Weapons_Ammo_Mellee\Sword_Attack_Part_1	
+	1160432366	Sword_Attack_Part_2			\Default Work Unit\Weapons_Ammo_Mellee\Sword_Attack_Part_2	
+	1160432367	Sword_Attack_Part_3			\Default Work Unit\Weapons_Ammo_Mellee\Sword_Attack_Part_3	
+	1186466189	Minigun_Stop			\Default Work Unit\Weapons_Ammo_Mellee\Minigun_Stop	
+	1368721370	Re_Spawn			\Default Work Unit\Player Character\Re_Spawn	
+	1398541945	Winner_Player_4			\Default Work Unit\Voice Over\Winner_Player_4	
+	1398541948	Winner_Player_1			\Default Work Unit\Voice Over\Winner_Player_1	
+	1398541950	Winner_Player_3			\Default Work Unit\Voice Over\Winner_Player_3	
+	1398541951	Winner_Player_2			\Default Work Unit\Voice Over\Winner_Player_2	
+	1411615481	Hammer_Charge_Up_Stop			\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Charge_Up_Stop	
+	1474592182	Gorilla_Beating_Chest			\Default Work Unit\Gorilla\Gorilla_Beating_Chest	
+	1598522030	Gorilla_Loud_Growl			\Default Work Unit\Gorilla\Gorilla_Loud_Growl	
+	1624142916	Buckshot			\Default Work Unit\Weapons_Ammo_Mellee\Buckshot	
+	1814594873	Hammer_Charge_Up_Pause			\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Charge_Up_Pause	
+	1879880223	Single_Player			\Default Work Unit\Voice Over\Single_Player	
+	1915202000	Extras			\Default Work Unit\Voice Over\Extras	
+	1976209091	Play_Demo			\Default Work Unit\Voice Over\Play_Demo	
+	2074502412	Crowd_Near_Miss			\Default Work Unit\Audience SFX\Crowd_Near_Miss	
+	2113806440	Lazer_Gun			\Default Work Unit\Weapons_Ammo_Mellee\Lazer_Gun	
+	2121193815	Lifting_Back_Over_Ledge			\Default Work Unit\Player Character\Lifting_Back_Over_Ledge	
+	2200387064	Hammer_Charge_Up_Resume			\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Charge_Up_Resume	
+	2201105581	Credits			\Default Work Unit\Voice Over\Credits	
+	2394582229	Player_Dash			\Default Work Unit\Player Character\Player_Dash	
+	2417276545	Options_VO			\Default Work Unit\Voice Over\Options_VO	
+	2418608077	Gun_Landing			\Default Work Unit\Weapons_Ammo_Mellee\Gun_Landing	
+	2505329354	Hammer_Charge_Up			\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Charge_Up	
+	2540088038	Player_1_Enter_Game			\Default Work Unit\Voice Over\Player_1_Enter_Game	
+	2571184033	Gorilla_Beating_Chest_Roar			\Default Work Unit\Gorilla\Gorilla_Beating_Chest_Roar	
+	2703657663	Player_2_Enter_Game			\Default Work Unit\Voice Over\Player_2_Enter_Game	
+	2866173512	Rhino_Roar			\Default Work Unit\Rhino\Rhino_Roar	
+	2884852039	Lazer_Gun_Stop			\Default Work Unit\Weapons_Ammo_Mellee\Lazer_Gun_Stop	
+	2941725407	Punches			\Default Work Unit\Weapons_Ammo_Mellee\Punches	
+	2945414944	Hammer_Swing			\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Swing	
+	2968341316	Zap_Gun_Charge_Up			\Default Work Unit\Weapons_Ammo_Mellee\Zap_Gun_Charge_Up	
+	3028078684	Player_3_Enter_Game			\Default Work Unit\Voice Over\Player_3_Enter_Game	
+	3050945240	New_Event			\Default Work Unit\Voice Over\New_Event	
+	3051433909	Item_Throw			\Default Work Unit\Weapons_Ammo_Mellee\Item_Throw	
+	3111416588	Lan_VO			\Default Work Unit\Voice Over\Lan_VO	
+	3138285744	Countdown_3			\Default Work Unit\Voice Over\Countdown_3	
+	3138285745	Countdown_2			\Default Work Unit\Voice Over\Countdown_2	
+	3138285746	Countdown_1			\Default Work Unit\Voice Over\Countdown_1	
+	3138285750	Countdown_5			\Default Work Unit\Voice Over\Countdown_5	
+	3138285751	Countdown_4			\Default Work Unit\Voice Over\Countdown_4	
+	3301905610	Crowd_Applause			\Default Work Unit\Audience SFX\Crowd_Applause	
+	3311711206	Winner_VO			\Default Work Unit\Voice Over\Winner_VO	
+	3401989302	Gun_No_Ammo			\Default Work Unit\Weapons_Ammo_Mellee\Gun_No_Ammo	
+	3419686739	Jump_Land			\Default Work Unit\Player Character\Jump_Land	
+	3420496803	Gorilla_Walk			\Default Work Unit\Gorilla\Gorilla_Walk	
+	3506810959	Gorilla_Land			\Default Work Unit\Gorilla\Gorilla_Land	
+	3510885559	Clapping			\Default Work Unit\Audience SFX\Clapping	
+	3578357145	Hammer_Impact_Mud_Stone			\Default Work Unit\Weapons_Ammo_Mellee\Hammer_Impact_Mud_Stone	
+	3619263103	Gun_Empty			\Default Work Unit\Weapons_Ammo_Mellee\Gun_Empty	
+	3701637754	Ready			\Default Work Unit\Voice Over\Ready	
+	3776419406	Minigun			\Default Work Unit\Weapons_Ammo_Mellee\Minigun	
+	3777860431	Go_Back_Page			\Default Work Unit\User Interface Sounds\Go_Back_Page	
+	3825368260	Player_Punch_Impact			\Default Work Unit\Weapons_Ammo_Mellee\Player_Punch_Impact	
+	3833651337	Jump			\Default Work Unit\Player Character\Jump	
+	3838905789	Grapple_Latch			\Default Work Unit\Player Character\Grapple_Latch	
+	3858290224	Local_VO			\Default Work Unit\Voice Over\Local_VO	
+	3908800326	Online_VO			\Default Work Unit\Voice Over\Online_VO	
+	3991942870	Music			\Default Work Unit\Soundtrack\Music	
+	4042913455	Multiplayer_VO			\Default Work Unit\Voice Over\Multiplayer_VO	
+	4087265999	Lets_Vert			\Default Work Unit\Voice Over\Lets_Vert	
+	4122940260	Lazer_Gun_Reload			\Default Work Unit\Weapons_Ammo_Mellee\Lazer_Gun_Reload	
+	4257782712	Ammo_Unpack			\Default Work Unit\Weapons_Ammo_Mellee\Ammo_Unpack	
+
+Game Parameter	ID	Name			Wwise Object Path	Notes
+	2896029240	Master_Sound_Volume			\Default Work Unit\Master_Sound_Volume	
+	2968341316	Zap_Gun_Charge_Up			\Default Work Unit\Zap_Gun_Charge_Up	
+
+In Memory Audio	ID	Name	Audio source file		Wwise Object Path	Notes	Data Size
+	1342881	Sword Attack Part 1	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Sword Attack Part 1_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Sword Attack Part 1		9148
+	19063432	Hammer Swing (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Hammer Swing (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Hammer Swing (1)		15009
+	32809874	Punch Player Impact (5)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Punch Player Impact (5)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player Punch Impact\Punch Player Impact (5)		7727
+	33810153	Gorilla Growl (5)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla Growl (5)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla Loud Growl\Gorilla Growl (5)		33279
+	40445562	Rhino Cry (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Cry (2)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Cry\Rhino Cry (2)		14719
+	42255301	Player 3 Winner	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Player 3 Winner_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player 3 Winner		46280
+	59839613	Crowd Applause (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Crowd Applause (1)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Crowd Applause\Crowd Applause (1)		2028744
+	64822041	Crowd Applause (5)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Crowd Applause (5)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Crowd Applause\Crowd Applause (5)		1918496
+	70678057	Sentinel Knights Pre transition MIx7	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Sentinel Knights Pre transition MIx7_BA19D509.wem		\Interactive Music Hierarchy\Default Work Unit\Sentinel Knights Pre transition MIx7\Sentinel Knights Pre transition MIx7		58512
+	72324719	Hammer Fall (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Hammer Fall (2)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Hammer Fall\Hammer Fall (2)		6442
+	75481645	Near Miss (6)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Near Miss (6)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Near Miss\Near Miss (6)		1058544
+	76790609	Near Miss (12)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Near Miss (12)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Near Miss\Near Miss (12)		683692
+	77987933	Gun Landing (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gun Landing (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gun Landing\Gun Landing (1)		5584
+	82636542	Tier 7	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Tier 7_BA19D509.wem		\Interactive Music Hierarchy\Default Work Unit\Music\Tier 7\Tier 7\Tier 7		1104771
+	88334019	Rhino Lighter Footstep 3	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Lighter Footstep 3_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Footsteps\Rhino Lighter Footstep 3		3722
+	89812687	Grapple Fire (5) mix2	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Grapple Fire (5) mix2_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Grapple Fire\Grapple Fire (5) mix2		9932
+	103090377	Item Throw (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Item Throw (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Item Throw (1)		3603
+	108232976	Near Miss (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Near Miss (2)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Near Miss\Near Miss (2)		1808244
+	113384768	Shotgun (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Shotgun (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Shotgun (1)		19298
+	120369458	Jump (7) mix2	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Jump (7) mix2_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Jump\Jump (7) mix2		5879
+	121997090	Player (3)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Player (3)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player (3)		667496
+	128263727	Gorilla Walk (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla Walk (2)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla Walk\Gorilla Walk (2)		9317
+	131591118	Rhino Cry (4)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Cry (4)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Cry\Rhino Cry (4)		14526
+	136748144	Hammer Fall (3)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Hammer Fall (3)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Hammer Fall\Hammer Fall (3)		6521
+	141720824	Ammo Box Unpack (3)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Ammo Box Unpack (3)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Ammo Unpack\Ammo Box Unpack (3)		4543
+	154494065	Punches (3)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Punches (3)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Punches\Punches (3)		9577
+	168148750	Hammer Impact Mud&Stone	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Hammer Impact Mud&Stone_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Hammer Impact Mud&Stone		23658
+	171386584	Play Demo (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Play Demo (2)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Play Demo (2)		632980
+	177345851	Ammo Box Unpack (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Ammo Box Unpack (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Ammo Unpack\Ammo Box Unpack (1)		5949
+	196968570	Rhino Cry (5)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Cry (5)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Cry\Rhino Cry (5)		32658
+	198444238	Gorilla Growl (7)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla Growl (7)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla Loud Growl\Gorilla Growl (7)		40981
+	203551564	Punches (8)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Punches (8)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Punches\Punches (8)		9348
+	205325741	Zap Gun Charge (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Zap Gun Charge (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Zap Gun Charge (1)		34070
+	205327664	Gorilla beating Chest (3)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla beating Chest (3)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla_Beating_Chest\Gorilla beating Chest (3)		14143
+	211491707	Near Miss (7)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Near Miss (7)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Near Miss\Near Miss (7)		1764144
+	223144575	Online (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Online (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Online (1)		18896
+	234208288	Planet_Explosion (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Planet_Explosion (1) _0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Planet_Explosion (1)		38325
+	238697950	Gorilla Growl (4)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla Growl (4)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla Loud Growl\Gorilla Growl (4)		34915
+	238806087	Single Player VO (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Single Player VO (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Single Player VO (1)		30170
+	258574621	Tier 2	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Tier 2_BA19D509.wem		\Interactive Music Hierarchy\Default Work Unit\Music\Tier 2\Tier 2\Tier 2		444997
+	269054492	Near Miss (10)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Near Miss (10)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Near Miss\Near Miss (10)		1411344
+	283605291	Rhino Lighter Footstep 2	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Lighter Footstep 2_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Footsteps\Rhino Lighter Footstep 2		3491
+	297537221	Jump (7) mix1	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Jump (7) mix1_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Jump\Jump (7) mix1		5858
+	299624855	Extras (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Extras (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Extras (1)		20168
+	310680841	Gorilla Growl (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla Growl (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla Loud Growl\Gorilla Growl (1)		34937
+	313118895	Lazer Gun (2) mix1	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Lazer Gun (2) mix1_BA19D509.wem		\Actor-Mixer Hierarchy\Default Work Unit\Lazer Gun (2) mix1		210455
+	317251290	Winner VO (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Winnter VO (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Winner VO (1)		17346
+	319540122	Sentinel Knights Mix7	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Sentinel Knights Mix7_BA19D509.wem		\Interactive Music Hierarchy\Default Work Unit\Music\Results\Sentinel Knights Mix7\Sentinel Knights Mix7		956061
+	323114712	Ammo Box Drop (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Ammo Box Drop (2)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Ammo Box Drop\Ammo Box Drop (2)		8228
+	323346100	Minigun (4) Cool Down	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Minigun (4) Cool Down_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Minigun (4) Cool Down		551392
+	330385891	Crowd Applause (7)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Crowd Applause (7)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Crowd Applause\Crowd Applause (7)		1411344
+	351403022	Re-spawn(2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Re-spawn(2)_BA19D509.wem		\Actor-Mixer Hierarchy\Default Work Unit\Re-spawn(2)		23450
+	355349041	Exit VO (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Exit VO (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Exit VO (1)		21448
+	363662251	Rhino Lighter Footstep 5	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Lighter Footstep 5_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Footsteps\Rhino Lighter Footstep 5		3812
+	368480651	Rhino Lighter Footstep 4	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Lighter Footstep 4_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Footsteps\Rhino Lighter Footstep 4		3496
+	372995201	Gorilla Growl (6)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla Growl (6)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla Loud Growl\Gorilla Growl (6)		33629
+	373205406	Sword Attack Part 2	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Sword Attack Part 2_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Sword Attack Part 2		8369
+	376589291	Punch Player Impact (3)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Punch Player Impact (3)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player Punch Impact\Punch Player Impact (3)		6645
+	379359750	Options (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Options (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Options (1)		17688
+	388928287	Rhino Cry (8)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Cry (8)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Cry\Rhino Cry (8)		25003
+	400183469	Tier 4	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Tier 4_BA19D509.wem		\Interactive Music Hierarchy\Default Work Unit\Music\Tier 4\Tier 4\Tier 4		797484
+	403264948	Boo (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Boo (1)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Boo (1)		1234944
+	407618374	Player (4)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Player (4)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player (4)		634504
+	412415225	Near Miss (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Near Miss (1)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Near Miss\Near Miss (1)		970344
+	417594452	Gun Landing (4)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gun Landing (4)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gun Landing\Gun Landing (4)		4080
+	431640905	Player 1 Winner	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Player 1 Winner_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player 1 Winner		45848
+	445895557	Gorilla beating Chest (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla beating Chest (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla_Beating_Chest\Gorilla beating Chest (1)		15471
+	454572570	Ammo Box Unpack (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Ammo Box Unpack (2)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Ammo Unpack\Ammo Box Unpack (2)		6364
+	458360787	Tier 6	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Tier 6_BA19D509.wem		\Interactive Music Hierarchy\Default Work Unit\Music\Tier 6\Tier 6\Tier 6		434377
+	470809261	Countdown - 3	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Countdown - 3_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Countdown - 3		16279
+	481954872	Player 2 Winner	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Player 2 Winner_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player 2 Winner		37021
+	496044105	Multiplayer VO (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Multiplayer VO (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Multiplayer VO (1)		27109
+	497514371	Jump Land (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Jump Land (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Jump Land (1)		6686
+	501657047	Lifting Back Over Ledge (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Lifting Back Over Ledge (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Lifting Back Over Ledge (1)		14370
+	505137848	Zap Gun Blast (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Zap Gun Blast (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Zap Gun Blast (1)		26745
+	506916185	Near Miss (11)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Near Miss (11)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Near Miss\Near Miss (11)		1234944
+	514227725	Rhino Cry (3)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Cry (3)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Cry\Rhino Cry (3)		14868
+	522659768	Rhino Lighter Footstep 1	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Lighter Footstep 1_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Footsteps\Rhino Lighter Footstep 1		3907
+	524648054	Transition (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Transition (1)_BA19D509.wem		\Interactive Music Hierarchy\Default Work Unit\Transition (1)\Transition (1)		73712
+	532573489	Lets Vert (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Lets Vert (1)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Lets Vert (1)		570052
+	540425409	Last Stand (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Last Stand (2)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Last Stand (2)		1190844
+	549537156	Countdown - 1	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Countdown - 1_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Countdown - 1		28981
+	550194216	Reload (2) Mix1	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Reload (2) Mix1_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Reload (2) Mix1		10205
+	555670717	Player (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Player (2)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player (2)		634504
+	572387885	Rhino Cry (7)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Cry (7)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Cry\Rhino Cry (7)		28313
+	597155847	Punches (5)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Punches (5)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Punches\Punches (5)		9391
+	604443381	Ammo Box Drop (3)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Ammo Box Drop (3)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Ammo Box Drop\Ammo Box Drop (3)		6717
+	605586307	Punches (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Punches (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Punches\Punches (1)		2903
+	612213016	Player Dash (4) mix1	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Player Dash (4) mix1_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player Dash (4) mix1		14023
+	617832491	Hammer Charge Up	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Hammer Charge Up_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Hammer Charge Up		52455
+	624857544	Tier 3	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Tier 3_BA19D509.wem		\Interactive Music Hierarchy\Default Work Unit\Music\Tier 3\Tier 3\Tier 3		431919
+	625248800	Gorilla beating Chest (4)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla beating Chest (4)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla_Beating_Chest\Gorilla beating Chest (4)		16924
+	629174218	Player 4 Winner	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Player 4 Winner_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player 4 Winner		46703
+	644062068	Gorilla Growl (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla Growl (2)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla Loud Growl\Gorilla Growl (2)		32161
+	648812954	Gorilla beating Chest (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla beating Chest (2)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla_Beating_Chest\Gorilla beating Chest (2)		15536
+	664483247	Punches (6)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Punches (6)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Punches\Punches (6)		8429
+	673669982	Minigun (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Minigun (1)_BA19D509.wem		\Actor-Mixer Hierarchy\Default Work Unit\Minigun (1)		35156
+	686777277	Crowd Applause (4)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Crowd Applause (4)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Crowd Applause\Crowd Applause (4)		573444
+	687192983	Lan (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Lan (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Lan (1)		14799
+	687287660	Grapple Latch (2) mix1	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Grapple Latch (2) mix1_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Grapple Latch (2) mix1		5699
+	693461037	Gorilla Growl (3)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla Growl (3)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla Loud Growl\Gorilla Growl (3)		34352
+	697884124	Gun Landing (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gun Landing (2)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gun Landing\Gun Landing (2)		3871
+	706385539	Tier 10	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Tier 10_BA19D509.wem		\Interactive Music Hierarchy\Default Work Unit\Music\Tier  10\Tier 10\Tier 10		1581019
+	716904329	Buckshot (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Buckshot (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Buckshot (1)		18593
+	724387991	Countdown - 2	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Countdown - 2_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Countdown - 2		22174
+	727461974	Rhino Lighter Footstep 6	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Lighter Footstep 6_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Footsteps\Rhino Lighter Footstep 6		3550
+	733197233	Player Enter Game (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Player Enter Game (1)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player Enter Game (1)		176592
+	738512091	Back Page Interface Sound (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Back Page Interface Sound (2)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Back Page Interface Sound (2)		154540
+	738766813	Gorilla Land (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla Land (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla Land (1)		30872
+	738845764	Punch Player Impact (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Punch Player Impact (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player Punch Impact\Punch Player Impact (1)		3844
+	748326836	Gorilla_Beating_Chest_Roar	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Creature_Dragon_Roar_01_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla_Beating_Chest_Roar		22716
+	750064220	Jump (7) mix3	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Jump (7) mix3_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Jump\Jump (7) mix3		5981
+	751252513	Gorilla Walk (4)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla Walk (4)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla Walk\Gorilla Walk (4)		9626
+	753568650	Rhino Cry (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Cry (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Cry\Rhino Cry (1)		9934
+	754373638	Crowd Applause (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Crowd Applause (2)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Crowd Applause\Crowd Applause (2)		1058544
+	774557217	Near Miss (4)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Near Miss (4)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Near Miss\Near Miss (4)		477896
+	788079693	Punch Player Impact (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Punch Player Impact (2)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player Punch Impact\Punch Player Impact (2)		5639
+	793575246	Hammer Fall (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Hammer Fall (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Hammer Fall\Hammer Fall (1)		7309
+	800333122	Punch Player Impact (4)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Punch Player Impact (4)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player Punch Impact\Punch Player Impact (4)		7175
+	811076263	Tier 1	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Tier 1_BA19D509.wem		\Interactive Music Hierarchy\Default Work Unit\Music\Tier 1\Tier 1\Tier 1		904348
+	811652383	Machine Gun Empty (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Machine Gun Empty (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Machine Gun Empty (1)		5003
+	817053903	Gorilla Walk (3)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla Walk (3)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla Walk\Gorilla Walk (3)		9423
+	827921370	VERT MIX7	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\VERT MIX7_BA19D509.wem		\Interactive Music Hierarchy\Default Work Unit\Music\Title Theme\VERT MIX7\VERT MIX7		2411332
+	843816483	Local (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Local (2)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Local (2)		16229
+	868124766	Near Miss (5)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Near Miss (5)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Near Miss\Near Miss (5)		573444
+	875611607	Clapping (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Clapping (1)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Clapping (1)		1411344
+	879916003	Player (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Player (1)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Player (1)		651468
+	895972806	Ready	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Ready_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Ready		338272
+	906755935	Punches (2)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Punches (2)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Punches\Punches (2)		2595
+	910999735	Crowd Applause (6)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Crowd Applause (6)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Crowd Applause\Crowd Applause (6)		1234944
+	919451101	Countdown - 5	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Countdown - 5_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Countdown - 5		31823
+	922499319	Gorilla Walk (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gorilla Walk (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gorilla Walk\Gorilla Walk (1)		9285
+	929323591	Near Miss (3)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Near Miss (3)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Near Miss\Near Miss (3)		562420
+	929440878	Jump (7) mix4	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Jump (7) mix4_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Jump\Jump (7) mix4		5767
+	937853313	Credits (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Credits (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Credits (1)		15310
+	938863080	Near Miss (9)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Near Miss (9)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Near Miss\Near Miss (9)		2072892
+	941345858	Near Miss (8)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Near Miss (8)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Near Miss\Near Miss (8)		2337444
+	945042984	Tier 5	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Tier 5_BA19D509.wem		\Interactive Music Hierarchy\Default Work Unit\Music\Tier 5\Tier 5\Tier 5		219634
+	958803131	Tier 9	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Tier 9_4B8CC0C5.wem		\Interactive Music Hierarchy\Default Work Unit\Tier 9\Tier 9		2801792
+	965258061	Sword Attack Part 3	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Sword Attack Part 3_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Sword Attack Part 3		8018
+	971294137	Rhino Cry (6)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Cry (6)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Cry\Rhino Cry (6)		24435
+	980658758	Rhino Vocal Sounds (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Rhino Vocal Sounds (1)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Rhino Vocal Sounds (1)		1058544
+	991135533	Ammo Box Drop (1)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Ammo Box Drop (1)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Ammo Box Drop\Ammo Box Drop (1)		7266
+	1003270565	Punches (7)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Punches (7)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Punches\Punches (7)		9717
+	1004732940	VERT Title Theme (Intro for GOE)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\VERT Title Theme (Intro for GOE)_BA19D509.wem		\Interactive Music Hierarchy\Default Work Unit\Music\Tier 0\VERT Title Theme (Intro for GOE)\VERT Title Theme (Intro for GOE)		287378
+	1017011497	Grapple Fire (5) mix1	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Grapple Fire (5) mix1_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Grapple Fire\Grapple Fire (5) mix1		9964
+	1035720450	Crowd Applause (3)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Crowd Applause (3)_9E69E797.wem		\Actor-Mixer Hierarchy\Default Work Unit\Crowd Applause\Crowd Applause (3)		1279044
+	1035748365	Gun Landing (3)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Gun Landing (3)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Gun Landing\Gun Landing (3)		5271
+	1053465203	Punches (4)	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Punches (4)_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Punches\Punches (4)		10673
+	1073529797	Countdown - 4	Z:\Projects\vert-latest\vert_WwiseProject\.cache\Windows\SFX\Countdown - 4_0EEECE5B.wem		\Actor-Mixer Hierarchy\Default Work Unit\Countdown - 4		21495
+

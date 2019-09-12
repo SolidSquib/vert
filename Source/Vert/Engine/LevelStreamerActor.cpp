@@ -3,6 +3,8 @@
 #include "LevelStreamerActor.h"
 #include "Kismet/GameplayStatics.h"
 
+DECLARE_LOG_CATEGORY_CLASS(LogStreamerActor, Log, All);
+
 // Sets default values
 ALevelStreamerActor::ALevelStreamerActor()
 {
@@ -11,15 +13,22 @@ ALevelStreamerActor::ALevelStreamerActor()
 	RootComponent = OverlapVolume;
 
 	OverlapVolume->SetCollisionResponseToAllChannels(ECR_Ignore);
-	OverlapVolume->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	OverlapVolume->SetCollisionObjectType(ECC_StreamingBounds);
+	OverlapVolume->SetCollisionResponseToChannel(ECC_CameraPlaceholder, ECR_Overlap);
+	OverlapVolume->bGenerateOverlapEvents = true;
+}
+
+void ALevelStreamerActor::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
 
 	OverlapVolume->OnComponentBeginOverlap.AddUniqueDynamic(this, &ALevelStreamerActor::OnBeginOverlap);
 	OverlapVolume->OnComponentEndOverlap.AddUniqueDynamic(this, &ALevelStreamerActor::OnEndOverlap);
 }
 
 //************************************
-// Method:    OverlapBegins
-// FullName:  ALevelStreamerActor::OverlapBegins
+// Method:    OnBeginOverlap
+// FullName:  ALevelStreamerActor::OnBeginOverlap
 // Access:    protected 
 // Returns:   void
 // Qualifier:
@@ -30,14 +39,18 @@ ALevelStreamerActor::ALevelStreamerActor()
 // Parameter: bool bFromSweep
 // Parameter: const FHitResult & SweepResult
 //************************************
-void ALevelStreamerActor::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+void ALevelStreamerActor::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (ACharacter* character = Cast<ACharacter>(OtherActor))
+	UE_LOG(LogStreamerActor, Log, TEXT("Began overlap with [%s]"), (OtherActor) ? *OtherActor->GetName() : *OtherComp->GetName());
+
+	AVertPlayerCameraActor* camera = Cast<AVertPlayerCameraActor>(OtherActor);
+	if (camera && camera->IsCameraActive())
 	{
-		if (character->IsLocallyControlled() && LevelToLoad != NAME_None)
+		// load new levels 
+		for (auto level : LevelsToLoad)
 		{
 			FLatentActionInfo LatentInfo;
-			UGameplayStatics::LoadStreamLevel(this, LevelToLoad, true, true, LatentInfo);
+			UGameplayStatics::LoadStreamLevel(this, level, true, true, LatentInfo);
 		}
 	}
 }
@@ -55,12 +68,16 @@ void ALevelStreamerActor::OnBeginOverlap(UPrimitiveComponent* OverlappedComponen
 //************************************
 void ALevelStreamerActor::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (ACharacter* character = Cast<ACharacter>(OtherActor))
+	UE_LOG(LogStreamerActor, Log, TEXT("Ended overlap with [%s]"), (OtherActor) ? *OtherActor->GetName() : *OtherComp->GetName());
+
+	AVertPlayerCameraActor* camera = Cast<AVertPlayerCameraActor>(OtherActor);
+	if (camera && camera->IsCameraActive())
 	{
-		if (character->IsLocallyControlled() && LevelToLoad != NAME_None)
+		//Unload unwanted levels
+		for (auto level : LevelsToLoad)
 		{
 			FLatentActionInfo LatentInfo;
-			UGameplayStatics::UnloadStreamLevel(this, LevelToLoad, LatentInfo);
+			UGameplayStatics::UnloadStreamLevel(this, level, LatentInfo);
 		}
-	}
+	}	
 }

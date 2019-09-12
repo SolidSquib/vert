@@ -2,13 +2,14 @@
 
 #pragma once
 
-#include "GameFramework/Actor.h"
+#include "PooledActor.h"
+#include "PooledProjectile.h"
 #include "ProjectileRangedWeapon.h"
 #include "WeaponProjectile.generated.h"
 
 // 
 UCLASS(Abstract, Blueprintable)
-class AWeaponProjectile : public AActor
+class AWeaponProjectile : public APooledActor
 {
 	GENERATED_UCLASS_BODY()
 
@@ -21,32 +22,27 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Effects)
 	TSubclassOf<class AVertExplosionEffect> ExplosionTemplate;
 
-	UPROPERTY(EditDefaultsOnly, Category = Damage)
-	float BaseDamage = 10.f;
-
 private:
 	/** movement component */
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
 	UProjectileMovementComponent* MovementComp;
 
-	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
-	UStaticMeshComponent* MeshComponent;
-
 	/** collisions */
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
 	USphereComponent* CollisionComp;
 
-	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
-	UParticleSystemComponent* ParticleComp;
-
 public:
 	/** setup velocity */
-	void InitVelocity(FVector& ShootDirection);
+	void InitVelocity(const FVector& ShootDirection);
+	void InitProjectile(const FProjectileWeaponData& weaponData, int32 baseDamage, float baseKnockback, float knockbackScaling, float stunTime);
 
 	virtual void PostInitializeComponents() override;
 	
 	UFUNCTION(BlueprintNativeEvent) /** handle hit */
 	void OnImpact(const FHitResult& HitResult);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void OnCollisionHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrimitiveComponent* otherComp, FVector normalImpulse, const FHitResult& hit);
 
 protected:
 	/** trigger explosion */
@@ -58,14 +54,20 @@ protected:
 
 	/** update velocity on client */
 	virtual void PostNetReceiveVelocity(const FVector& NewVelocity) override;
+	virtual void LifeSpanExpired() override;
 
 	FORCEINLINE UProjectileMovementComponent* GetMovementComp() const { return MovementComp; }
 	FORCEINLINE USphereComponent* GetCollisionComp() const { return CollisionComp; }
-	FORCEINLINE UParticleSystemComponent* GetParticleComp() const { return ParticleComp; }
 
 	/** [client] explosion happened */
 	UFUNCTION()
 	void OnRep_Exploded();
+
+	UFUNCTION()
+	void PoolBeginPlay();
+
+	UFUNCTION()
+	void PoolEndPlay();
 
 protected:
 	/** controller that fired me (cache for damage calculations) */

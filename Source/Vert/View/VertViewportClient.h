@@ -14,9 +14,19 @@ class VERT_API UVertViewportClient : public UGameViewportClient
 	GENERATED_BODY()
 	
 public:
+	void DrawScreenFade(UCanvas* canvas);
+
 	virtual void Init(struct FWorldContext& WorldContext, UGameInstance* OwningGameInstance, bool bCreateNewAudioDevice = true) override;
 	virtual bool InputKey(FViewport* pViewport, int32 ControllerId, FKey Key, EInputEvent EventType, float AmountDepressed = 1.f, bool bGamepad = false) override;
+	virtual void PostRender(UCanvas* Canvas) override;
+	virtual void ClearFade();
+	virtual void Fade(const float duration, const bool toBlack);
 
 private:
 	TWeakObjectPtr<UVertGameInstance> mVertGameInstance = nullptr;
+	bool mIsFading = false;
+	bool mToBlack = false;
+	float mFadeAlpha;
+	float mFadeStartTime;
+	float mFadeDuration;
 };

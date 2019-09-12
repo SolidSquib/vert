@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "GameFramework/Character.h"
-#include "Engine/DebugGroup.h"
+#include "Character/VertCharacterBase.h"
 #include "Character/VertCharacterMovementComponent.h"
 #include "Character/CharacterInteractionComponent.h"
 #include "Character/HealthComponent.h"
@@ -22,62 +21,35 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVertCharacter, Log, All);
 
-USTRUCT()
-struct FCharacterDebugSettings
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, Category = Debug)
-	FDebugGroup Grapple;
-
-	UPROPERTY(EditAnywhere, Category = Debug)
-	FDebugGroup Dash;
-
-	UPROPERTY(EditAnywhere, Category = Debug)
-	FDebugGroup CharacterMovement;
-
-	UPROPERTY(EditAnywhere, Category = Debug)
-	FDebugGroup States;
-
-	UPROPERTY(EditAnywhere, Category = Debug)
-	bool InfiniteDashGrapple;
-
-	FCharacterDebugSettings()
-	{
-		Grapple.MessageColour = FColor::Emerald;
-		Dash.MessageColour = FColor::Blue;
-		CharacterMovement.MessageColour = FColor::Red;
-		InfiniteDashGrapple = false;
-	}
-};
-
 UCLASS(config = Game, Abstract)
-class AVertCharacter : public ACharacter
+class AVertCharacter : public AVertCharacterBase
 {
 	GENERATED_BODY()
+
+	friend class AVertPlayerController;
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Debug)
-	FCharacterDebugSettings ShowDebug;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Interact")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Items")
 	FName ItemHandSocket = "ItemSocket";
 
 protected:
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character|Health")
-	UHealthComponent* HealthComponent;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Character|Interact")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Items")
 	UCharacterInteractionComponent* InteractionComponent;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character|Grappling")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Grappling")
 	UGrapplingComponent* GrapplingComponent;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character|Dashing")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Dashing")
 	UDashingComponent* DashingComponent;
 	
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character|Climbing")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Climbing")
 	ULedgeGrabbingComponent* ClimbingComponent;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "UserInterface")
+	class UAimArrowWidgetComponent* AimArrowComponent;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "UserInterface")
+	USceneComponent* AimArrowAnchor;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* SideViewCameraComponent;
@@ -85,30 +57,42 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
-	/** material instances for setting team color in mesh (3rd person view) */
+	/** material instances for setting team color in mesh */
 	UPROPERTY(Transient)
 	TArray<UMaterialInstanceDynamic*> MeshMIDs;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Controls)
 	bool DisableInputWhenDashingOrGrappling;
-	
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Controls")
+	int32 GamepadSwipeRequiredPasses = 3;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	class UAkAudioEvent* JumpSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	UAkAudioEvent* JumpLandSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	UAkAudioEvent* DoubleJumpSound = nullptr;
+
+	UPROPERTY()
+	AVertPlayerController* VertController = nullptr;
+
 public:
 	AVertCharacter(const class FObjectInitializer& ObjectInitializer);
 
 	void UpdateTeamColoursAllMIDs();
-	bool CanComponentRecharge(ERechargeRule rule);
-	bool IsMoving();
 	const bool UsingGamepad() const;
+	TArray<AController*> GetRecentHitters();
 
-	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type endPlayReason) override;
+	virtual void PostInitializeComponents() override;
+	virtual void PossessedBy(AController* NewController) override;
 	virtual void Landed(const FHitResult& Hit) override;
-	virtual void ApplyDamageMomentum(float DamageTaken, const FDamageEvent& DamageEvent, APawn* PawnInstigator, AActor* DamageCauser) override;
-	virtual bool CanDie(float KillingDamage, const FDamageEvent& DamageEvent, AController* Killer, AActor* DamageCauser) const;
-	virtual void OnDeath(float killingDamage, const FDamageEvent& damageEvent, APawn* pawnInstigator, AActor* damageCauser);
-	virtual void FellOutOfWorld(const class UDamageType& dmgType) override;
-	virtual void KilledBy(class APawn* EventInstigator);
+	virtual void OnRep_PlayerState() override; /** [client] perform PlayerState related setup */
+	virtual bool Die() override;
+	virtual float TakeDamage(float Damage, const FDamageEvent& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
 
 	FORCEINLINE class UCameraComponent* GetSideViewCameraComponent() const { return SideViewCameraComponent; }
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -117,15 +101,12 @@ public:
 	FORCEINLINE UGrapplingComponent* GetGrapplingComponent() const { return GrapplingComponent; }
 	FORCEINLINE UDashingComponent* GetDashingComponent() const { return DashingComponent; }
 	FORCEINLINE const FAxisPositions& GetAxisPostisions() const { return mAxisPositions; }
-	
-	UFUNCTION(BlueprintCallable, Category = "Health")
-	virtual float TakeDamage(float Damage, const FDamageEvent& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
 
-	UFUNCTION(BlueprintCallable, Category = "Health")
-	virtual void Suicide();
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void Dislodge(bool dropItem = false);
 
-	UFUNCTION(BlueprintCallable, Category = "Health")
-	virtual bool Die(float KillingDamage, const FDamageEvent& DamageEvent, class AController* Killer, class AActor* DamageCauser);
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	float GetStartingMaxMoveSpeed() const { return mStartMovementSpeed; }
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void StopAttacking();
@@ -154,8 +135,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Jump")
 	bool CanInteract() const;
 
-	UFUNCTION(BlueprintCallable, Category = "Hitstun")
-	bool IsInHitstun() const;
+	UFUNCTION(BlueprintCallable, Category = "Grappling")
+	bool IsGrappling() const { return GrapplingComponent->GetGrappleState() == EGrappleState::HookDeployed || GrapplingComponent->GetGrappleState() == EGrappleState::HookDeployedAndReturning; }
+
+	UFUNCTION(BlueprintCallable, Category = Climbing)
+	bool IsClimbing() const { return ClimbingComponent->IsClimbingLedge(); }
 
 	UFUNCTION(BlueprintCallable, Category = CharacterMovement)
 	FORCEINLINE UVertCharacterMovementComponent* GetVertCharacterMovement() const { if (UVertCharacterMovementComponent* movement = Cast<UVertCharacterMovementComponent>(GetCharacterMovement())) { return movement; } return nullptr; }
@@ -166,15 +150,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ragdoll")
 	FORCEINLINE bool IsRagdolling() const { return mIsRagdolling; }
 
-	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
-	FORCEINLINE bool IsGrounded() const { return !IsJumpProvidingForce() && !GetCharacterMovement()->IsFalling(); }
+	UFUNCTION(BlueprintCallable, Category = "Weapons")
+	class ABaseWeapon* GetCurrentWeapon() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Weapons")
-	FORCEINLINE class ABaseWeapon* GetCurrentWeapon() const { return (mCurrentWeapon.IsValid()) ? mCurrentWeapon.Get() : nullptr; }
+	ABaseWeapon* GetDefaultWeapon() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapons")
+	ABaseWeapon* GetHeldWeapon() const;
 
 protected:
+	void UpdateCharacter();
 	void ActionMoveRight(float Value);
 	void ActionGrappleShoot();
+	void ActionGrappleShootAltDown(); // Alternative function for gamepad users
+	void ActionGrappleShootAltUp(); // Alternative function for gamepad users
 	void ExecuteActionGrappleShoot();
 	void ActionDash();
 	void ActionInteract();
@@ -184,13 +174,15 @@ protected:
 	void RightThumbstickMoveX(float value);
 	void RightThumbstickMoveY(float value);
 	void LeftThumbstickMoveY(float value);
-	void MouseMove(float value);	
-	void UpdateCharacter();
+	void MouseMove(float value);
 	void UpdateTeamColours(UMaterialInstanceDynamic* useMIDs);
 
-	virtual void ApplyDamageHitstun(int32 hitstunFrames);
 	virtual bool CanJumpInternal_Implementation() const override;
+	virtual void OnJumped_Implementation() override;
+	virtual void Jump() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
+	virtual void ApplyDamageHitstun(float hitstunTime) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 	UFUNCTION(BlueprintCallable, Category = "Player Controller")
 	FORCEINLINE AVertPlayerController* GetPlayerController() const { if (AController* controller = GetController()) { if (AVertPlayerController* playerController = Cast<AVertPlayerController>(controller)) { return playerController; } } return nullptr; }
@@ -200,6 +192,24 @@ protected:
 
 	UFUNCTION()
 	void OnDropInteractiveInternal(AInteractive* interactive, bool wasThrown);
+
+	UFUNCTION()
+	void AttemptToGrabGrappledLedge(const FHitResult& forwardHit, const FHitResult& downwardHit);
+
+	UFUNCTION()
+	void GrappleDetached();
+	
+	UFUNCTION()
+	void GrappleHooked();
+
+	UFUNCTION()
+	void GrappleReturned();
+
+	UFUNCTION()
+	void PerformLedgeAttack();
+
+	UFUNCTION()
+	void OnCharacterHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrimitiveComponent* otherComp, FVector normalImpulse, const FHitResult& hit);
 
 	/// Blueprint Implementable functions //////////////////////////////////////////////////////////////////////////
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
@@ -230,16 +240,22 @@ protected:
 	void Character_OnStartAttackExecuted(ABaseWeapon* weapon);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnStartDashAttackExecuted(ABaseWeapon* weapon);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
 	void Character_OnStopAttackExecuted();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
 	void Character_OnJumpExecuted();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
+	void Character_OnAirJumpExecuted();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
 	void Character_OnWeaponStateChangeExecuted(ABaseWeapon* weapon, EWeaponState newState, UAnimSequence* playerAnim);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
-	void Character_OnWeaponFiredWithRecoilExecuted(float recoilAmount);
+	void Character_OnAttackFired(const struct FWeaponAnim& playAnim, float recoilAmount);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
 	void Character_OnLedgeTransition(ELedgeTransition transition);
@@ -247,25 +263,35 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Actions")
 	void Character_OnLedgeGrabbed(const FHitResult& forwardHit, const FHitResult& downwardHit);
 
-private:
-	void SetRagdollPhysics();
-
-#if !UE_BUILD_SHIPPING
-	void PrintDebugInfo();
-#endif
+	UFUNCTION()
+	void OnLedgeGrabbed(const FHitResult& forwardHit, const FHitResult& downwardHit);
 
 	FORCEINLINE void EndGamepadStandby() { mGamepadOnStandby = false; }
+
+	UFUNCTION()
+	void RecentHitExpired(AController* attacker);
+
+private:
+	void RecordRecentHit(AController* attacker);
 
 protected:
 	TWeakObjectPtr<ABaseWeapon> mCurrentWeapon = nullptr;
 	FAxisPositions mAxisPositions;
-	FTimerHandle mTimerHandle;
-	FTimerHandle mGamepadGrappleDelay;
-	FTimerHandle mHitStunTimer;
+	FTimerHandle mTimerHandle_GrappleExecute;
+	FTimerHandle mTimerHandle_GamepadGrappleDelay;
+	FTimerHandle mTimerHandle_AutoAttack;
 	bool mGamepadOnStandby = false;
-	bool mIsDying = false;
-	bool mIsRagdolling = false;
+	float mStartMovementSpeed = 0;
 
 	FScriptDelegate mOnWeaponStateChangedDelegate;
-	FScriptDelegate mOnWeaponFiredWithRecoilDelegate;
+	FScriptDelegate mOnWeaponFiredDelegate;
+
+	/* Gamepad grapple bits and bobs */
+	bool mGamepadWantsToGrapple = false;
+	bool mJumpedFromGrapple = false;
+	FVector mGamepadSwipeDirection = FVector::ZeroVector;
+	int32 mGamepadSwipePassesDone = 0;
+	TArray<FVector> mSwipePasses;
+
+	TMap<AController*, FTimerHandle> mRecentHitters;
 };

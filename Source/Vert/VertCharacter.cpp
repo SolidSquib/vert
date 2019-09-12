@@ -1,21 +1,22 @@
 ﻿// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
 #include "VertCharacter.h"
-#include "Vert.h"
+#include "Engine/VertGlobals.h"
 #include "ContainerAllocationPolicies.h"
+#include "UserInterface/AimArrowWidgetComponent.h"
 
 DEFINE_LOG_CATEGORY(LogVertCharacter);
-
 //////////////////////////////////////////////////////////////////////////
 // AVertCharacter
 
 AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UVertCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)),
-	HealthComponent(CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"))),
 	InteractionComponent(CreateDefaultSubobject<UCharacterInteractionComponent>(TEXT("InteractionComponent"))),
 	GrapplingComponent(CreateDefaultSubobject<UGrapplingComponent>(TEXT("GrapplingComponent"))),
 	DashingComponent(CreateDefaultSubobject<UDashingComponent>(TEXT("DashingComponent"))),
 	ClimbingComponent(CreateDefaultSubobject<ULedgeGrabbingComponent>(TEXT("ClimbingComponent"))),
+	AimArrowComponent(CreateDefaultSubobject<UAimArrowWidgetComponent>(TEXT("GrappleAimArrowUI"))),
+	AimArrowAnchor(CreateDefaultSubobject<USceneComponent>(TEXT("GrappleAimArrowAnchor"))),
 	DisableInputWhenDashingOrGrappling(false)
 {
 	// Use only Yaw from the controller and ignore the rest of the rotation.
@@ -27,6 +28,7 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 	GetCapsuleComponent()->SetCapsuleHalfHeight(96.0f);
 	GetCapsuleComponent()->SetCapsuleRadius(40.0f);
 	GetCapsuleComponent()->SetSimulatePhysics(false);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_StreamingBounds, ECR_Overlap);
 
 	// Create a camera boom attached to the root (capsule)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -47,9 +49,14 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 	CameraBoom->bAbsoluteRotation = true;
 	SideViewCameraComponent->bUsePawnControlRotation = false;
 	SideViewCameraComponent->bAutoActivate = true;
-	GetCharacterMovement()->bOrientRotationToMovement = false;
+	
+	GrapplingComponent->SetupAttachment(GetMesh());
+
+	AimArrowAnchor->SetupAttachment(GrapplingComponent);
+	AimArrowComponent->SetupAttachment(AimArrowAnchor);
 
 	// Configure character movement
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->GravityScale = 2.0f;
 	GetCharacterMovement()->AirControl = 0.80f;
 	GetCharacterMovement()->JumpZVelocity = 1000.f;
@@ -70,93 +77,233 @@ AVertCharacter::AVertCharacter(const FObjectInitializer & ObjectInitializer)
 
 	// Enable replication on the Sprite component so animations show up when networked
 	GetMesh()->SetIsReplicated(true);
+	GetMesh()->SetRenderCustomDepth(true);
 	bReplicates = true;
 }
 
-void AVertCharacter::Tick(float DeltaSeconds)
+//************************************
+// Method:    PostInitializeComponents
+// FullName:  AVertCharacter::PostInitializeComponents
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertCharacter::PostInitializeComponents()
 {
-	Super::Tick(DeltaSeconds);
+	Super::PostInitializeComponents();
 
-#if !UE_BUILD_SHIPPING
-	PrintDebugInfo();
-#endif
+	// create material instance for setting team colors (3rd person view)
+	for (int32 iMat = 0; iMat < GetMesh()->GetNumMaterials(); iMat++)
+	{
+		MeshMIDs.Add(GetMesh()->CreateAndSetMaterialInstanceDynamic(iMat));
+	}
 }
 
+//************************************
+// Method:    BeginPlay
+// FullName:  AVertCharacter::BeginPlay
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (HealthComponent)
-	{
-		FScriptDelegate onDeath;
-		onDeath.BindUFunction(this, TEXT("OnNotifyDeath"));
-		HealthComponent->OnDeath.Add(onDeath);
-	}
+	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AVertCharacter::OnCharacterHit);
+	
+	mOnWeaponStateChangedDelegate.BindUFunction(this, TEXT("Character_OnWeaponStateChangeExecuted"));
+	mOnWeaponFiredDelegate.BindUFunction(this, TEXT("Character_OnAttackFired"));
+
+	mStartMovementSpeed = GetCharacterMovement()->MaxWalkSpeed;
 
 	if (InteractionComponent)
 	{
-		FScriptDelegate onPickup;
-		onPickup.BindUFunction(this, TEXT("OnPickupInteractiveInternal"));
-		InteractionComponent->Delegate_OnPickupInteractive.Add(onPickup);
+		InteractionComponent->Delegate_OnDropInteractive.AddDynamic(this, &AVertCharacter::OnDropInteractiveInternal);
+		InteractionComponent->Delegate_OnPickupInteractive.AddDynamic(this, &AVertCharacter::OnPickupInteractiveInternal);
 
-		FScriptDelegate onDrop;
-		onDrop.BindUFunction(this, TEXT("OnDropInteractiveInternal"));
-		InteractionComponent->Delegate_OnDropInteractive.Add(onDrop);
-
-		if(InteractionComponent->GetDefaultWeapon().IsValid())
-			OnPickupInteractiveInternal(InteractionComponent->GetDefaultWeapon().Get(), false);
+		if (InteractionComponent->GetDefaultWeapon())
+		{
+			InteractionComponent->GetDefaultWeapon()->Delegate_OnWeaponAttackFire.Add(mOnWeaponFiredDelegate);
+			InteractionComponent->GetDefaultWeapon()->Delegate_OnWeaponStateChanged.Add(mOnWeaponStateChangedDelegate);
+		}
 	}
 
 	if (DashingComponent)
 	{
-		FScriptDelegate onDashEnd;
-		onDashEnd.BindUFunction(this, TEXT("Character_OnDashEnded"));
-		DashingComponent->OnDashEnd.Add(onDashEnd);
+		DashingComponent->OnDashEnd.AddDynamic(this, &AVertCharacter::Character_OnDashEnded);
+	}
+
+	if (GrapplingComponent)
+	{
+		GrapplingComponent->OnGrappleToLedgeTransition.AddDynamic(this, &AVertCharacter::AttemptToGrabGrappledLedge);
+		GrapplingComponent->OnHookReleased.AddDynamic(this, &AVertCharacter::GrappleDetached);
+		GrapplingComponent->OnHooked.AddDynamic(this, &AVertCharacter::GrappleHooked);
+		GrapplingComponent->OnReturned.AddDynamic(this, &AVertCharacter::GrappleReturned);
+		GrapplingComponent->OnHookBreak.AddDynamic(this, &AVertCharacter::Character_OnGrappleBeginReturn);
 	}
 
 	if (ClimbingComponent)
 	{
-		FScriptDelegate onLedgeTransition;
-		onLedgeTransition.BindUFunction(this, TEXT("Character_OnLedgeTransition"));
-		ClimbingComponent->OnLedgeTransition.Add(onLedgeTransition);
-
-		FScriptDelegate onLedgeGrabbed;
-		onLedgeGrabbed.BindUFunction(this, TEXT("Character_OnLedgeGrabbed"));
-		ClimbingComponent->HoldingLedge.Add(onLedgeGrabbed);
+		ClimbingComponent->WantsToAttack.AddDynamic(this, &AVertCharacter::PerformLedgeAttack);
+		ClimbingComponent->OnLedgeTransition.AddDynamic(this, &AVertCharacter::Character_OnLedgeTransition);
+		ClimbingComponent->HoldingLedge.AddDynamic(this, &AVertCharacter::OnLedgeGrabbed);
 	}
 
-	mOnWeaponStateChangedDelegate.BindUFunction(this, TEXT("Character_OnWeaponStateChangeExecuted"));
-	mOnWeaponFiredWithRecoilDelegate.BindUFunction(this, TEXT("Character_OnWeaponFiredWithRecoilExecuted"));
-
-	if (UWorld* world = GetWorld())
+	if (AimArrowComponent->GetUserWidgetObject())
 	{
-		if (AGameModeBase* gameMode = world->GetAuthGameMode())
+		AimArrowComponent->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+//************************************
+// Method:    EndPlay
+// FullName:  AVertCharacter::EndPlay
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const EEndPlayReason::Type EndPlayReason
+//************************************
+void AVertCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (EndPlayReason == EEndPlayReason::Destroyed)
+	{
+		if (ABaseWeapon* weapon = GetHeldWeapon())
 		{
-			if (AVertGameMode* vertGameMode = Cast<AVertGameMode>(gameMode))
+			if (weapon->GetOwningPool() != nullptr)
 			{
-				vertGameMode->RegisterPlayerPawn(this);
+				weapon->ReturnToPool();
+			}
+			else
+			{
+				weapon->Destroy();
 			}
 		}
 	}
 }
 
-void AVertCharacter::EndPlay(const EEndPlayReason::Type endPlayReason)
+//************************************
+// Method:    PossessedBy
+// FullName:  AVertCharacter::PossessedBy
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: AController * NewController
+//************************************
+void AVertCharacter::PossessedBy(AController* NewController)
 {
-	if (endPlayReason == EEndPlayReason::Destroyed)
+	Super::PossessedBy(NewController);
+
+	VertController = Cast<AVertPlayerController>(NewController);
+	UpdateTeamColoursAllMIDs();
+}
+
+//************************************
+// Method:    OnRep_PlayerState
+// FullName:  AVertCharacter::OnRep_PlayerState
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	// [client] as soon as PlayerState is assigned, set team colors of this pawn for local player
+	if (PlayerState != NULL)
 	{
-		if (UWorld* world = GetWorld())
+		UpdateTeamColoursAllMIDs();
+	}
+}
+
+//************************************
+// Method:    Dislodge
+// FullName:  AVertCharacter::Dislodge
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertCharacter::Dislodge(bool dropItem /*= false*/)
+{
+	GrapplingComponent->Reset();
+	ClimbingComponent->TransitionLedge(ELedgeTransition::DropFromGrabbedLedge);
+	DashingComponent->StopDashing();
+
+	if (dropItem)
+		InteractionComponent->DropInteractive();
+}
+
+//************************************
+// Method:    Die
+// FullName:  AVertCharacter::Die
+// Access:    virtual protected 
+// Returns:   bool
+// Qualifier:
+//************************************
+bool AVertCharacter::Die()
+{
+	if (!CanDie()) // Already dead, don't attempt to kill again!
+		return false;
+
+	if (AVertGameMode* gm = GetWorld()->GetAuthGameMode<AVertGameMode>())
+	{
+		AVertPlayerController* pc = Cast<AVertPlayerController>(GetController());
+		check(pc);
+
+		if (DeathFX)
 		{
-			if (AGameModeBase* gameMode = world->GetAuthGameMode())
+			if (AVertPlayerCameraActor* camera = gm->GetActivePlayerCamera())
 			{
-				if (AVertGameMode* vertGameMode = Cast<AVertGameMode>(gameMode))
+				FVector spawnLocation = FVector::ZeroVector;
+				if (AVertCameraManager* cameraMan = Cast<AVertCameraManager>(pc->PlayerCameraManager))
 				{
-					vertGameMode->UnregisterPlayerPawn(this);
+					FVector topLeft, bottomRight, topRight, bottomLeft;
+					FVector playerLocation = GetActorLocation();
+					FVector camLocation = camera->GetActorLocation();
+					cameraMan->GetCurrentPlayerBounds(topLeft, bottomRight, bottomLeft, topRight);
+					
+					float minX, maxX;
+					cameraMan->GetBoundsXMinMax(minX, maxX);
+
+					spawnLocation.X = FMath::Clamp(GetActorLocation().X, minX, maxX);
+					spawnLocation.Z = FMath::Clamp(GetActorLocation().Z, bottomRight.Z, topLeft.Z);
+					spawnLocation.Y = GetActorLocation().Y;
 				}
+
+				if (PlayerDeathSound)
+				{
+					UAkGameplayStatics::PostEvent(PlayerDeathSound, this);
+				}
+				
+				UParticleSystemComponent* emitter = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), DeathFX, FTransform(GetActorRotation(), spawnLocation));
+				if (pc && emitter)
+				{
+					AVertPlayerState* state = pc->GetVertPlayerState();
+					emitter->SetColorParameter("PlayerDeath_Col", state->GetPlayerColours().PrimaryColour);
+				}
+			}
+		}
+
+		if (DeathFeedback && UsingGamepad())
+		{
+			if (pc)
+			{
+				static const FName scDeathFeedbackName(TEXT("PlayerDeathFeedback"));
+				pc->ClientPlayForceFeedback(DeathFeedback, false, scDeathFeedbackName);
+			}
+		}
+
+		if (DeathCameraShakeEvent)
+		{
+			APlayerController* pc = Cast<APlayerController>(GetController());
+			if (pc)
+			{
+				pc->ClientPlayCameraShake(DeathCameraShakeEvent, DeathCameraShakeScale);
 			}
 		}
 	}
 
-	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+	return Super::Die();
 }
 
 //************************************
@@ -172,264 +319,12 @@ void AVertCharacter::Landed(const FHitResult& Hit)
 	GrapplingComponent->OnLanded();
 	DashingComponent->OnLanded();
 
+	if (JumpLandSound)
+	{
+		UAkGameplayStatics::PostEvent(JumpLandSound, this);
+	}
+
 	Super::Landed(Hit);
-}
-
-//************************************
-// Method:    TakeDamage
-// FullName:  AVertCharacter::TakeDamage
-// Access:    virtual public 
-// Returns:   float
-// Qualifier:
-// Parameter: float Damage
-// Parameter: const FDamageEvent & DamageEvent
-// Parameter: class AController * EventInstigator
-// Parameter: class AActor * DamageCauser
-//************************************
-float AVertCharacter::TakeDamage(float Damage, const FDamageEvent& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser)
-{
-	if (AVertPlayerController* pc = Cast<AVertPlayerController>(Controller))
-	{
-		if (pc->HasGodMode())
-		{
-			return 0.f;
-		}
-	}
-
-	UE_LOG(LogVertCharacter, Log, TEXT("%s recieved damage from %s"), *GetName(), *DamageCauser->GetName());
-
-	APawn* pawnInstigator = EventInstigator ? EventInstigator->GetPawn() : nullptr;
-	return HealthComponent->DealDamage(Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser), DamageEvent, pawnInstigator, DamageCauser);
-}
-
-bool AVertCharacter::CanDie(float KillingDamage, const FDamageEvent& DamageEvent, AController* Killer, AActor* DamageCauser) const
-{
-	if (mIsDying										// already dying
-		|| IsPendingKill()								// already destroyed
-		|| Role != ROLE_Authority						// not authority
-		|| GetWorld()->GetAuthGameMode<AVertGameMode>() == NULL
-		|| GetWorld()->GetAuthGameMode<AVertGameMode>()->GetMatchState() == MatchState::LeavingMap)	// level transition occurring
-	{
-		return false;
-	}
-
-	return true;
-}
-
-//************************************
-// Method:    OnDeath
-// FullName:  AVertCharacter::OnDeath
-// Access:    virtual public 
-// Returns:   void
-// Qualifier:
-// Parameter: float killingDamage
-// Parameter: const FDamageEvent & damageEvent
-// Parameter: APawn * pawnInstigator
-// Parameter: AActor * damageCauser
-//************************************
-void AVertCharacter::OnDeath(float killingDamage, const FDamageEvent& damageEvent, APawn* pawnInstigator, AActor* damageCauser)
-{
-	if (mIsDying)
-	{
-		return;
-	}
-
-	bReplicateMovement = false;
-	bTearOff = true;
-	mIsDying = true;
-
-	if (Role == ROLE_Authority)
-	{
-		HealthComponent->ReplicateHit(killingDamage, damageEvent, pawnInstigator, damageCauser, true);
-
-		// play the force feedback effect on the client player controller
-		APlayerController* PC = Cast<APlayerController>(Controller);
-		if (PC && damageEvent.DamageTypeClass)
-		{
-			UVertDamageType *damageType = Cast<UVertDamageType>(damageEvent.DamageTypeClass->GetDefaultObject());
-			if (damageType && damageType->KilledForceFeedback)
-			{
-				PC->ClientPlayForceFeedback(damageType->KilledForceFeedback, false, "Damage");
-			}
-		}
-	}
-
-	DetachFromControllerPendingDestroy();
-	GetWorld()->GetAuthGameMode<AVertGameMode>()->UnregisterPlayerPawn(this);
-
-	if (GetMesh())
-	{
-		static FName CollisionProfileName(TEXT("Ragdoll"));
-		GetMesh()->SetCollisionProfileName(CollisionProfileName);
-	}
-	SetActorEnableCollision(true);
-}
-
-//************************************
-// Method:    Suicide
-// FullName:  AVertCharacter::Suicide
-// Access:    virtual public 
-// Returns:   void
-// Qualifier:
-//************************************
-void AVertCharacter::Suicide()
-{
-	KilledBy(this);
-}
-
-//************************************
-// Method:    KilledBy
-// FullName:  AVertCharacter::KilledBy
-// Access:    virtual public 
-// Returns:   void
-// Qualifier:
-// Parameter: class APawn * EventInstigator
-//************************************
-void AVertCharacter::KilledBy(class APawn* EventInstigator)
-{
-	if (Role == ROLE_Authority && !mIsDying)
-	{
-		AController* Killer = NULL;
-		if (EventInstigator != NULL)
-		{
-			Killer = EventInstigator->Controller;
-			LastHitBy = NULL;
-		}
-
-		Die(HealthComponent->GetCurrentDamageModifier(), FDamageEvent(UDamageType::StaticClass()), Killer, NULL);
-	}
-}
-
-//************************************
-// Method:    Die
-// FullName:  AVertCharacter::Die
-// Access:    virtual public 
-// Returns:   bool
-// Qualifier:
-// Parameter: float KillingDamage
-// Parameter: const FDamageEvent & DamageEvent
-// Parameter: class AController * Killer
-// Parameter: class AActor * DamageCauser
-//************************************
-bool AVertCharacter::Die(float KillingDamage, const FDamageEvent& DamageEvent, class AController* Killer, class AActor* DamageCauser)
-{
-	if (!CanDie(KillingDamage, DamageEvent, Killer, DamageCauser))
-		return false;
-
-	// if this is an environmental death then refer to the previous killer so that they receive credit (knocked into lava pits, etc)
-	UDamageType const* const DamageType = DamageEvent.DamageTypeClass ? DamageEvent.DamageTypeClass->GetDefaultObject<UDamageType>() : GetDefault<UDamageType>();
-	Killer = GetDamageInstigator(Killer, *DamageType);
-
-	AController* const KilledPlayer = (Controller != NULL) ? Controller : Cast<AController>(GetOwner());
-	GetWorld()->GetAuthGameMode<AVertGameMode>()->Killed(Killer, KilledPlayer, this, DamageType);
-
-	NetUpdateFrequency = GetDefault<AVertGameMode>()->NetUpdateFrequency;
-	GetCharacterMovement()->ForceReplicationUpdate();
-
-	OnDeath(KillingDamage, DamageEvent, Killer ? Killer->GetPawn() : NULL, DamageCauser);
-	return true;
-}
-
-//************************************
-// Method:    FellOutOfWorld
-// FullName:  AVertCharacter::FellOutOfWorld
-// Access:    virtual public 
-// Returns:   void
-// Qualifier:
-// Parameter: const class UDamageType & dmgType
-//************************************
-void AVertCharacter::FellOutOfWorld(const class UDamageType& dmgType)
-{
-	Die(HealthComponent->GetCurrentDamageModifier(), FDamageEvent(dmgType.GetClass()), NULL, NULL);
-
-	Super::FellOutOfWorld(dmgType);
-}
-
-//************************************
-// Method:    ApplyDamageMomentum
-// FullName:  AVertCharacter::ApplyDamageMomentum
-// Access:    virtual public 
-// Returns:   void
-// Qualifier:
-// Parameter: float damageTaken
-// Parameter: const FDamageEvent & damageEvent
-// Parameter: APawn * pawnInstigator
-// Parameter: AActor * damageCauser
-//************************************
-void AVertCharacter::ApplyDamageMomentum(float damageTaken, const FDamageEvent& damageEvent, APawn* pawnInstigator, AActor* damageCauser)
-{
-	const UDamageType* const dmgTypeCDO = damageEvent.DamageTypeClass->GetDefaultObject<UDamageType>();
-	AVertGameMode* gameMode = GetWorld()->GetAuthGameMode<AVertGameMode>();
-
-	float knockbackAmount = 0.f;
-	float hitstunTime = 0.f;
-
-	if (ABaseWeapon* weapon = Cast<ABaseWeapon>(damageCauser))
-	{
-		static constexpr float scHitstun_Multiplier = 0.4f;
-		static constexpr float scMass_Modifier = 1.4f;
-
-		knockbackAmount = ((((((HealthComponent->GetCurrentDamageModifier() / 10) + ((HealthComponent->GetCurrentDamageModifier() * damageTaken) / 10)) * (200 / (GetCharacterMovement()->Mass + 100)) * scMass_Modifier) + 18) * weapon->GetKnockbackScaling()) + weapon->GetBaseKnockback()) * gameMode->GetDamageRatio();
-		hitstunTime = FMath::Max(0.f, knockbackAmount * scHitstun_Multiplier);
-		UE_LOG(LogVertCharacter, Log, TEXT("Knockback amount: %f"), knockbackAmount);
-		UE_LOG(LogVertCharacter, Log, TEXT("Knockback hitstun frames: %i"), FMath::FloorToInt(hitstunTime));
-		ApplyDamageHitstun(FMath::FloorToInt(hitstunTime));
-	}
-
-	float const impulseScale = dmgTypeCDO->DamageImpulse * knockbackAmount;
-
-	if ((impulseScale > 3.f) && (GetCharacterMovement() != NULL))
-	{
-		FHitResult hitInfo;
-		FVector impulseDir;
-		damageEvent.GetBestHitInfo(this, pawnInstigator, hitInfo, impulseDir);
-		
-		// Add a slight upwards rotation to the impulse direction if the character is on the floor
-		// This allows the character to get launched without friction meddling (could try temporarily altering friction instead like in DashingComponent)
-		if (IsGrounded())
-		{
-			impulseDir = gameMode->GetAmmendedLaunchAngle(impulseDir, knockbackAmount);
-		}
-
-		FVector impulse = impulseDir * impulseScale;
-		const bool massIndependentImpulse = !dmgTypeCDO->bScaleMomentumByMass;
-
-		// Limit Z momentum added if already going up faster than jump (to avoid blowing character way up into the sky)
-		{
-			FVector massScaledImpulse = impulse;
-			if (!massIndependentImpulse && GetCharacterMovement()->Mass > SMALL_NUMBER)
-			{
-				massScaledImpulse = massScaledImpulse / GetCharacterMovement()->Mass;
-			}
-		}
-
-		GetCharacterMovement()->AddImpulse(impulse, massIndependentImpulse);
-	}
-}
-
-
-//************************************
-// Method:    ApplyDamageHitstun
-// FullName:  AVertCharacter::ApplyDamageHitstun
-// Access:    virtual protected 
-// Returns:   void
-// Qualifier:
-// Parameter: int32 hitstunFrames
-//************************************
-void AVertCharacter::ApplyDamageHitstun(int32 hitstunFrames)
-{
-	float hitStunTime = static_cast<float>(hitstunFrames) * (1.f / 60.f);
-
-	UE_LOG(LogTemp, Warning, TEXT("Hitstun timer = %f"), hitStunTime);
-
-	FTimerManager& timerMan = GetWorld()->GetTimerManager();
-	if (timerMan.IsTimerActive(mHitStunTimer))
-	{
-		timerMan.ClearTimer(mHitStunTimer);
-	}
-
-	// Always prioritize the latest hit
-	timerMan.SetTimer(mHitStunTimer, hitStunTime, false);
 }
 
 //************************************
@@ -454,7 +349,7 @@ void AVertCharacter::StopAttacking()
 //************************************
 bool AVertCharacter::CanFire() const
 {
-	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning() && VertController && VertController->IsMovementInputEnabled();
 }
 
 //************************************
@@ -466,7 +361,7 @@ bool AVertCharacter::CanFire() const
 //************************************
 bool AVertCharacter::CanReload() const
 {
-	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning() && VertController && VertController->IsMovementInputEnabled();
 }
 
 //************************************
@@ -478,7 +373,7 @@ bool AVertCharacter::CanReload() const
 //************************************
 bool AVertCharacter::CanGrapple() const
 {
-	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning() && (GrapplingComponent->GetGrappleState() == EGrappleState::HookSheathed || GrapplingComponent->GetHookedPrimitive()) && VertController && VertController->IsMovementInputEnabled();
 }
 
 //************************************
@@ -490,7 +385,7 @@ bool AVertCharacter::CanGrapple() const
 //************************************
 bool AVertCharacter::CanDash() const
 {
-	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning() && VertController && VertController->IsMovementInputEnabled();
 }
 
 //************************************
@@ -502,7 +397,7 @@ bool AVertCharacter::CanDash() const
 //************************************
 bool AVertCharacter::CanMove() const
 {
-	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning() && VertController && VertController->IsMovementInputEnabled();
 }
 
 //************************************
@@ -514,7 +409,7 @@ bool AVertCharacter::CanMove() const
 //************************************
 bool AVertCharacter::CanAttack() const
 {
-	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning() && !DashingComponent->IsCurrentlyDashing() && VertController && VertController->IsMovementInputEnabled();
 }
 
 //************************************
@@ -526,7 +421,7 @@ bool AVertCharacter::CanAttack() const
 //************************************
 bool AVertCharacter::CanInteract() const
 {
-	return !IsInHitstun() && !ClimbingComponent->IsTransitioning();
+	return !IsInHitstun() && !ClimbingComponent->IsTransitioning() && VertController && VertController->IsMovementInputEnabled();
 }
 
 //************************************
@@ -546,11 +441,6 @@ bool AVertCharacter::CanWallJump() const
 	return false;
 }
 
-bool AVertCharacter::IsInHitstun() const
-{
-	return GetWorldTimerManager().IsTimerActive(mHitStunTimer);
-}
-
 //************************************
 // Method:    CanJumpInternal_Implementation
 // FullName:  AVertCharacter::CanJumpInternal_Implementation
@@ -565,8 +455,82 @@ bool AVertCharacter::CanJumpInternal_Implementation() const
 		return true;
 	}
 
+	// Nerf the pole-vaulting by not allowing a jump from grapple above a certain grapple threshold.
+	if (GrapplingComponent->IsGrappleDeployed())
+	{
+		constexpr float cThreshold = -0.7f;
+		float DotProduct = FVector::DotProduct(GrapplingComponent->GetLineDirection(), FVector::UpVector);
+
+		if (DotProduct > cThreshold)
+			return true;
+		else
+			GrapplingComponent->Reset();
+	}
+
 	// Manipulate JumpMaxCount to allow for extra jumps in given situations
-	return (Super::CanJumpInternal_Implementation() || CanWallJump()) && !IsInHitstun() && !ClimbingComponent->IsTransitioning();
+	if ((Super::CanJumpInternal_Implementation() || CanWallJump()) && !IsInHitstun() && !ClimbingComponent->IsTransitioning())
+	{
+		return true;
+	}
+
+	return false;
+}
+
+//************************************
+// Method:    Jump
+// FullName:  AVertCharacter::Jump
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertCharacter::Jump()
+{
+	if (GrapplingComponent->IsGrappleDeployed() && !IsGrounded())
+	{
+		mJumpedFromGrapple = true;
+	}
+
+	Super::Jump();
+}
+
+//************************************
+// Method:    OnJumped_Implementation
+// FullName:  AVertCharacter::OnJumped_Implementation
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertCharacter::OnJumped_Implementation()
+{
+	if (GrapplingComponent->IsGrappleDeployed())
+	{
+		GrapplingComponent->Reset();
+	}
+
+	if(mJumpedFromGrapple)
+	{
+		JumpCurrentCount = 1;
+		mJumpedFromGrapple = false;
+	}
+
+	if (JumpCurrentCount <= 1)
+	{
+		if (JumpSound)
+		{
+			UAkGameplayStatics::PostEvent(JumpSound, this);
+		}
+
+		Character_OnJumpExecuted();
+	}
+	else
+	{
+		if (DoubleJumpSound)
+		{
+			UAkGameplayStatics::PostEvent(DoubleJumpSound, this);
+		}
+
+		Character_OnAirJumpExecuted();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -591,12 +555,48 @@ void AVertCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &AVertCharacter::ActionAttack);
 	PlayerInputComponent->BindAction("Attack", IE_Released, this, &AVertCharacter::StopAttacking);
 	PlayerInputComponent->BindAction("DropDown", IE_Pressed, this, &AVertCharacter::ActionDropDown);
+	PlayerInputComponent->BindAction("GrappleShootGamepadAlt", IE_Pressed, this, &AVertCharacter::ActionGrappleShootAltDown);
+	PlayerInputComponent->BindAction("GrappleShootGamepadAlt", IE_Released, this, &AVertCharacter::ActionGrappleShootAltUp);
 
 	PlayerInputComponent->BindAxis("MoveRight", this, &AVertCharacter::ActionMoveRight);
 	PlayerInputComponent->BindAxis("LeftThumbstickMoveY", this, &AVertCharacter::LeftThumbstickMoveY);
 	PlayerInputComponent->BindAxis("RightThumbstickMoveX", this, &AVertCharacter::RightThumbstickMoveX);
 	PlayerInputComponent->BindAxis("RightThumbstickMoveY", this, &AVertCharacter::RightThumbstickMoveY);
 	PlayerInputComponent->BindAxis("MouseMove", this, &AVertCharacter::MouseMove);
+	
+}
+
+void AVertCharacter::ApplyDamageHitstun(float hitstunTime)
+{
+	Super::ApplyDamageHitstun(hitstunTime);
+	GrapplingComponent->Reset();
+	ClimbingComponent->TransitionLedge(ELedgeTransition::DropFromGrabbedLedge);
+}
+
+//************************************
+// Method:    UpdateCharacter
+// FullName:  AVertCharacter::UpdateCharacter
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertCharacter::UpdateCharacter()
+{
+	// Now setup the rotation of the controller based on the direction we are travelling
+	const FVector PlayerDirection = GetAxisPostisions().GetPlayerLeftThumbstick();
+
+	// Set the rotation so that the character faces his direction of travel.
+	if (Controller != nullptr)
+	{
+		if (PlayerDirection.X < 0.0f)
+		{
+			Controller->SetControlRotation(FRotator(0.0, 180.0f, 0.0f));
+		}
+		else if (PlayerDirection.X > 0.0f)
+		{
+			Controller->SetControlRotation(FRotator(0.0f, 0.0f, 0.0f));
+		}
+	}
 }
 
 //************************************
@@ -620,12 +620,13 @@ void AVertCharacter::ActionMoveRight(float Value)
 			if (FMath::Abs(Value) > KINDA_SMALL_NUMBER)
 			{
 				FVector direction = ClimbingComponent->GetLedgeDirection(EAimFreedom::Horizontal);
-				float dot = FVector::DotProduct(GetActorRotation().Vector(), direction);
-				if (dot > direction_threshold)
+				FVector moveDirection(Value, 0, 0);
+				float cos = FVector::DotProduct(moveDirection, direction);
+				if (cos > direction_threshold)
 				{
 					ClimbingComponent->TransitionLedge(ELedgeTransition::ClimbUpLedge);
 				}
-				else if (dot < -direction_threshold)
+				else if (cos < -direction_threshold)
 				{
 					ClimbingComponent->TransitionLedge(ELedgeTransition::JumpAwayFromGrabbedLedge);
 				}
@@ -634,9 +635,8 @@ void AVertCharacter::ActionMoveRight(float Value)
 		else
 		{
 			AddMovementInput(FVector(1.f, 0.f, 0.f), Value);
+			UpdateCharacter();
 		}
-
-		UpdateCharacter();
 	}
 }
 
@@ -649,16 +649,18 @@ void AVertCharacter::ActionMoveRight(float Value)
 //************************************
 void AVertCharacter::ActionJump()
 {
-	if (ClimbingComponent->IsClimbingLedge())
+	if (VertController && VertController->IsMovementInputEnabled())
 	{
-		if(CanMove())
-			ClimbingComponent->TransitionLedge(ELedgeTransition::LaunchFromGrabbedLedge);
+		if (ClimbingComponent->IsClimbingLedge())
+		{
+			if (CanMove())
+				ClimbingComponent->TransitionLedge(ELedgeTransition::LaunchFromGrabbedLedge);
+		}
+		else
+		{
+			Jump();
+		}
 	}
-	else
-	{
-		Jump();
-		Character_OnJumpExecuted();
-	}	
 }
 
 //************************************
@@ -690,19 +692,78 @@ void AVertCharacter::ActionGrappleShoot()
 {
 	if (CanGrapple())
 	{
-		if (UsingGamepad())
-		{
-			if (!mGamepadOnStandby)
+ 		if (UsingGamepad())
+ 		{
+			if (!mGamepadWantsToGrapple)
 			{
-				mGamepadOnStandby = true;
-				GetWorld()->GetTimerManager().SetTimer(mTimerHandle, this, &AVertCharacter::ExecuteActionGrappleShoot, 0.01f, false);
-				GetWorld()->GetTimerManager().SetTimer(mGamepadGrappleDelay, this, &AVertCharacter::EndGamepadStandby, 0.1f, false);
+				mGamepadWantsToGrapple = true;
+			}
+ 		}
+ 		else
+		{
+			ExecuteActionGrappleShoot();
+		}
+	}
+}
+
+//************************************
+// Method:    ActionGrappleShootAltDown
+// FullName:  AVertCharacter::ActionGrappleShootAltDown
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertCharacter::ActionGrappleShootAltDown()
+{
+	if (!GrapplingComponent->GetHookedPrimitive())
+	{
+		if (AimArrowComponent && AimArrowComponent->GetUserWidgetObject())
+		{
+			AimArrowComponent->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+}
+
+//************************************
+// Method:    ActionGrappleShootAltUp
+// FullName:  AVertCharacter::ActionGrappleShootAltUp
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertCharacter::ActionGrappleShootAltUp()
+{
+	if (CanGrapple())
+	{
+		if (!GrapplingComponent->GetHookedPrimitive())
+		{
+			FVector aimDirection = GetAxisPostisions().GetPlayerLeftThumbstickDirection();
+			FVector ActualAimDirection = aimDirection == FVector::ZeroVector ?
+				GetController()->GetControlRotation().Vector() :
+				GetAxisPostisions().GetPlayerLeftThumbstickDirection();
+
+			if (ActualAimDirection != FVector::ZeroVector && GrapplingComponent->ExecuteGrapple(ActualAimDirection))
+			{
+				Character_OnGrappleShootExecuted(ActualAimDirection);
 			}
 		}
 		else
 		{
-			ExecuteActionGrappleShoot();
+			if (GrapplingComponent->StartPulling())
+			{
+				if (IsClimbing())
+				{
+					ClimbingComponent->TransitionLedge(ELedgeTransition::DropFromGrabbedLedge);
+				}
+
+				Character_OnGrapplePullExecuted(GrapplingComponent->GetLineDirection());
+			}
 		}
+	}
+
+	if (AimArrowComponent && AimArrowComponent->GetUserWidgetObject())
+	{
+		AimArrowComponent->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
@@ -719,8 +780,11 @@ void AVertCharacter::ExecuteActionGrappleShoot()
 	{
 		if (!GrapplingComponent->GetHookedPrimitive())
 		{
-			FVector aimDirection = UsingGamepad() ? GetAxisPostisions().GetPlayerRightThumbstickDirection() : GetAxisPostisions().GetPlayerMouseDirection();
-			if (GrapplingComponent->ExecuteGrapple(aimDirection))
+			FVector aimDirection = UsingGamepad()
+				? mGamepadSwipeDirection /*GetAxisPostisions().GetPlayerRightThumbstickDirection()*/
+				: GetAxisPostisions().GetPlayerMouseDirection();
+
+			if (aimDirection != FVector::ZeroVector && GrapplingComponent->ExecuteGrapple(aimDirection))
 			{
 				Character_OnGrappleShootExecuted(aimDirection);
 			}
@@ -729,6 +793,11 @@ void AVertCharacter::ExecuteActionGrappleShoot()
 		{
 			if (GrapplingComponent->StartPulling())
 			{
+				if (IsClimbing())
+				{
+					ClimbingComponent->TransitionLedge(ELedgeTransition::DropFromGrabbedLedge);
+				}
+
 				Character_OnGrapplePullExecuted(GrapplingComponent->GetLineDirection());
 			}
 		}
@@ -747,22 +816,12 @@ void AVertCharacter::ActionDash()
 	if (CanDash())
 	{
 		FVector direction;
-
-		if (GrapplingComponent->IsGrappleDeployed())
+		if (DashingComponent->ExecuteDash(direction))
 		{
-			if (DashingComponent->ExecuteGrappleDash(direction))
-			{
-				Character_OnDashExecuted(direction, true);
-			}
+			InteractionComponent->StopAttacking(true);
+			Character_OnDashExecuted(direction, false);
 		}
-		else
-		{
-			if (DashingComponent->ExecuteGroundDash(direction))
-			{
-				Character_OnDashExecuted(direction, false);
-			}
-		}
-
+		
 		UpdateCharacter();
 	}	
 }
@@ -796,55 +855,12 @@ void AVertCharacter::ActionAttack()
 {
 	if (CanAttack())
 	{
-		if (InteractionComponent->AttemptAttack())
+		if (!ClimbingComponent->IsClimbingLedge() && InteractionComponent->AttemptAttack())
 		{
 			Character_OnStartAttackExecuted(GetCurrentWeapon());
 		}
 	}
 }
-
-#if !UE_BUILD_SHIPPING
-//************************************
-// Method:    PrintDebugInfo
-// FullName:  AVertCharacter::PrintDebugInfo
-// Access:    private 
-// Returns:   void
-// Qualifier:
-//************************************
-void AVertCharacter::PrintDebugInfo()
-{
-	int debugIndex = 0;
-	if (ShowDebug.CharacterMovement.Enabled)
-	{
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Gravity Scale: %f"), GetCharacterMovement()->GravityScale));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Friction: %f"), GetCharacterMovement()->GroundFriction));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Is Flying: %s"), GetCharacterMovement()->IsFlying() ? TEXT("true") : TEXT("false")));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Is Falling: %s"), GetCharacterMovement()->IsFalling() ? TEXT("true") : TEXT("false")));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Using Gamepad: %s"), UsingGamepad() ? TEXT("true") : TEXT("false")));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.CharacterMovement.MessageColour, FString::Printf(TEXT("[Character-Movement] Is Grounded: %s"), IsGrounded() ? TEXT("true") : TEXT("false")));
-	}
-
-	if (ShowDebug.Dash.Enabled)
-	{
-		FVector dashDirection = mAxisPositions.GetPlayerLeftThumbstickDirection();
-		dashDirection = UVertUtilities::LimitAimTrajectory(DashingComponent->AimFreedom, dashDirection);
-
-		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (dashDirection * 500), 100.f, ShowDebug.Dash.MessageColour);
-
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Dash.MessageColour, FString::Printf(TEXT("[Character-Dash] Remaining Dashes: %i / %i"), DashingComponent->GetRemainingDashes(), DashingComponent->MaxDashes));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Dash.MessageColour, FString::Printf(TEXT("[Character-Dash] Recharge at %f% (%s)"), DashingComponent->RechargeTimer.GetProgressPercent(), DashingComponent->RechargeTimer.IsRunning() ? TEXT("active") : TEXT("inactive")));
-	}
-
-	if (ShowDebug.Grapple.Enabled)
-	{
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Grapple Launched | %i / %i uses remaining"), GrapplingComponent->GetRemainingGrapples(), GrapplingComponent->MaxGrapples));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] State: %s"), *UVertUtilities::GetEnumValueToString<EGrappleState>(TEXT("EGrappleState"), GrapplingComponent->GetGrappleHook()->GetGrappleState())));
-		GEngine->AddOnScreenDebugMessage(debugIndex++, 3.f, ShowDebug.Grapple.MessageColour, FString::Printf(TEXT("[Character-Grapple] Recharge at %f% (%s)"), GrapplingComponent->GetRechargePercent(), GrapplingComponent->IsRecharging() ? TEXT("active") : TEXT("inactive")));
-
-		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (mAxisPositions.GetPlayerRightThumbstickDirection() * 500), 50.f, ShowDebug.Grapple.MessageColour, false, -1.f, 1, 3.f);
-	}
-}
-#endif
 
 //************************************
 // Method:    UpdateTeamColoursAllMIDs
@@ -859,6 +875,26 @@ void AVertCharacter::UpdateTeamColoursAllMIDs()
 	{
 		UpdateTeamColours(MeshMIDs[i]);
 	}
+
+	AVertPlayerState* playerState = Cast<AVertPlayerState>(PlayerState);
+	if (playerState)
+	{
+		switch (playerState->PlayerIndex)
+		{
+		case 0:
+			GetMesh()->SetCustomDepthStencilValue(252);
+			break;
+		case 1:
+			GetMesh()->SetCustomDepthStencilValue(253);
+			break;
+		case 2:
+			GetMesh()->SetCustomDepthStencilValue(254);
+			break;
+		case 3:
+			GetMesh()->SetCustomDepthStencilValue(255);
+			break;
+		}
+	}	
 }
 
 //************************************
@@ -871,77 +907,25 @@ void AVertCharacter::UpdateTeamColoursAllMIDs()
 //************************************
 void AVertCharacter::UpdateTeamColours(UMaterialInstanceDynamic* useMID)
 {
-	if (useMID)
+	AVertPlayerState* playerState = Cast<AVertPlayerState>(PlayerState);
+
+	if (playerState != NULL)
 	{
-		AVertPlayerState* playerState = Cast<AVertPlayerState>(PlayerState);
-		if (playerState != NULL)
+		if (useMID)
 		{
-			float MaterialParam = (float)playerState->GetTeamNum();
-			useMID->SetScalarParameterValue(TEXT("Team Color Index"), MaterialParam);
+			useMID->SetVectorParameterValue(TEXT("Primary Colour"), playerState->GetPlayerColours().PrimaryColour);
+			useMID->SetVectorParameterValue(TEXT("Secondary Colour"), playerState->GetPlayerColours().SecondaryColour);
+			useMID->SetVectorParameterValue(TEXT("Emissive Colour"), playerState->GetPlayerColours().EmissiveColour);
 		}
-	}
-}
 
-//************************************
-// Method:    CanComponentRecharge
-// FullName:  AVertCharacter::CanComponentRecharge
-// Access:    public 
-// Returns:   bool
-// Qualifier:
-// Parameter: ERechargeRule rule
-//************************************
-bool AVertCharacter::CanComponentRecharge(ERechargeRule rule)
-{
-	if (GrapplingComponent)
-	{
-		AActor* hookedActor = GrapplingComponent->GetHookedActor();
-
-		return IsGrounded() 
-			|| rule == ERechargeRule::OnRechargeTimer 
-			|| (rule == ERechargeRule::OnContactGroundOrLatchedAnywhere 
-				&& GrapplingComponent->GetGrappleState() == EGrappleState::HookDeployed);
-	}
-	else
-		UE_LOG(LogVertCharacter, Error, TEXT("Hook associated with character [%s] is not valid."), *GetOwner()->GetName());
-
-	return false;
-}
-
-//************************************
-// Method:    IsMoving
-// FullName:  AVertCharacter::IsMoving
-// Access:    public 
-// Returns:   bool
-// Qualifier:
-//************************************
-bool AVertCharacter::IsMoving()
-{
-	FVector velocity = GetVelocity();
-	return velocity.SizeSquared() > KINDA_SMALL_NUMBER;
-}
-
-//************************************
-// Method:    UpdateCharacter
-// FullName:  AVertCharacter::UpdateCharacter
-// Access:    protected 
-// Returns:   void
-// Qualifier:
-//************************************
-void AVertCharacter::UpdateCharacter()
-{
-	// Now setup the rotation of the controller based on the direction we are travelling
-	const FVector PlayerDirection = GetAxisPostisions().GetPlayerLeftThumbstick();
-
-	// Set the rotation so that the character faces his direction of travel.
-	if (Controller != nullptr)
-	{
-		if (PlayerDirection.X < 0.0f)
+		if (GrapplingComponent)
 		{
-			Controller->SetControlRotation(FRotator(0.0, 180.0f, 0.0f));
+			GrapplingComponent->SetGrappleColour(playerState->GetPlayerColours().PrimaryColour);
 		}
-		else if (PlayerDirection.X > 0.0f)
+
+		if (AimArrowComponent)
 		{
-			Controller->SetControlRotation(FRotator(0.0f, 0.0f, 0.0f));
+			AimArrowComponent->SetColour(playerState->GetPlayerColours().PrimaryColour);
 		}
 	}
 }
@@ -959,13 +943,13 @@ void AVertCharacter::OnPickupInteractiveInternal(AInteractive* interactive, bool
 {
 	if (ABaseWeapon* weapon = Cast<ABaseWeapon>(interactive))
 	{
-		weapon->Delegate_OnWeaponFiredWithRecoil.Add(mOnWeaponFiredWithRecoilDelegate);
+		weapon->Delegate_OnWeaponAttackFire.Add(mOnWeaponFiredDelegate);
 		weapon->Delegate_OnWeaponStateChanged.Add(mOnWeaponStateChangedDelegate);
 
 		mCurrentWeapon = weapon;
-		if (InteractionComponent->GetDefaultWeapon().IsValid())
+		if (InteractionComponent->GetDefaultWeapon())
 		{
-			InteractionComponent->GetDefaultWeapon()->Delegate_OnWeaponFiredWithRecoil.Remove(mOnWeaponFiredWithRecoilDelegate);
+			InteractionComponent->GetDefaultWeapon()->Delegate_OnWeaponAttackFire.Remove(mOnWeaponFiredDelegate);
 			InteractionComponent->GetDefaultWeapon()->Delegate_OnWeaponStateChanged.Remove(mOnWeaponStateChangedDelegate);
 		}
 	}
@@ -986,13 +970,13 @@ void AVertCharacter::OnDropInteractiveInternal(AInteractive* interactive, bool w
 {
 	if (ABaseWeapon* weapon = Cast<ABaseWeapon>(interactive))
 	{
-		weapon->Delegate_OnWeaponFiredWithRecoil.Remove(mOnWeaponFiredWithRecoilDelegate);
+		weapon->Delegate_OnWeaponAttackFire.Remove(mOnWeaponFiredDelegate);
 		weapon->Delegate_OnWeaponStateChanged.Remove(mOnWeaponStateChangedDelegate);
 
 		mCurrentWeapon = InteractionComponent->GetDefaultWeapon();
 		if (mCurrentWeapon.IsValid())
 		{
-			mCurrentWeapon->Delegate_OnWeaponFiredWithRecoil.Add(mOnWeaponFiredWithRecoilDelegate);
+			mCurrentWeapon->Delegate_OnWeaponAttackFire.Add(mOnWeaponFiredDelegate);
 			mCurrentWeapon->Delegate_OnWeaponStateChanged.Add(mOnWeaponStateChangedDelegate);
 		}		
 	}
@@ -1001,51 +985,184 @@ void AVertCharacter::OnDropInteractiveInternal(AInteractive* interactive, bool w
 }
 
 //************************************
-// Method:    SetRagdollPhysics
-// FullName:  AVertCharacter::SetRagdollPhysics
-// Access:    private 
+// Method:    AttemptToGrabGrappledLedge
+// FullName:  AVertCharacter::AttemptToGrabGrappledLedge
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const FHitResult & forwardHit
+// Parameter: const FHitResult & downwardHit
+//************************************
+void AVertCharacter::AttemptToGrabGrappledLedge(const FHitResult& forwardHit, const FHitResult& downwardHit)
+{
+	if (ClimbingComponent && !ClimbingComponent->IsClimbingLedge() && !ClimbingComponent->IsTransitioning())
+	{
+		static const FName sLedgeGrabTrace(TEXT("LedgeGrabTrace"));
+
+		FCollisionQueryParams params(sLedgeGrabTrace, false);
+		params.bReturnPhysicalMaterial = true;
+		params.bTraceAsyncScene = false;
+		params.bFindInitialOverlaps = false;
+		params.AddIgnoredActor(GetOwner());
+
+		FHitResult correctedForwardHit;
+		FVector actorXPlane(GetActorLocation().X, 0, 0);
+		FVector ledgeXPlane(downwardHit.ImpactPoint.X, 0, 0);
+		FVector forward = (ledgeXPlane - actorXPlane).GetSafeNormal();
+		FVector start = GetActorLocation();
+		FVector end = start + (forward * FVector(ClimbingComponent->GetForwardRange(), ClimbingComponent->GetForwardRange(), 0.f));
+
+		UWorld* world = GetWorld();
+		const bool foundHit = world->SweepSingleByChannel(correctedForwardHit, start, end, FQuat::Identity, ClimbingComponent->GetTraceChannel(), FCollisionShape::MakeSphere(ClimbingComponent->GetTraceRadius()), params);
+
+		if (foundHit)
+		{
+			ClimbingComponent->GrabLedge(correctedForwardHit, downwardHit);
+		}		
+	}
+}
+
+//************************************
+// Method:    GrappleDetached
+// FullName:  AVertCharacter::GrappleDetached
+// Access:    protected 
 // Returns:   void
 // Qualifier:
 //************************************
-void AVertCharacter::SetRagdollPhysics()
+void AVertCharacter::GrappleDetached()
 {
-	bool bInRagdoll = false;
+	
+}
 
-	if (IsPendingKill())
-	{
-		bInRagdoll = false;
-	}
-	else if (!GetMesh() || !GetMesh()->GetPhysicsAsset())
-	{
-		bInRagdoll = false;
-	}
-	else
-	{
-		// initialize physics/etc
-		GetMesh()->SetSimulatePhysics(true);
-		GetMesh()->WakeAllRigidBodies();
-		GetMesh()->bBlendPhysics = true;
+//************************************
+// Method:    GrappleHooked
+// FullName:  AVertCharacter::GrappleHooked
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertCharacter::GrappleHooked()
+{
+	
+}
 
-		bInRagdoll = true;
-	}
+//************************************
+// Method:    GrappleReturned
+// FullName:  AVertCharacter::GrappleReturned
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertCharacter::GrappleReturned()
+{
+	
+}
 
-	GetCharacterMovement()->StopMovementImmediately();
-	GetCharacterMovement()->DisableMovement();
-	GetCharacterMovement()->SetComponentTickEnabled(false);
-
-	if (!bInRagdoll)
+//************************************
+// Method:    PerformLedgeAttack
+// FullName:  AVertCharacter::PerformLedgeAttack
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertCharacter::PerformLedgeAttack()
+{
+	if (InteractionComponent->AttemptDashAttack())
 	{
-		// hide and set short lifespan
-		TurnOff();
-		SetActorHiddenInGame(true);
-		SetLifeSpan(1.0f);
+		Character_OnStartDashAttackExecuted(GetCurrentWeapon());
 	}
-	else
+	else if (InteractionComponent->AttemptAttack())
 	{
-		SetLifeSpan(10.0f);
+		Character_OnStartAttackExecuted(GetCurrentWeapon());
+		GetWorldTimerManager().SetTimer(mTimerHandle_AutoAttack, [this](void) {
+			StopAttacking();
+		}, GetCurrentWeapon()->GetAutoAttackTime(), false);
+	}
+}
+
+//************************************
+// Method:    OnLedgeGrabbed
+// FullName:  AVertCharacter::OnLedgeGrabbed
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const FHitResult & forwardHit
+// Parameter: const FHitResult & downwardHit
+//************************************
+void AVertCharacter::OnLedgeGrabbed(const FHitResult& forwardHit, const FHitResult& downwardHit)
+{
+	//GrapplingComponent->Reset();
+	if(GetCurrentWeapon()) 
+		GetCurrentWeapon()->Reset();
+	Character_OnLedgeGrabbed(forwardHit, downwardHit);
+}
+
+//************************************
+// Method:    GetCurrentWeapon
+// FullName:  AVertCharacter::GetCurrentWeapon
+// Access:    public 
+// Returns:   ABaseWeapon*
+// Qualifier: const
+//************************************
+ABaseWeapon* AVertCharacter::GetCurrentWeapon() const 
+{
+	if (InteractionComponent && InteractionComponent->GetHeldWeapon())
+	{
+		return InteractionComponent->GetHeldWeapon();
+	}
+	
+	return (InteractionComponent && InteractionComponent->GetDefaultWeapon()) ? InteractionComponent->GetDefaultWeapon() : nullptr;
+}
+
+//************************************
+// Method:    GetDefaultWeapon
+// FullName:  AVertCharacter::GetDefaultWeapon
+// Access:    public 
+// Returns:   ABaseWeapon*
+// Qualifier: const
+//************************************
+ABaseWeapon* AVertCharacter::GetDefaultWeapon() const
+{
+	if (InteractionComponent && InteractionComponent->GetDefaultWeapon())
+	{
+		return InteractionComponent->GetDefaultWeapon();
 	}
 
-	mIsRagdolling = bInRagdoll;
+	return nullptr;
+}
+
+//************************************
+// Method:    GetHeldWeapon
+// FullName:  AVertCharacter::GetHeldWeapon
+// Access:    public 
+// Returns:   ABaseWeapon*
+// Qualifier: const
+//************************************
+ABaseWeapon* AVertCharacter::GetHeldWeapon() const
+{
+	if (InteractionComponent && InteractionComponent->GetHeldWeapon())
+	{
+		return InteractionComponent->GetHeldWeapon();
+	}
+
+	return nullptr;
+}
+
+//************************************
+// Method:    OnCharacterHit
+// FullName:  AVertCharacter::OnCharacterHit
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: UPrimitiveComponent * hitComponent
+// Parameter: AActor * otherActor
+// Parameter: UPrimitiveComponent * otherComp
+// Parameter: FVector normalImpulse
+// Parameter: const FHitResult & hit
+//************************************
+void AVertCharacter::OnCharacterHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrimitiveComponent* otherComp, FVector normalImpulse, const FHitResult& hit)
+{
+
 }
 
 //************************************
@@ -1072,6 +1189,28 @@ void AVertCharacter::RightThumbstickMoveX(float value)
 void AVertCharacter::RightThumbstickMoveY(float value)
 {
 	mAxisPositions.RightY = value;
+
+	if (mGamepadWantsToGrapple && mGamepadSwipePassesDone < GamepadSwipeRequiredPasses)
+	{
+		mSwipePasses.Add(GetAxisPostisions().GetPlayerRightThumbstick());
+		mGamepadSwipePassesDone += 1;
+	}
+	else if (mGamepadWantsToGrapple)
+	{
+		FVector center = FVector::ZeroVector;
+		for (auto pass : mSwipePasses)
+		{
+			center += pass;
+		}
+		mGamepadSwipeDirection = center.GetSafeNormal();
+
+		mSwipePasses.Empty(GamepadSwipeRequiredPasses);
+		mGamepadSwipePassesDone = 0;
+		mGamepadWantsToGrapple = false;
+
+		ExecuteActionGrappleShoot();
+		mGamepadSwipeDirection = FVector::ZeroVector;
+	}
 }
 
 //************************************
@@ -1085,6 +1224,16 @@ void AVertCharacter::RightThumbstickMoveY(float value)
 void AVertCharacter::LeftThumbstickMoveY(float value)
 {
 	mAxisPositions.LeftY = value;
+
+	if (AimArrowAnchor && AimArrowComponent)
+	{
+		FRotator AimRotation = GetAxisPostisions().GetPlayerLeftThumbstickDirection() == FVector::ZeroVector ?
+			GetController()->GetControlRotation() :
+			GetAxisPostisions().GetPlayerLeftThumbstickDirection().Rotation();
+
+		AimArrowAnchor->SetWorldRotation(AimRotation);
+		AimArrowComponent->SetAimDirection(AimRotation.Vector().GetSafeNormal());
+	}
 }
 
 //************************************
@@ -1134,4 +1283,89 @@ const bool AVertCharacter::UsingGamepad() const
 	}
 
 	return true;
+}
+
+//************************************
+// Method:    RecordRecentHit
+// FullName:  AVertCharacter::RecordRecentHit
+// Access:    private 
+// Returns:   void
+// Qualifier:
+// Parameter: AController * attacker
+//************************************
+void AVertCharacter::RecordRecentHit(AController* attacker)
+{
+	constexpr float cAttackExpiryTime = 10.f;
+
+	APlayerController* PlayerController = Cast<APlayerController>(attacker);
+	if (!PlayerController) // Ignore non-player characters, they don't need points.
+		return;
+
+	FTimerManager& timerMan = GetWorldTimerManager();
+	FTimerDelegate timerDelegate;
+	timerDelegate.BindUFunction(this, FName("RecentHitExpired"), attacker);
+
+	if (mRecentHitters.Contains(attacker))
+	{
+		timerMan.SetTimer(mRecentHitters[attacker], timerDelegate, cAttackExpiryTime, false);
+	}
+	else
+	{
+		FTimerHandle timerHandle;
+		timerMan.SetTimer(timerHandle, timerDelegate, cAttackExpiryTime, false);
+		mRecentHitters.Add(attacker, timerHandle);
+	}
+}
+
+//************************************
+// Method:    GetRecentHitters
+// FullName:  AVertCharacter::GetRecentHitters
+// Access:    public 
+// Returns:   TArray<AController*>
+// Qualifier:
+//************************************
+TArray<AController*> AVertCharacter::GetRecentHitters()
+{
+	TArray<AController*> assistors;
+	for (auto it = mRecentHitters.CreateConstIterator(); it; ++it)
+	{
+		if (it.Key() && !assistors.Contains(it.Key()))
+		{
+			assistors.Add(it.Key());
+		}
+	}
+	return assistors;
+}
+
+//************************************
+// Method:    RecentHitExpired
+// FullName:  AVertCharacter::RecentHitExpired
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: AController * attacker
+//************************************
+void AVertCharacter::RecentHitExpired(AController* attacker)
+{
+	if (attacker && mRecentHitters.Contains(attacker))
+	{
+		mRecentHitters.Remove(attacker);
+	}
+}
+
+float AVertCharacter::TakeDamage(float Damage, const FDamageEvent& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser)
+{
+	float damageTaken = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+
+	if (damageTaken > 0)
+	{
+		APawn* pawnInstigator = nullptr;
+		if (EventInstigator)
+		{
+			pawnInstigator = EventInstigator->GetPawn();
+			RecordRecentHit(EventInstigator);
+		}
+	}
+
+	return damageTaken;
 }

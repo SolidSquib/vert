@@ -5,11 +5,27 @@
 
 DECLARE_LOG_CATEGORY_CLASS(LogVertLevelScript, Log, All);
 
+//************************************
+// Method:    BeginPlay
+// FullName:  AVertLevelScriptActor::BeginPlay
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AVertLevelScriptActor::BeginPlay()
 {
 	Super::BeginPlay();
+	UAkGameplayStatics::StartAllAmbientSounds(this);
 }
 
+//************************************
+// Method:    Tick
+// FullName:  AVertLevelScriptActor::Tick
+// Access:    virtual public 
+// Returns:   void
+// Qualifier:
+// Parameter: float DeltaTime
+//************************************
 void AVertLevelScriptActor::Tick(float DeltaTime)
 {
 	if (!mPlayerCameraSet)
@@ -18,19 +34,108 @@ void AVertLevelScriptActor::Tick(float DeltaTime)
 		{
 			if (AVertGameMode* gameMode = world->GetAuthGameMode<AVertGameMode>())
 			{
-				TWeakObjectPtr<AVertPlayerCameraActor> camera = GetStartingCamera();
-				if (camera.IsValid())
+				if (!gameMode->GetActivePlayerCamera())
 				{
-					gameMode->SetPlayerCamera(camera.Get());
-					mPlayerCameraSet = true;
-				}
-				else
-				{
-					UE_LOG(LogTemp, Error, TEXT("Camera doesn't exist"));
+					TWeakObjectPtr<AVertPlayerCameraActor> camera = GetStartingCamera();
+					if (camera.IsValid())
+					{
+						gameMode->SetPlayerCamera(camera.Get());
+					}
 				}
 			}
 		}
+
+		mPlayerCameraSet = true;
 	}
+
+	Super::Tick(DeltaTime);
+}
+
+//************************************
+// Method:    PostInitializeComponents
+// FullName:  AVertLevelScriptActor::PostInitializeComponents
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AVertLevelScriptActor::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	for(auto ArenaCamera : ArenaCameras)
+	{
+		if (ArenaCamera)
+		{
+			ArenaCamera->OnCameraBecomeActive.AddDynamic(this, &AVertLevelScriptActor::InternalOnPrimaryCameraBecomeActive);
+			ArenaCamera->OnCameraBecomeInactive.AddDynamic(this, &AVertLevelScriptActor::InternalOnPrimaryCameraBecomeInactive);
+			ArenaCamera->OnCameraReachEndOfTrack.AddDynamic(this, &AVertLevelScriptActor::InternalOnPrimaryCameraReachedEndOfTrack);
+		}
+	}
+}
+
+//************************************
+// Method:    InternalOnPrimaryCameraBecomeActive
+// FullName:  AVertLevelScriptActor::InternalOnPrimaryCameraBecomeActive
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: AVertPlayerCameraActor * camera
+//************************************
+void AVertLevelScriptActor::InternalOnPrimaryCameraBecomeActive(AVertPlayerCameraActor* camera)
+{
+	int32 cameraIndex = ArenaCameras.Find(camera);
+	OnPrimaryCameraBecomeActive(cameraIndex, camera);
+}
+
+//************************************
+// Method:    InternalOnPrimaryCameraBecomeInactive
+// FullName:  AVertLevelScriptActor::InternalOnPrimaryCameraBecomeInactive
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: AVertPlayerCameraActor * camera
+//************************************
+void AVertLevelScriptActor::InternalOnPrimaryCameraBecomeInactive(AVertPlayerCameraActor* camera)
+{
+	int32 cameraIndex = ArenaCameras.Find(camera);
+	OnPrimaryCameraBecomeInactive(cameraIndex, camera);
+}
+
+//************************************
+// Method:    InternalOnPrimaryCameraReachedEndOfTrack
+// FullName:  AVertLevelScriptActor::InternalOnPrimaryCameraReachedEndOfTrack
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: AVertPlayerCameraActor * camera
+//************************************
+void AVertLevelScriptActor::InternalOnPrimaryCameraReachedEndOfTrack(AVertPlayerCameraActor* camera)
+{
+	if (camera->AutoTransition)
+	{
+		int32 cameraIndex = ArenaCameras.Find(camera);
+		OnPrimaryCameraReachedEndOfTrack(cameraIndex, camera);
+
+		if (AVertGameMode* gameMode = GetWorld()->GetAuthGameMode<AVertGameMode>())
+		{
+			if ((cameraIndex + 1) < ArenaCameras.Num())
+			{
+				gameMode->SetPlayerCamera(ArenaCameras[cameraIndex + 1], ArenaCameras[cameraIndex]->NextTransitionTime);
+			}
+		}
+	}
+}
+
+//************************************
+// Method:    GetPlaneConstraintOrigin
+// FullName:  AVertLevelScriptActor::GetPlaneConstraintOrigin
+// Access:    public 
+// Returns:   FVector
+// Qualifier: const
+//************************************
+FVector AVertLevelScriptActor::GetPlaneConstraintOrigin() const
+{
+	return PlayerMovementPlane;
 }
 
 //************************************
@@ -42,22 +147,10 @@ void AVertLevelScriptActor::Tick(float DeltaTime)
 //************************************
 TWeakObjectPtr<AVertPlayerCameraActor> AVertLevelScriptActor::GetStartingCamera()
 {
-	if (StartCamera)
+	if (ArenaCameras.Num() > 0 && ArenaCameras[0])
 	{
-		UE_LOG(LogVertLevelScript, Log, TEXT("Setting start camera [%s] as the active player camera"), *StartCamera->GetName());
-		mActiveCamera = StartCamera;
-	}
-	else
-	{
-		for (TActorIterator<AVertPlayerCameraActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
-		{
-			// Same as with the Object Iterator, access the subclass instance with the * or -> operators.
-			if (mActiveCamera.IsValid())
-			{
-				UE_LOG(LogVertLevelScript, Warning, TEXT("More than one AVertPlayerCameraActor found in scene, check that the correct camera is being used and the rest are removed."));
-			}
-			mActiveCamera = *ActorItr;
-		}
+		UE_LOG(LogVertLevelScript, Log, TEXT("Setting start camera [%s] as the active player camera"), *ArenaCameras[0]->GetName());
+		mActiveCamera = ArenaCameras[0];
 	}
 
 	if (mActiveCamera.IsValid())
@@ -65,7 +158,7 @@ TWeakObjectPtr<AVertPlayerCameraActor> AVertLevelScriptActor::GetStartingCamera(
 		for (auto iter = GetWorld()->GetPlayerControllerIterator(); iter; ++iter)
 		{
 			APlayerController* controller = iter->Get();
-			controller->SetViewTarget(mActiveCamera.Get());
+			controller->ClientSetViewTarget(mActiveCamera.Get());
 		}
 
 		mActiveCamera->ActivateCamera();
@@ -73,45 +166,4 @@ TWeakObjectPtr<AVertPlayerCameraActor> AVertLevelScriptActor::GetStartingCamera(
 	else { UE_LOG(LogVertLevelScript, Warning, TEXT("No AVertPlayerCameraActor found, game will default to FPS view.")); }
 
 	return mActiveCamera;
-}
-
-//************************************
-// Method:    SetActiveCamera
-// FullName:  AVertLevelScriptActor::SetActiveCamera
-// Access:    public 
-// Returns:   void
-// Qualifier:
-// Parameter: AVertPlayerCameraActor * newCamera
-// Parameter: float transitionTime
-//************************************
-void AVertLevelScriptActor::SetActiveCamera(AVertPlayerCameraActor* newCamera, float transitionTime)
-{
-	if (newCamera == mActiveCamera)
-	{
-		UE_LOG(LogVertLevelScript, Warning, TEXT("Setting new camera to already active camera, check for possible optimization."));
-		return;
-	}
-
-	if (mActiveCamera.IsValid())
-	{
-		mActiveCamera->DeactivateCamera();
-	}
-
-	mActiveCamera = newCamera;
-
-	if (mActiveCamera.IsValid())
-	{
-		AVertGameMode* gameMode = GetWorld()->GetAuthGameMode<AVertGameMode>();
-
-		gameMode->SetPlayerCamera(mActiveCamera.Get());
-
-		for (APawn* pawn : gameMode->GetFollowedActors())
-		{
-			if (APlayerController* controller = Cast<APlayerController>(pawn->GetController()))
-			{
-				controller->SetViewTargetWithBlend(mActiveCamera.Get(), transitionTime);
-			}
-		}
-		mActiveCamera->ActivateCamera();
-	}
 }

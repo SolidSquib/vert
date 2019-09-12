@@ -21,11 +21,14 @@ enum class ELedgeTransition : uint8
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLedgeTransitionDelegate, ELedgeTransition, transition);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLedgeGrabbedDelegate, const FHitResult&, forwardHit, const FHitResult&, downwardHit);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLedgeGrabbingDelegate);
 
 UCLASS(ClassGroup=(CharacterComponents), meta=(BlueprintSpawnableComponent))
-class VERT_API ULedgeGrabbingComponent : public USphereComponent, public IDebuggable
+class VERT_API ULedgeGrabbingComponent : public USphereComponent
 {
 	GENERATED_BODY()
+
+	friend class AVertCharacter;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ignore")
@@ -37,8 +40,20 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnLedgeGrabbedDelegate HoldingLedge;
 
+	UPROPERTY(BlueprintAssignable)
+	FLedgeGrabbingDelegate WantsToAttack;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+	bool ShowDebug = false;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	struct FVertTimer InputDelayTimer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	class UAkAudioEvent* ClimbSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	class UAkAudioEvent* GrabLedgeSound = nullptr;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LedgeDetection")
@@ -79,6 +94,9 @@ public:
 	ULedgeGrabbingComponent();
 
 	void TransitionLedge(ELedgeTransition transition);
+	TEnumAsByte<ECollisionChannel> GetTraceChannel() const { return TraceChannel; }
+	float GetTraceRadius() const { return TraceRadius; }
+	float GetForwardRange() const { return ForwardRange; }
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -97,11 +115,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool IsTransitioning() const { return mTransitioning; }
 
-	UFUNCTION(BlueprintCallable)
-	void DropLedge();
-
 protected:
-	virtual void DrawDebugInfo() override;
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
@@ -111,7 +125,10 @@ protected:
 	void OnEndOverlap(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex);
 
 	UFUNCTION()
-	void StopLerping();
+	void EndTransition();
+
+	UFUNCTION(BlueprintCallable)
+	void DropLedge();
 
 private:
 	bool ShouldGrabLedge(const FVector& ledgeHeight) const;
@@ -129,10 +146,13 @@ private:
 	bool mTransitioning = false;
 	bool mLerping = false;
 	bool mLaunchingFromLedge = false;
+	bool mWantsAttack = false;
 	int32 mNumOverlaps = 0;
 	FVector mLerpTarget = FVector::ZeroVector;
 	FVector mLastGrabLedgeNormal = FVector::ZeroVector;
 	FVector mLastLedgeHeight = FVector::ZeroVector;
 	TWeakObjectPtr<class ACharacter> mCharacterOwner = nullptr;
-	FTimerHandle mLaunchingTimerHandle;
+	TWeakObjectPtr<class ULedgeComponent> mCurrentLedge = nullptr;
+	FTimerHandle mTimerHandle_Launching;
+	FTimerHandle mTimerHandle_GrabBlock;	
 };

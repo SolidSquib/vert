@@ -23,6 +23,7 @@ class VERT_API UHealthComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+	friend class AVertCharacterBase;
 	friend class AVertCharacter;
 
 public:
@@ -82,7 +83,6 @@ protected:
 private:
 	void SetDamageTaken(int32 totalDamage);
 	void SetPlayerStateDamageTaken();
-	void LaunchCharacter(const FDamageEvent& damageEvent, const ABaseWeapon* damageCauser);
 
 private:
 	bool mIsDead = false;
@@ -92,4 +92,5 @@ private:
 	float mLastTakeHitTimeTimeout; /** Time at which point the last take hit info for the actor times out and won't be replicated; Used to stop join-in-progress effects all over the screen */
 	FTimerHandle mUpdateShownDamageTakenTimer;
 	TWeakObjectPtr<ACharacter> mCharacterOwner = nullptr;
+	TMap<AController*, FTimerHandle> mRecentHitters;
 };

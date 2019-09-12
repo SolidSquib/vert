@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<WwiseDocument Type="WorkUnit" ID="{DC6233FC-8BBF-493F-A77D-FE332450D839}" SchemaVersion="75">
+<WwiseDocument Type="WorkUnit" ID="{A3EF662B-9AC7-4897-8DDB-009EBA1D32F2}" SchemaVersion="75">
 	<Switches>
-		<WorkUnit Name="Default Work Unit" ID="{DC6233FC-8BBF-493F-A77D-FE332450D839}" PersistMode="Standalone"/>
+		<WorkUnit Name="Default Work Unit" ID="{A3EF662B-9AC7-4897-8DDB-009EBA1D32F2}" PersistMode="Standalone">
+			<ChildrenList>
+				<SwitchGroup Name="All_Music" ID="{49DE0912-14D3-4EBA-A348-8B700BFB4522}">
+					<ChildrenList>
+						<Switch Name="Garden_Of_Eden_Tier_0" ID="{279F9ACF-3D05-4C47-8E9C-6B7B0C18178C}"/>
+						<Switch Name="Garden_Of_Eden_Tier_1" ID="{6D2084B5-4739-42DE-BD47-F06D696CE06D}"/>
+						<Switch Name="Garden_Of_Eden_Tier_2" ID="{C5F24867-A6A3-4AD9-B16C-9F56138AEB1C}"/>
+						<Switch Name="Garden_Of_Eden_Tier_3" ID="{67F3206E-D2EB-4D3F-9C8D-910C727810B7}"/>
+						<Switch Name="Garden_Of_Eden_Tier_4" ID="{DCF0B6CC-E8C9-489C-8E37-DC33D2591C77}"/>
+						<Switch Name="Garden_Of_Eden_Tier_5" ID="{C72F0456-4F89-4984-AE51-804CE0793979}"/>
+						<Switch Name="Garden_Of_Eden_Tier_6" ID="{F21FFD37-9C07-4587-8A3F-05C8EF5B0C7C}"/>
+						<Switch Name="Garden_Of_Eden_Tier_7" ID="{DAFF5206-B1E7-4F05-BFEC-191C09EC67A2}"/>
+						<Switch Name="Title_Theme" ID="{0FC93E18-3B83-4255-BEF5-564C212981D8}"/>
+						<Switch Name="Garden_Of_Eden_Tier_10" ID="{8A57C7B2-F7CA-4495-9D2F-28E8BE3B1463}"/>
+						<Switch Name="Results" ID="{B75612BB-E7E3-4A7D-AA87-EEF12BAA865A}"/>
+					</ChildrenList>
+				</SwitchGroup>
+			</ChildrenList>
+		</WorkUnit>
 	</Switches>
 </WwiseDocument>

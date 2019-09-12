@@ -1,6 +1,8 @@
 // Copyright Inside Out Games Ltd. 2017
 
 #include "DashingComponent.h"
+#include "VertCharacterMovementComponent.h"
+#include "AkAudio/Classes/AkGameplayStatics.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogDashingComponent, Log, All);
 
@@ -21,21 +23,38 @@ void UDashingComponent::BeginPlay()
 
 	mRemainingDashes = MaxDashes;
 	RechargeTimer.BindAlarm(this, TEXT("RechargeTimerEnded"));
-	DashTimer.BindAlarm(this, TEXT("DashTimerEnded"));
-	CooldownTimer.BindAlarm(this, TEXT("CooldownEnded"));
-	AirSlowdownTimer.BindAlarm(this, TEXT("AirSlowdownTimerEnded"));
 }
 
 // Called every frame
 void UDashingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	UpdateRechargeState();
-	DashTimer.TickTimer(DeltaTime);
 	RechargeTimer.TickTimer(DeltaTime);
-	CooldownTimer.TickTimer(DeltaTime);
-	AirSlowdownTimer.TickTimer(DeltaTime);
+
+	if (mIsDashing && mCharacterOwner.IsValid())
+	{
+		UCharacterMovementComponent* movement = mCharacterOwner->GetCharacterMovement();
+		if (movement->MovementMode == MOVE_Custom && movement->CustomMovementMode == static_cast<uint8>(ECustomMovementMode::MOVE_GrappleWalk))
+		{
+			if (mCharacterOwner->GetGrapplingComponent())
+			{
+				float cos = FVector::DotProduct(mCurrentDashDirection, mCharacterOwner->GetGrapplingComponent()->GetLineDirection());
+				if (cos < 0)
+				{
+					movement->SetMovementMode(MOVE_Custom, static_cast<uint8>(ECustomMovementMode::MOVE_GrappleFall));
+				}				
+			}
+		}
+	}
 }
 
+//************************************
+// Method:    OnLanded
+// FullName:  UDashingComponent::OnLanded
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
 void UDashingComponent::OnLanded()
 {
 	if (RecieveChargeOnGroundOnly)
@@ -44,7 +63,33 @@ void UDashingComponent::OnLanded()
 	}
 }
 
-bool UDashingComponent::ExecuteGroundDash(FVector& outDirection)
+//************************************
+// Method:    StopDashing
+// FullName:  UDashingComponent::StopDashing
+// Access:    public 
+// Returns:   void
+// Qualifier:
+//************************************
+void UDashingComponent::StopDashing()
+{
+	// Stop the dash early if it's in active state.
+	if (GetWorld()->GetTimerManager().IsTimerActive(mTimerHandle_Dash))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(mTimerHandle_Dash);
+		DashTimerEnded();
+	}
+}
+
+
+//************************************
+// Method:    ExecuteGroundDash
+// FullName:  UDashingComponent::ExecuteGroundDash
+// Access:    public 
+// Returns:   bool
+// Qualifier:
+// Parameter: FVector & outDirection
+//************************************
+bool UDashingComponent::ExecuteDash(FVector& outDirection)
 {
 	if (CanDash())
 	{
@@ -57,10 +102,34 @@ bool UDashingComponent::ExecuteGroundDash(FVector& outDirection)
 		mIsDashing = mIsGroundDash = true;
 		mRemainingDashes = FMath::Max(0, mRemainingDashes - 1);
 
-		mCharacterOwner->GetVertCharacterMovement()->DisableGroundFriction();
+		mCharacterOwner->GetVertCharacterMovement()->SetDashFrictionForTime(DashTimer.EndTime);
 		mCharacterOwner->GetCharacterMovement()->AddImpulse(LaunchForce*outDirection);
 
-		DashTimer.Start();
+		mCurrentDashDirection = outDirection;
+
+		GetWorld()->GetTimerManager().SetTimer(mTimerHandle_Dash, this, &UDashingComponent::DashTimerEnded, DashTimer.EndTime, false);
+
+		if (UCharacterMovementComponent* movement = mCharacterOwner->GetCharacterMovement())
+		{
+			if (movement->MovementMode == MOVE_Custom && movement->CustomMovementMode == static_cast<uint8>(ECustomMovementMode::MOVE_GrappleWalk))
+			{
+				if (mCharacterOwner->GetGrapplingComponent())
+				{
+					float cos = FVector::DotProduct(outDirection, mCharacterOwner->GetGrapplingComponent()->GetLineDirection());
+					if(cos < 0)
+						movement->SetMovementMode(MOVE_Custom, static_cast<uint8>(ECustomMovementMode::MOVE_GrappleFall));
+				}
+				else
+				{
+					movement->SetMovementMode(MOVE_Custom, static_cast<uint8>(ECustomMovementMode::MOVE_GrappleFall));
+				}
+			}
+		}
+
+		if (DashSound)
+		{
+			UAkGameplayStatics::PostEvent(DashSound, GetOwner(), false);
+		}
 
 		UE_LOG(LogDashingComponent, Log, TEXT("Dash successfully started by actor [%s]"), *GetOwner()->GetName());
 		return true;
@@ -69,53 +138,13 @@ bool UDashingComponent::ExecuteGroundDash(FVector& outDirection)
 	return false;
 }
 
-bool UDashingComponent::ExecuteGrappleDash(FVector& outDirecton)
-{
-	constexpr float direction_threshold = 0.7f;
-
-	if (CanDash())
-	{
-		FVector hookDirection = mCharacterOwner->GetGrapplingComponent()->GetLineDirection();
-
-		outDirecton = FindLaunchDirection();
-		float dot = FVector::DotProduct(outDirecton, hookDirection);
-		FVector rightVector = FVector::CrossProduct(hookDirection, FVector::RightVector);
-		float dotRight = FVector::DotProduct(outDirecton, rightVector);
-
-		if (dot > direction_threshold)
-		{
-			mCharacterOwner->GetGrapplingComponent()->Reset();
-			mIsGroundDash = true;
-			mCharacterOwner->GetCharacterMovement()->AddImpulse(LaunchForce*hookDirection);
-
-			UE_LOG(LogDashingComponent, Log, TEXT("[%s] attempted dash towards grapple hook."), *GetName());
-		}
-		else if (dot < -direction_threshold)
-		{
-			mIsGroundDash = false;
-			mCharacterOwner->GetCharacterMovement()->AddImpulse(LaunchForce* -hookDirection);
-
-			UE_LOG(LogDashingComponent, Log, TEXT("[%s] attempted dash away from grapple hook."), *GetName());
-		}
-		else// if (FMath::Abs(dotRight) > KINDA_SMALL_NUMBER)
-		{			
-			mIsGroundDash = false;
-			mCharacterOwner->GetCharacterMovement()->AddImpulse(LaunchForce*((dotRight > 0) ? rightVector : -rightVector));
-
-			UE_LOG(LogDashingComponent, Log, TEXT("[%s] attempted lateral dash while grappled."), *GetName());
-		}
-
-		mIsDashing = true;
-		mRemainingDashes = FMath::Max(0, mRemainingDashes - 1);
-		DashTimer.Start();
-
-		UE_LOG(LogDashingComponent, Log, TEXT("Dash successfully started by actor [%s]"), *GetOwner()->GetName());
-		return true;
-	}
-
-	return false;
-}
-
+//************************************
+// Method:    UpdateRechargeState
+// FullName:  UDashingComponent::UpdateRechargeState
+// Access:    private 
+// Returns:   void
+// Qualifier:
+//************************************
 void UDashingComponent::UpdateRechargeState()
 {
 	if (mRemainingDashes < MaxDashes && RechargeTimer.GetAlarmBacklog() < (MaxDashes - mRemainingDashes))
@@ -126,6 +155,13 @@ void UDashingComponent::UpdateRechargeState()
 	}
 }
 
+//************************************
+// Method:    RechargeTimerEnded
+// FullName:  UDashingComponent::RechargeTimerEnded
+// Access:    private 
+// Returns:   void
+// Qualifier:
+//************************************
 void UDashingComponent::RechargeTimerEnded()
 {
 	if (!RecieveChargeOnGroundOnly || mCharacterOwner->IsGrounded())
@@ -133,40 +169,47 @@ void UDashingComponent::RechargeTimerEnded()
 	RechargeTimer.Reset();
 }
 
+//************************************
+// Method:    DashTimerEnded
+// FullName:  UDashingComponent::DashTimerEnded
+// Access:    private 
+// Returns:   void
+// Qualifier:
+//************************************
 void UDashingComponent::DashTimerEnded()
 {
 	mIsDashing = false;
 	OnDashEnd.Broadcast();
 
-	mCharacterOwner->GetVertCharacterMovement()->EnableGroundFriction();
-
 	mOnCooldown = true;
+	mCurrentDashDirection = FVector::ZeroVector;
 
 	DashTimer.Reset();
 
-	if (mIsGroundDash && !mCharacterOwner->IsGrounded())
-	{
-		mCharacterOwner->GetVertCharacterMovement()->AlterAirLateralFriction(AirSlowdownFriction);
-		AirSlowdownTimer.Start();
-	}
-
-	CooldownTimer.Start();
+	GetWorld()->GetTimerManager().SetTimer(mTimerHandle_Cooldown, this, &UDashingComponent::CooldownEnded, CooldownTimer.EndTime, false);
 
 	UE_LOG(LogDashingComponent, Log, TEXT("Dash ended for actor [%s]"), *GetOwner()->GetName());
 }
 
+//************************************
+// Method:    CooldownEnded
+// FullName:  UDashingComponent::CooldownEnded
+// Access:    private 
+// Returns:   void
+// Qualifier:
+//************************************
 void UDashingComponent::CooldownEnded()
 {
 	mOnCooldown = false;
-	CooldownTimer.Reset();
 }
 
-void UDashingComponent::AirSlowdownTimerEnded()
-{
-	mCharacterOwner->GetVertCharacterMovement()->ResetAirLateralFriction();
-	AirSlowdownTimer.Reset();
-}
-
+//************************************
+// Method:    FindLaunchDirection
+// FullName:  UDashingComponent::FindLaunchDirection
+// Access:    private 
+// Returns:   FVector
+// Qualifier:
+//************************************
 FVector UDashingComponent::FindLaunchDirection()
 {
 	FVector launchDirection = FVector::ZeroVector;
@@ -180,6 +223,13 @@ FVector UDashingComponent::FindLaunchDirection()
 	return launchDirection;
 }
 
+//************************************
+// Method:    FindLimitedLaunchDirection
+// FullName:  UDashingComponent::FindLimitedLaunchDirection
+// Access:    private 
+// Returns:   FVector
+// Qualifier:
+//************************************
 FVector UDashingComponent::FindLimitedLaunchDirection()
 {
 	return UVertUtilities::LimitAimTrajectory(AimFreedom, FindLaunchDirection());

@@ -15,16 +15,13 @@ AWeaponProjectile::AWeaponProjectile(const FObjectInitializer& ObjectInitializer
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CollisionComp->SetCollisionObjectType(ECC_WeaponProjectile);
 	CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+	CollisionComp->bGenerateOverlapEvents = true;
 	CollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 	CollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
 	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+	CollisionComp->SetCanEverAffectNavigation(false);
 	RootComponent = CollisionComp;
-
-	ParticleComp = ObjectInitializer.CreateDefaultSubobject<UParticleSystemComponent>(this, TEXT("ParticleComp"));
-	ParticleComp->bAutoActivate = false;
-	ParticleComp->bAutoDestroy = false;
-	ParticleComp->SetupAttachment(RootComponent);
-
+	
 	MovementComp = ObjectInitializer.CreateDefaultSubobject<UProjectileMovementComponent>(this, TEXT("ProjectileComp"));
 	MovementComp->UpdatedComponent = CollisionComp;
 	MovementComp->InitialSpeed = 2000.0f;
@@ -32,12 +29,10 @@ AWeaponProjectile::AWeaponProjectile(const FObjectInitializer& ObjectInitializer
 	MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->ProjectileGravityScale = 0.f;
 	MovementComp->bInitialVelocityInLocalSpace = false;
+	MovementComp->SetCanEverAffectNavigation(false);
+	
+	LifeSpanPool = 3.f;
 
-	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
-	MeshComponent->SetupAttachment(RootComponent);
-
-	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.TickGroup = TG_PrePhysics;
 	SetRemoteRoleForBackwardsCompat(ROLE_SimulatedProxy);
 	bReplicates = true;
 	bReplicateMovement = true;
@@ -46,20 +41,81 @@ AWeaponProjectile::AWeaponProjectile(const FObjectInitializer& ObjectInitializer
 void AWeaponProjectile::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
+	FScriptDelegate pooledBeginPlay;
+	pooledBeginPlay.BindUFunction(this, TEXT("PoolBeginPlay"));
+	OnPoolBeginPlay.Add(pooledBeginPlay);
+
+	FScriptDelegate pooledEndPlay;
+	pooledEndPlay.BindUFunction(this, TEXT("PoolEndPlay"));
+	OnPoolEndPlay.Add(pooledEndPlay);
+
 	MovementComp->OnProjectileStop.AddDynamic(this, &AWeaponProjectile::OnImpact);
-	CollisionComp->MoveIgnoreActors.Add(Instigator);
-
-	AProjectileRangedWeapon* OwnerWeapon = Cast<AProjectileRangedWeapon>(GetOwner());
-	if (OwnerWeapon)
-	{
-		OwnerWeapon->ApplyWeaponConfig(mWeaponConfig);
-	}
-
-	SetLifeSpan(mWeaponConfig.ProjectileLife);
-	mController = GetInstigatorController();
+	CollisionComp->OnComponentHit.AddDynamic(this, &AWeaponProjectile::OnCollisionHit);
 }
 
-void AWeaponProjectile::InitVelocity(FVector& ShootDirection)
+//************************************
+// Method:    PoolBeginPlay
+// FullName:  AWeaponProjectile::PoolBeginPlay
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AWeaponProjectile::PoolBeginPlay()
+{
+	if (AVertLevelScriptActor* level = Cast<AVertLevelScriptActor>(GetWorld()->GetLevelScriptActor()))
+	{
+		MovementComp->SetPlaneConstraintNormal(FVector::RightVector);
+		MovementComp->SetPlaneConstraintOrigin(level->GetPlaneConstraintOrigin());
+		MovementComp->SetPlaneConstraintEnabled(true);
+		MovementComp->SnapUpdatedComponentToPlane();
+	}
+
+	MovementComp->Activate();
+	MovementComp->SetUpdatedComponent(CollisionComp);
+}
+
+//************************************
+// Method:    PoolEndPlay
+// FullName:  AWeaponProjectile::PoolEndPlay
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AWeaponProjectile::PoolEndPlay()
+{
+	CollisionComp->MoveIgnoreActors.Empty();
+
+	MovementComp->StopMovementImmediately();
+	MovementComp->Deactivate();
+
+	Instigator = nullptr;
+	SetOwner(nullptr);
+
+	mController = nullptr;
+}
+
+//************************************
+// Method:    LifeSpanExpired
+// FullName:  AWeaponProjectile::LifeSpanExpired
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+//************************************
+void AWeaponProjectile::LifeSpanExpired()
+{
+	ReturnToPool(); // Return to object pool instead of destroying this object
+}
+
+//************************************
+// Method:    InitVelocity
+// FullName:  AWeaponProjectile::InitVelocity
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: FVector & ShootDirection
+//************************************
+void AWeaponProjectile::InitVelocity(const FVector& ShootDirection)
 {
 	if (MovementComp)
 	{		
@@ -67,6 +123,39 @@ void AWeaponProjectile::InitVelocity(FVector& ShootDirection)
 	}
 }
 
+//************************************
+// Method:    InitProjectileConfig
+// FullName:  AWeaponProjectile::InitProjectileConfig
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: const FProjectileWeaponData & weaponData
+// Parameter: int32 baseDamage
+// Parameter: float baseKnockback
+// Parameter: float knockbackScaling
+//************************************
+void AWeaponProjectile::InitProjectile(const FProjectileWeaponData& weaponData, int32 baseDamage, float baseKnockback, float knockbackScaling, float stunTime)
+{
+	mWeaponConfig = weaponData;
+	mWeaponConfig.BaseDamage = baseDamage;
+	mWeaponConfig.BaseKnockback = baseKnockback;
+	mWeaponConfig.KnockbackScaling = knockbackScaling;
+	mWeaponConfig.StunTime = stunTime;
+
+	SetLifeSpan(mWeaponConfig.ProjectileLife);
+	mController = GetInstigatorController();
+
+	CollisionComp->MoveIgnoreActors.Add(Instigator);
+}
+
+//************************************
+// Method:    OnImpact_Implementation
+// FullName:  AWeaponProjectile::OnImpact_Implementation
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: const FHitResult & HitResult
+//************************************
 void AWeaponProjectile::OnImpact_Implementation(const FHitResult& HitResult)
 {
 	if (Role == ROLE_Authority && !bExploded)
@@ -80,19 +169,42 @@ void AWeaponProjectile::OnImpact_Implementation(const FHitResult& HitResult)
 	}	
 }
 
+//************************************
+// Method:    OnCollisionHit
+// FullName:  AWeaponProjectile::OnCollisionHit
+// Access:    public 
+// Returns:   void
+// Qualifier:
+// Parameter: UPrimitiveComponent * hitComponent
+// Parameter: AActor * otherActor
+// Parameter: UPrimitiveComponent * otherComp
+// Parameter: FVector normalImpulse
+// Parameter: const FHitResult & hit
+//************************************
+void AWeaponProjectile::OnCollisionHit_Implementation(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrimitiveComponent* otherComp, FVector normalImpulse, const FHitResult& hit)
+{
+	if (!MovementComp->bShouldBounce)
+	{
+		OnImpact(hit);
+	}
+}
+
+//************************************
+// Method:    Explode
+// FullName:  AWeaponProjectile::Explode
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const FHitResult & Impact
+//************************************
 void AWeaponProjectile::Explode(const FHitResult& Impact)
 {
-	if (ParticleComp)
-	{
-		ParticleComp->Deactivate();
-	}
-
 	// effects and damage origin shouldn't be placed inside mesh at impact point
 	const FVector NudgedImpactLocation = Impact.ImpactPoint + Impact.ImpactNormal * 10.0f;
 
-	if (BaseDamage > 0 && mWeaponConfig.DamageType && mWeaponConfig.ExplosionRadius > 0)
+	if (mWeaponConfig.BaseDamage > 0 && mWeaponConfig.DamageType && mWeaponConfig.ExplosionRadius > 0)
 	{
-		UGameplayStatics::ApplyRadialDamage(this, BaseDamage, NudgedImpactLocation, mWeaponConfig.ExplosionRadius, mWeaponConfig.DamageType, TArray<AActor*>(), this, mController.Get());
+		UVertUtilities::VERT_ApplyRadialDamage(this, mWeaponConfig.BaseDamage, mWeaponConfig.BaseKnockback, mWeaponConfig.KnockbackScaling, mWeaponConfig.StunTime, NudgedImpactLocation, mWeaponConfig.ExplosionRadius, mWeaponConfig.DamageType, TArray<AActor*>(), this, mController.Get());
 	}
 
 	if (ExplosionTemplate)
@@ -109,20 +221,46 @@ void AWeaponProjectile::Explode(const FHitResult& Impact)
 	bExploded = true;
 }
 
+//************************************
+// Method:    ApplyPointDamage
+// FullName:  AWeaponProjectile::ApplyPointDamage
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const FHitResult & impact
+//************************************
 void AWeaponProjectile::ApplyPointDamage(const FHitResult& impact)
 {
-	ABaseWeapon* firedFrom = Cast<ABaseWeapon>(GetOwner());
+	if (impact.Actor.IsValid())
+	{
+		ABaseWeapon* firedFrom = Cast<ABaseWeapon>(GetOwner());
 
-	FPointDamageEvent PointDmg;
-	PointDmg.DamageTypeClass = mWeaponConfig.DamageType;
-	PointDmg.HitInfo = impact;
-	PointDmg.ShotDirection = MovementComp->Velocity.GetSafeNormal();
-	PointDmg.Damage = firedFrom ? firedFrom->GetBaseDamage() : 0;
+		FVertPointDamageEvent PointDmg;
+		PointDmg.DamageTypeClass = mWeaponConfig.DamageType;
+		PointDmg.HitInfo = impact;
+		PointDmg.ShotDirection = -impact.ImpactNormal;
+		PointDmg.Damage = mWeaponConfig.BaseDamage + (firedFrom ? firedFrom->GetBonusDamage() : 0);
+		PointDmg.Knockback = mWeaponConfig.BaseKnockback + (firedFrom ? firedFrom->GetBonusKnockback() : 0);
+		PointDmg.KnockbackScaling = mWeaponConfig.KnockbackScaling;
+		PointDmg.StunTime = mWeaponConfig.StunTime;
 
-	ACharacter* instigatingCharacter = Cast<ACharacter>(Instigator);
-	impact.GetActor()->TakeDamage(PointDmg.Damage, PointDmg, instigatingCharacter ? instigatingCharacter->Controller : nullptr, this);
+		ACharacter* instigatingCharacter = Cast<ACharacter>(Instigator);
+		impact.GetActor()->TakeDamage(
+			PointDmg.Damage,
+			PointDmg,
+			instigatingCharacter ? instigatingCharacter->Controller : nullptr,
+			this
+		);
+	}	
 }
 
+//************************************
+// Method:    DisableAndDestroy
+// FullName:  AWeaponProjectile::DisableAndDestroy
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AWeaponProjectile::DisableAndDestroy()
 {
 	UAudioComponent* ProjAudioComp = FindComponentByClass<UAudioComponent>();
@@ -134,10 +272,20 @@ void AWeaponProjectile::DisableAndDestroy()
 	MovementComp->StopMovementImmediately();
 
 	// give clients some time to show explosion
-	SetLifeSpan(2.0f);
+	if (mWeaponConfig.IsExplosive)
+		SetLifeSpan(2.0f);
+	else
+		ReturnToPool();
 }
 
 ///CODE_SNIPPET_START: AActor::GetActorLocation AActor::GetActorRotation
+//************************************
+// Method:    OnRep_Exploded
+// FullName:  AWeaponProjectile::OnRep_Exploded
+// Access:    protected 
+// Returns:   void
+// Qualifier:
+//************************************
 void AWeaponProjectile::OnRep_Exploded()
 {
 	FVector ProjDirection = GetActorForwardVector();
@@ -157,6 +305,14 @@ void AWeaponProjectile::OnRep_Exploded()
 }
 ///CODE_SNIPPET_END
 
+//************************************
+// Method:    PostNetReceiveVelocity
+// FullName:  AWeaponProjectile::PostNetReceiveVelocity
+// Access:    virtual protected 
+// Returns:   void
+// Qualifier:
+// Parameter: const FVector & NewVelocity
+//************************************
 void AWeaponProjectile::PostNetReceiveVelocity(const FVector& NewVelocity)
 {
 	if (MovementComp)
@@ -165,6 +321,14 @@ void AWeaponProjectile::PostNetReceiveVelocity(const FVector& NewVelocity)
 	}
 }
 
+//************************************
+// Method:    GetLifetimeReplicatedProps
+// FullName:  AWeaponProjectile::GetLifetimeReplicatedProps
+// Access:    public 
+// Returns:   void
+// Qualifier: const
+// Parameter: TArray< FLifetimeProperty > & OutLifetimeProps
+//************************************
 void AWeaponProjectile::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

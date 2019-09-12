@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<WwiseDocument Type="WorkUnit" ID="{7C649F63-C716-4290-B43D-D6AA63A609A4}" SchemaVersion="75">
+<WwiseDocument Type="WorkUnit" ID="{0D0675DA-4A2B-479C-A066-F6F3CE1E673D}" SchemaVersion="75">
 	<SoundBanks>
-		<WorkUnit Name="Default Work Unit" ID="{7C649F63-C716-4290-B43D-D6AA63A609A4}" PersistMode="Standalone"/>
+		<WorkUnit Name="Default Work Unit" ID="{0D0675DA-4A2B-479C-A066-F6F3CE1E673D}" PersistMode="Standalone">
+			<ChildrenList>
+				<SoundBank Name="Main" ID="{3539F6DB-8ACB-4B63-A362-4DB760F43654}">
+					<ObjectInclusionList>
+						<ObjectRef Name="User Interface Sounds" ID="{0FE0C82A-13A4-4402-87E8-BE028CA09AEE}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}" Filter="7" Origin="Manual"/>
+						<ObjectRef Name="Weapons_Ammo_Mellee" ID="{17C6A273-3421-458A-A6DD-8086BBA8B007}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}" Filter="7" Origin="Manual"/>
+						<ObjectRef Name="Rhino" ID="{2504F4AF-9644-47A1-8DD3-373717FF78C2}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}" Filter="7" Origin="Manual"/>
+						<ObjectRef Name="Voice Over" ID="{D82833A3-E1A0-4AD6-A17B-299B3A141BAF}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}" Filter="7" Origin="Manual"/>
+						<ObjectRef Name="Player Character" ID="{643F67FE-7B18-4C27-809A-3FFECD3ACC38}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}" Filter="7" Origin="Manual"/>
+						<ObjectRef Name="Audience SFX" ID="{91C027E5-4994-4DA2-A908-C9F1F1EF33EA}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}" Filter="7" Origin="Manual"/>
+						<ObjectRef Name="Gorilla" ID="{AE49102D-AFF5-4EFF-BB6A-C9164DDB7DA3}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}" Filter="7" Origin="Manual"/>
+						<ObjectRef Name="Soundtrack" ID="{C333E76D-6274-4FFF-B7EA-BF3883912B9A}" WorkUnitID="{BF3DA7DA-6CBB-449E-BA1F-3AF6075D3091}" Filter="7" Origin="Manual"/>
+					</ObjectInclusionList>
+					<ObjectExclusionList/>
+					<GameSyncExclusionList/>
+				</SoundBank>
+			</ChildrenList>
+		</WorkUnit>
 	</SoundBanks>
 </WwiseDocument>

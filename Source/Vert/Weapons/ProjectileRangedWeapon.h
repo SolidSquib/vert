@@ -9,11 +9,7 @@ USTRUCT()
 struct FProjectileWeaponData
 {
 	GENERATED_USTRUCT_BODY()
-
-	/** projectile class */
-	UPROPERTY(EditDefaultsOnly, Category = Projectile)
-	TSubclassOf<class AWeaponProjectile> ProjectileClass;
-
+		
 	/** life time */
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
 	float ProjectileLife;
@@ -29,14 +25,29 @@ struct FProjectileWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 	TSubclassOf<UDamageType> DamageType;
 
+	UPROPERTY()
+	int32 BaseDamage;
+
+	UPROPERTY()
+	float BaseKnockback;
+
+	UPROPERTY()
+	float KnockbackScaling;
+
+	UPROPERTY()
+	float StunTime;
+
 	/** defaults */
 	FProjectileWeaponData()
 	{
-		ProjectileClass = NULL;
 		ProjectileLife = 10.0f;
 		IsExplosive = true;
 		ExplosionRadius = 300.0f;
 		DamageType = UDamageType::StaticClass();
+		BaseDamage = 100;
+		BaseKnockback = 100.f;
+		KnockbackScaling = 0.2f;
+		StunTime = 0;
 	}
 };
 
@@ -51,12 +62,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Config)
 	FProjectileWeaponData ProjectileConfig;
 
+	UPROPERTY(EditDefaultsOnly, Category = "ProjectilePool")
+	TSubclassOf<AWeaponProjectile> ProjectileClass;
+
 public:
-	void ApplyWeaponConfig(FProjectileWeaponData& Data); /** apply config on projectile */
+	TSubclassOf<AWeaponProjectile> GetProjectileClass() const;
 
 protected:
 	virtual bool AttackWithWeapon_Implementation() override; /** [local] weapon specific fire implementation */
-	virtual UClass* GetWeaponType_Implementation() const override;
 
 	/** spawn projectile on server */
 	UFUNCTION(BlueprintCallable, reliable, server, WithValidation)

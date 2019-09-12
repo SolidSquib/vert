@@ -109,7 +109,9 @@ FVector ARangedWeapon::GetMuzzleLocation() const
 //************************************
 FVector ARangedWeapon::GetMuzzleDirection() const
 {
-	return WeaponMesh->GetSocketRotation(MuzzleAttachPoint).Vector();
+	FVector muzzleDirection = WeaponMesh->GetSocketRotation(MuzzleAttachPoint).Vector();
+	muzzleDirection.Y = 0;
+	return muzzleDirection.GetSafeNormal();
 }
 
 //************************************
@@ -125,13 +127,25 @@ FVector ARangedWeapon::GetAdjustedAim() const
 	{
 		if (AVertCharacter* character = Cast<AVertCharacter>(Instigator))
 		{
-			return character->GetActorForwardVector().GetSafeNormal();
+			FVector direction = character->GetActorForwardVector().GetSafeNormal();
+			direction.Y = 0;
+			return direction;
 		}
 
 		UE_LOG(LogVertBaseWeapon, Warning, TEXT("Unable to get owning character of weapon %s"), *GetName());
 	}
 
 	return GetMuzzleDirection();
+}
+
+void ARangedWeapon::StartReload(bool bFromReplication /*= false*/)
+{
+	Super::StartReload(bFromReplication);
+
+	if (ReloadSound)
+	{
+		UAkGameplayStatics::PostEvent(ReloadSound, GetPawnOwner(), false);
+	}
 }
 
 //************************************
@@ -151,26 +165,10 @@ FVector ARangedWeapon::GetShootDirectionAfterSpread(const FVector& aimDirection,
 	outCurrentSpread = GetCurrentSpread();
 	const float ConeHalfAngle = FMath::DegreesToRadians(outCurrentSpread * 0.5f);
 
-#if 1
 	FVector newDirection = WeaponRandomStream.VRandCone(aimDirection, ConeHalfAngle, ConeHalfAngle);
 	newDirection.Y = 0.f;
 
 	return newDirection;
-#else
-	return WeaponRandomStream.VRandCone(aimDirection, ConeHalfAngle, ConeHalfAngle);
-#endif
-}
-
-//************************************
-// Method:    GetRecoilAnim
-// FullName:  GetRecoilAnim
-// Access:    public 
-// Returns:   UAnimSequence*
-// Qualifier: const
-//************************************
-UAnimSequence* ARangedWeapon::GetRecoilAnim() const
-{
-	return RecoilAnim.PlayerAnim;
 }
 
 //************************************
